@@ -61,10 +61,19 @@ each time it opens:
   format); the launcher reads it just far enough to get the world's display
   name and the "last played" timestamp, and measures the folder size.
   "Save to Device" zips the folder to a location the player chooses.
+  Worlds can also be **imported**: a folder with a `level.dat`, or a zip
+  with `level.dat` at its root or inside one top-level folder (the shape the
+  game's backups and "Save to Device" produce). The archive is unpacked into
+  `saves/<name>` — `<name> (2)` if that folder already exists — and entries
+  that would escape the folder (`../`) are refused. Deleting a world removes
+  the folder.
 - **Screenshots** are the PNG files in `screenshots/`. Thumbnails are served
   to the window through an internal URL (`/media/…`) that the Go side maps to
-  the file, so images are not copied or encoded. "Save to Device" copies the
-  file.
+  the file, so images are not copied or encoded. Clicking a thumbnail shows
+  it full size; "Save to Device" copies the file.
+- **Open folder** buttons (side card, Worlds and Screenshots tabs, and the
+  crash dialog) hand the folder to the OS file manager — `xdg-open` on
+  Linux, `open` on macOS, `explorer` on Windows.
 - **Resource packs** are zip files or folders in `resourcepacks/`. When one
   is dropped or picked, the launcher checks that it contains a `pack.mcmeta`
   before copying it in, so a random zip cannot end up in the list.
