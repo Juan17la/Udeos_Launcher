@@ -1,9 +1,13 @@
 package main
 
-// InstallVersion downloads a version and its Java runtime without starting it.
-// Progress arrives through the "install:progress" event.
-func (a *App) InstallVersion(id string) error {
-	_, _, err := a.launcher.Prepare(a.ctx, id)
+// InstallInstance downloads everything an instance needs (game, Java, mod
+// loader) without starting it. Progress arrives through the "install:progress" event.
+func (a *App) InstallInstance(id string) error {
+	inst, err := a.launcher.Instances.Get(id)
+	if err != nil {
+		return err
+	}
+	_, _, err = a.launcher.Prepare(a.ctx, inst)
 	return err
 }
 

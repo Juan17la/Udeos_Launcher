@@ -5,7 +5,8 @@ import (
 	"syscall"
 )
 
-// hideConsole stops a console window from flashing up behind the game.
-func hideConsole(cmd *exec.Cmd) {
+// HideConsole stops a console window from flashing up behind the game (or
+// behind a headless installer run).
+func HideConsole(cmd *exec.Cmd) {
 	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
 }

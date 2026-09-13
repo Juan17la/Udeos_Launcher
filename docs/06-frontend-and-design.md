@@ -35,15 +35,18 @@ with CSS. The real frontend keeps exactly those pieces:
 - **Dashboard**: a card per instance (icon, name, version, loader, counts of
   packs and worlds, Play and Manage) and a "Last played" panel on the right
   with a big Play button. Mods counts only appear for non-vanilla instances.
-- **Create instance**: name, version from Mojang's list (releases by default,
-  a checkbox reveals snapshots and old versions), the loader choice (Forge
-  and Fabric are shown but disabled until supported) and the icon grid.
+- **Create instance**: name, the loader choice (Vanilla, Forge, Fabric),
+  version from Mojang's list (releases by default, a checkbox reveals
+  snapshots and old versions; with a loader picked only the versions it
+  supports are offered and a note names the build that will be installed)
+  and the icon grid.
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
   Open folder, Delete with confirmation) and the tabs. A vanilla instance
   shows Resource Packs, Worlds and Screenshots; Mods and Shaders appear only
-  for modded instances. Worlds and Resource Packs share the same drop zone
-  pattern (drag a file onto the window, or Browse); each row has Save to
-  Device and a Remove button that asks for confirmation. Screenshots open
+  for modded instances. Worlds, Resource Packs, Mods and Shaders share the
+  same drop zone pattern (drag a file onto the window, or Browse) and a
+  Remove button per row; worlds also have Save to Device and ask for
+  confirmation before deleting. Screenshots open
   in a preview dialog when clicked. Every tab has an "Open folder" link.
 
 The navigation bar carries Dashboard, the disabled Search and Skin entries

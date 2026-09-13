@@ -20,14 +20,15 @@ import (
 
 // Instance is what the dashboard shows and what the launcher starts.
 type Instance struct {
-	ID          string     `json:"id"`
-	Name        string     `json:"name"`
-	Version     string     `json:"version"`
-	Loader      string     `json:"loader"` // "Vanilla" (Forge/Fabric come later)
-	Icon        string     `json:"icon"`   // pixel icon key, e.g. "grass"
-	CreatedAt   time.Time  `json:"createdAt"`
-	LastPlayed  *time.Time `json:"lastPlayed,omitempty"`
-	PlayTimeSec int64      `json:"playTimeSec"`
+	ID            string     `json:"id"`
+	Name          string     `json:"name"`
+	Version       string     `json:"version"`                 // Minecraft version, e.g. "1.20.1"
+	Loader        string     `json:"loader"`                  // "Vanilla" | "Fabric" | "Forge"
+	LoaderVersion string     `json:"loaderVersion,omitempty"` // loader build, e.g. "0.16.9" or "1.20.1-47.4.10"
+	Icon          string     `json:"icon"`                    // pixel icon key, e.g. "grass"
+	CreatedAt     time.Time  `json:"createdAt"`
+	LastPlayed    *time.Time `json:"lastPlayed,omitempty"`
+	PlayTimeSec   int64      `json:"playTimeSec"`
 }
 
 // Store persists instances.json and owns the instance directories.
@@ -91,16 +92,25 @@ func (s *Store) Get(id string) (Instance, error) {
 
 var slugRe = regexp.MustCompile(`[^a-z0-9]+`)
 
-// Create validates the input, creates the folders and saves the list.
-func (s *Store) Create(name, version, icon string) (Instance, error) {
+// Create validates the input, creates the folders and saves the list. loader
+// is "Vanilla" (loaderVersion empty) or "Fabric"/"Forge" with the build to install.
+func (s *Store) Create(name, version, loader, loaderVersion, icon string) (Instance, error) {
 	name = strings.TrimSpace(name)
 	if name == "" || version == "" {
 		return Instance{}, errors.New("name and version are required")
 	}
+	if loader == "" {
+		loader = "Vanilla"
+	}
+	if loader == "Vanilla" {
+		loaderVersion = ""
+	} else if loaderVersion == "" {
+		return Instance{}, errors.New("a " + loader + " version is required")
+	}
 	if icon == "" {
 		icon = "grass"
 	}
-	inst := Instance{ID: newID(name), Name: name, Version: version, Loader: "Vanilla", Icon: icon, CreatedAt: time.Now()}
+	inst := Instance{ID: newID(name), Name: name, Version: version, Loader: loader, LoaderVersion: loaderVersion, Icon: icon, CreatedAt: time.Now()}
 	for _, sub := range GameSubdirs {
 		if err := os.MkdirAll(filepath.Join(s.dirs.GameDir(inst.ID), sub), 0o755); err != nil {
 			return Instance{}, err

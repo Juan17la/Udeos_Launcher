@@ -18,6 +18,7 @@ import (
 	"udeos/launcher/internal/instance"
 	"udeos/launcher/internal/jre"
 	"udeos/launcher/internal/launch"
+	"udeos/launcher/internal/loader"
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/paths"
 	"udeos/launcher/internal/profile"
@@ -40,6 +41,7 @@ type Launcher struct {
 	Instances *instance.Store
 	Installer *install.Installer
 	JRE       *jre.Manager
+	Loaders   *loader.Manager
 	OnGame    func(GameEvent)
 
 	mu      sync.Mutex
@@ -57,7 +59,7 @@ func New(dirs paths.Dirs, version string, report func(download.Progress), onGame
 	}
 	return &Launcher{
 		Dirs: dirs, Version: version, Instances: store,
-		Installer: install.New(dirs, report), JRE: jre.New(dirs, report),
+		Installer: install.New(dirs, report), JRE: jre.New(dirs, report), Loaders: loader.New(dirs, report),
 		OnGame: onGame, running: map[string]*exec.Cmd{},
 	}, nil
 }
@@ -72,16 +74,41 @@ func (l *Launcher) SaveProfile(p profile.Profile) (profile.Profile, error) {
 	return profile.Save(l.Dirs.ProfileFile(), p)
 }
 
-// Prepare installs the version files and the Java runtime it needs.
-func (l *Launcher) Prepare(ctx context.Context, versionID string) (*mojang.Version, string, error) {
-	v, err := l.Installer.Install(ctx, versionID)
+// Prepare installs everything an instance needs to start: the vanilla
+// version, the Java runtime it wants and, for modded instances, the loader
+// profile and its libraries. It returns the version to launch (merged with
+// the loader profile when there is one) and the java executable.
+func (l *Launcher) Prepare(ctx context.Context, inst instance.Instance) (*mojang.Version, string, error) {
+	v, err := l.Installer.Install(ctx, inst.Version)
 	if err != nil {
 		return nil, "", err
 	}
+	java, err := l.javaFor(ctx, v)
+	if err != nil {
+		return nil, "", err
+	}
+	if inst.Loader == "" || inst.Loader == loader.Vanilla {
+		return v, java, nil
+	}
+	id, err := l.Loaders.Install(ctx, inst.Loader, inst.Version, inst.LoaderVersion, java)
+	if err != nil {
+		return nil, "", err
+	}
+	// Second pass over the merged profile: fetches the loader's own libraries,
+	// everything vanilla is already on disk and gets skipped.
+	v, err = l.Installer.Install(ctx, id)
+	if err != nil {
+		return nil, "", err
+	}
+	return v, java, nil
+}
+
+// javaFor returns the player's own Java or the Mojang runtime the version declares.
+func (l *Launcher) javaFor(ctx context.Context, v *mojang.Version) (string, error) {
 	l.Installer.Report(download.Progress{Phase: install.PhaseJava})
 	p, _ := l.Profile()
 	if p.JavaPath != "" {
-		return v, p.JavaPath, nil
+		return p.JavaPath, nil
 	}
 	component := jre.DefaultComponent
 	if v.JavaVersion != nil && v.JavaVersion.Component != "" {
@@ -89,9 +116,21 @@ func (l *Launcher) Prepare(ctx context.Context, versionID string) (*mojang.Versi
 	}
 	java, err := l.JRE.Ensure(ctx, component)
 	if err != nil {
-		return nil, "", fmt.Errorf("java runtime: %w", err)
+		return "", fmt.Errorf("java runtime: %w", err)
 	}
-	return v, java, nil
+	return java, nil
+}
+
+// IsInstalled is the dashboard's quick check: vanilla files present and, for
+// modded instances, the loader profile written.
+func (l *Launcher) IsInstalled(inst instance.Instance) bool {
+	if !l.Installer.IsInstalled(inst.Version) {
+		return false
+	}
+	if inst.Loader == "" || inst.Loader == loader.Vanilla {
+		return true
+	}
+	return l.Loaders.IsInstalled(inst.Loader, inst.Version, inst.LoaderVersion)
 }
 
 // IsRunning reports whether the instance has a live game process.
@@ -116,7 +155,7 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 	if err != nil {
 		return errors.New("set a nickname before playing")
 	}
-	v, java, err := l.Prepare(ctx, inst.Version)
+	v, java, err := l.Prepare(ctx, inst)
 	if err != nil {
 		return err
 	}

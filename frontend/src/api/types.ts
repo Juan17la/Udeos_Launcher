@@ -13,11 +13,17 @@ export type ProfileState = { exists: boolean; profile: Profile }
 
 export type Counts = { mods: number; resourcePacks: number; worlds: number; screenshots: number }
 
+export type Loader = 'Vanilla' | 'Fabric' | 'Forge'
+
 export type Instance = {
   id: string
   name: string
   version: string
-  loader: string
+  loader: Loader
+  /** Loader build to install, e.g. "0.16.9" (Fabric) or "1.20.1-47.4.10" (Forge). Absent for Vanilla. */
+  loaderVersion?: string
+  /** What the tag shows: "Vanilla", "Fabric 0.16.9", "Forge 47.4.10". */
+  loaderLabel: string
   icon: string
   createdAt: string
   lastPlayed?: string
@@ -29,6 +35,8 @@ export type Instance = {
 
 export type VersionOption = { id: string; type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha'; releaseTime: string }
 export type VersionList = { latestRelease: string; latestSnapshot: string; versions: VersionOption[] }
+/** One Minecraft version a loader supports and the loader build the launcher will install for it. */
+export type LoaderOption = { minecraft: string; version: string; label: string }
 
 export type Progress = { phase: string; done: number; total: number; bytes: number; totalBytes: number; current: string }
 export type GameEvent = { instanceId: string; running: boolean; exitCode: number; logPath: string; error?: string }

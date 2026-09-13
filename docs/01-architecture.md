@@ -39,11 +39,13 @@ Reading them in this order follows the flow of a "Play" click:
 - **install** — turns a version id into a complete set of files: version JSON,
   libraries, natives, assets, client jar.
 - **jre** — downloads the Java runtime Mojang provides for that version.
+- **loader** — installs Fabric or Forge on top of a vanilla version and
+  writes the version profile that makes it look like any other version.
 - **launch** — builds the exact java command line (classpath, JVM flags, game
   arguments with the player's nickname and UUID substituted in).
 - **content** — reads what lives inside an instance: worlds, screenshots,
   resource packs; exports them and validates packs that are added.
-- **core** — the orchestrator that chains install → java → launch and tracks
+- **core** — the orchestrator that chains install → java → loader → launch and tracks
   running game processes. Both the desktop bindings and the small command
   line tool use it, so the desktop UI has no logic of its own.
 

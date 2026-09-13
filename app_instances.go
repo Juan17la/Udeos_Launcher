@@ -1,23 +1,32 @@
 package main
 
 import (
+	"errors"
+
 	"udeos/launcher/internal/instance"
+	"udeos/launcher/internal/loader"
 )
 
 // InstanceView is an instance plus what is inside it, for the dashboard cards.
 type InstanceView struct {
 	instance.Instance
-	Counts    instance.Counts `json:"counts"`
-	Installed bool            `json:"installed"`
-	Running   bool            `json:"running"`
+	LoaderLabel string          `json:"loaderLabel"` // "Vanilla", "Fabric 0.16.9", "Forge 47.4.10"
+	Counts      instance.Counts `json:"counts"`
+	Installed   bool            `json:"installed"`
+	Running     bool            `json:"running"`
 }
 
 func (a *App) view(inst instance.Instance) InstanceView {
+	label := inst.Loader
+	if inst.Loader != loader.Vanilla && inst.LoaderVersion != "" {
+		label += " " + loader.Label(inst.Loader, inst.Version, inst.LoaderVersion)
+	}
 	return InstanceView{
-		Instance:  inst,
-		Counts:    instance.CountContent(a.launcher.Dirs.GameDir(inst.ID)),
-		Installed: a.launcher.Installer.IsInstalled(inst.Version),
-		Running:   a.launcher.IsRunning(inst.ID),
+		Instance:    inst,
+		LoaderLabel: label,
+		Counts:      instance.CountContent(a.launcher.Dirs.GameDir(inst.ID)),
+		Installed:   a.launcher.IsInstalled(inst),
+		Running:     a.launcher.IsRunning(inst.ID),
 	}
 }
 
@@ -40,9 +49,14 @@ func (a *App) GetInstance(id string) (InstanceView, error) {
 	return a.view(inst), nil
 }
 
-// CreateInstance makes a new Vanilla instance folder.
-func (a *App) CreateInstance(name, version, icon string) (InstanceView, error) {
-	inst, err := a.launcher.Instances.Create(name, version, icon)
+// CreateInstance makes a new instance folder. loader is Vanilla, Fabric or
+// Forge; loaderVersion is the build from ListLoaderVersions (empty for Vanilla).
+// Nothing is downloaded until the first Play.
+func (a *App) CreateInstance(name, version, ldr, loaderVersion, icon string) (InstanceView, error) {
+	if !loader.Valid(ldr) {
+		return InstanceView{}, errors.New("unknown mod loader " + ldr)
+	}
+	inst, err := a.launcher.Instances.Create(name, version, ldr, loaderVersion, icon)
 	if err != nil {
 		return InstanceView{}, err
 	}
@@ -66,6 +80,13 @@ type VersionList struct {
 	LatestRelease  string          `json:"latestRelease"`
 	LatestSnapshot string          `json:"latestSnapshot"`
 	Versions       []VersionOption `json:"versions"`
+}
+
+// ListLoaderVersions returns, for Fabric or Forge, every Minecraft version
+// the loader supports and the loader build that will be installed for it.
+// The create form uses it to filter the version list once a loader is picked.
+func (a *App) ListLoaderVersions(ldr string) ([]loader.Option, error) {
+	return a.launcher.Loaders.Options(a.ctx, ldr)
 }
 
 // ListVersions fetches Mojang's manifest (cached for offline use).

@@ -32,6 +32,10 @@ const en = {
     showSnapshots: 'Show snapshots and old versions', loader: 'Mod loader', icon: 'Instance icon', required: 'Name and version are both required.',
     submit: 'Create Instance', loadingVersions: 'Loading versions from Mojang…', versionsError: 'Could not load the version list. Check your connection.',
     latest: 'latest',
+    loaderVanilla: 'The game as Mojang ships it. No mods.',
+    loaderHint: '{loader} {version} will be downloaded and installed together with the game on the first Play. Only versions {loader} supports are listed.',
+    loadingLoaders: 'Checking which versions {loader} supports…', loadersError: 'Could not reach the {loader} servers. Check your connection.',
+    loaderUnsupported: '{loader} has no build for {version}.',
   },
   instance: {
     deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
@@ -39,7 +43,7 @@ const en = {
     tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', worlds: 'Worlds', screenshots: 'Screenshots' },
     saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
     removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
-    worldAdded: 'Added world "{name}"',
+    worldAdded: 'Added world "{name}"', fileAdded: 'Added {name}',
     dropHere: 'Drag a {kind} file here', browse: 'Browse files', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
     empty: {
       mods: 'No mods installed yet. Drag a .jar file here.', resourcepacks: 'No resource packs installed yet. Drag a .zip file here or use Browse.', shaders: 'No shaders installed yet. Drag a shader pack here.',
@@ -49,7 +53,8 @@ const en = {
   },
   launch: {
     preparing: 'Getting {name} ready', starting: 'Starting the game…',
-    phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', done: 'Launching' },
+    phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', loader: 'Installing the mod loader', done: 'Launching' },
+    loaderTakesAWhile: 'Forge patches the game files on first install; this can take a couple of minutes.',
     firstTime: 'The first launch of a version downloads a few hundred MB. Later launches are instant.',
     errorTitle: 'Could not start the game', exitedTitle: 'The game closed unexpectedly', exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
   },

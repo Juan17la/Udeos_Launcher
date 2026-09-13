@@ -12,6 +12,7 @@ plain language. They are meant to be read in order the first time.
 | 5 | [Data on disk](05-data-on-disk.md) | Where files live, what is shared between instances and what is private to each |
 | 6 | [Frontend and design system](06-frontend-and-design.md) | Screens, state, themes, pixel icons and how the mockup became the real UI |
 | 7 | [Git workflow](07-git-workflow.md) | One branch per feature and the scripts in `git/` |
+| 8 | [Mod loaders](08-mod-loaders.md) | How Fabric and Forge are installed without the player running anything, and how mods get into an instance |
 
 Related material outside this folder: the requirements and diagrams in
 `Info_claude/`, and the interactive mockup in `Minecraft Launcher UI Mockups/`.

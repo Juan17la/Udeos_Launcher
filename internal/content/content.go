@@ -1,5 +1,5 @@
 // Package content reads and exports what lives inside an instance's game
-// directory: worlds (saves/), screenshots/ and resourcepacks/.
+// directory: worlds (saves/), screenshots/, resourcepacks/, mods/ and shaderpacks/.
 package content
 
 import (
@@ -297,6 +297,80 @@ func AddResourcePack(gameDir, src string) (FileEntry, error) {
 	return FileEntry{Name: name, SizeBytes: info.Size(), ModTime: info.ModTime(), IsDir: info.IsDir()}, nil
 }
 
+// modMarkers are the metadata files each loader expects inside a mod jar.
+var modMarkers = map[string][]string{
+	"Fabric": {"fabric.mod.json", "quilt.mod.json"},
+	"Forge":  {"META-INF/mods.toml", "META-INF/neoforge.mods.toml", "mcmod.info"},
+}
+
+// AddMod copies a .jar into mods/ after checking it really is a mod for the
+// instance's loader, so a Fabric mod dropped on a Forge instance is refused
+// with a clear message instead of crashing the game at startup.
+func AddMod(gameDir, src, loader string) (FileEntry, error) {
+	st, err := os.Stat(src)
+	if err != nil {
+		return FileEntry{}, err
+	}
+	name := filepath.Base(src)
+	if st.IsDir() || !strings.EqualFold(filepath.Ext(name), ".jar") {
+		return FileEntry{}, errors.New("mods must be .jar files")
+	}
+	markers, known := modMarkers[loader]
+	if !known {
+		return FileEntry{}, errors.New("this instance has no mod loader")
+	}
+	if !zipHasAny(src, markers) {
+		return FileEntry{}, fmt.Errorf("that .jar is not a %s mod", loader)
+	}
+	dst := filepath.Join(gameDir, "mods", name)
+	if err := copyFile(src, dst); err != nil {
+		return FileEntry{}, err
+	}
+	return entryOf(dst)
+}
+
+// AddShaderPack copies a .zip (or folder) into shaderpacks/ after checking it
+// carries a shaders/ folder, which is what every shader loader looks for.
+func AddShaderPack(gameDir, src string) (FileEntry, error) {
+	st, err := os.Stat(src)
+	if err != nil {
+		return FileEntry{}, err
+	}
+	name := filepath.Base(src)
+	dst := filepath.Join(gameDir, "shaderpacks", name)
+	if st.IsDir() {
+		if _, err := os.Stat(filepath.Join(src, "shaders")); err != nil {
+			return FileEntry{}, errors.New("that folder is not a shader pack (no shaders/ inside)")
+		}
+		if err := copyDir(src, dst); err != nil {
+			return FileEntry{}, err
+		}
+	} else {
+		if !strings.EqualFold(filepath.Ext(name), ".zip") {
+			return FileEntry{}, errors.New("shader packs must be .zip files")
+		}
+		if !zipHasDir(src, "shaders/") {
+			return FileEntry{}, errors.New("that zip is not a shader pack (no shaders/ folder inside)")
+		}
+		if err := copyFile(src, dst); err != nil {
+			return FileEntry{}, err
+		}
+	}
+	return entryOf(dst)
+}
+
+func entryOf(path string) (FileEntry, error) {
+	info, err := os.Stat(path)
+	if err != nil {
+		return FileEntry{}, err
+	}
+	fe := FileEntry{Name: info.Name(), SizeBytes: info.Size(), ModTime: info.ModTime(), IsDir: info.IsDir()}
+	if info.IsDir() {
+		fe.SizeBytes = dirSize(path)
+	}
+	return fe, nil
+}
+
 // Remove deletes <gameDir>/<sub>/<name>.
 func Remove(gameDir, sub, name string) error {
 	return os.RemoveAll(filepath.Join(gameDir, sub, filepath.Base(name)))
@@ -312,13 +386,36 @@ func hasExt(name string, exts []string) bool {
 }
 
 func zipHas(path, entry string) bool {
+	return zipHasAny(path, []string{entry})
+}
+
+func zipHasAny(path string, entries []string) bool {
 	r, err := zip.OpenReader(path)
 	if err != nil {
 		return false
 	}
 	defer r.Close()
 	for _, f := range r.File {
-		if f.Name == entry {
+		for _, e := range entries {
+			if f.Name == e {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// zipHasDir reports whether any entry sits under dir (at the root or inside
+// one top-level folder, the two shapes packs are distributed in).
+func zipHasDir(path, dir string) bool {
+	r, err := zip.OpenReader(path)
+	if err != nil {
+		return false
+	}
+	defer r.Close()
+	for _, f := range r.File {
+		parts := strings.SplitN(f.Name, "/", 3)
+		if parts[0]+"/" == dir || (len(parts) > 2 && parts[1]+"/" == dir) {
 			return true
 		}
 	}

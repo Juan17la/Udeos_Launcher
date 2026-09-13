@@ -37,7 +37,7 @@ func Build(p Params) *exec.Cmd {
 	args := Arguments(p)
 	cmd := exec.Command(p.JavaPath, args...)
 	cmd.Dir = p.GameDir
-	hideConsole(cmd)
+	HideConsole(cmd)
 	return cmd
 }
 
@@ -67,7 +67,7 @@ func Classpath(p Params) []string {
 			cp = append(cp, path)
 		}
 	}
-	return append(cp, p.Dirs.ClientJar(p.Version.ID))
+	return append(cp, p.Dirs.ClientJar(p.Version.BaseID()))
 }
 
 // Arguments returns the full java argument list (JVM flags, main class, game args).
@@ -78,6 +78,9 @@ func Arguments(p Params) []string {
 		sep = ";"
 	}
 	classpath := strings.Join(Classpath(p), sep)
+	// version_name is the vanilla id even for loader profiles: Forge's
+	// -DignoreList names "${version_name}.jar" to keep the client jar out of
+	// its module layer, and that jar is versions/<vanilla>/<vanilla>.jar.
 	vars := map[string]string{
 		"auth_player_name":    p.Nickname,
 		"auth_uuid":           p.UUID,
@@ -87,13 +90,13 @@ func Arguments(p Params) []string {
 		"clientid":            "0",
 		"user_type":           "legacy",
 		"user_properties":     "{}",
-		"version_name":        v.ID,
+		"version_name":        v.BaseID(),
 		"version_type":        v.Type,
 		"game_directory":      p.GameDir,
 		"assets_root":         p.Dirs.Assets,
 		"assets_index_name":   v.AssetIndex.ID,
 		"game_assets":         p.LegacyAssets,
-		"natives_directory":   p.Dirs.NativesDir(v.ID),
+		"natives_directory":   p.Dirs.NativesDir(v.BaseID()),
 		"launcher_name":       LauncherName,
 		"launcher_version":    p.LauncherVersion,
 		"classpath":           classpath,

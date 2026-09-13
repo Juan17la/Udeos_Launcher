@@ -4,4 +4,5 @@ package launch
 
 import "os/exec"
 
-func hideConsole(*exec.Cmd) {}
+// HideConsole is a no-op outside Windows.
+func HideConsole(*exec.Cmd) {}

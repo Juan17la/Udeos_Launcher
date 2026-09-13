@@ -37,7 +37,7 @@ export default function InstancePage({ id }: { id: string }) {
           <h3 style={{ marginBottom: 8, fontSize: 26, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{inst.name}</h3>
           <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
             <span className="tag tag-accent">{inst.version}</span>
-            <span className="tag tag-accent-2">{inst.loader}</span>
+            <span className="tag tag-accent-2">{inst.loaderLabel}</span>
           </div>
         </div>
         <p className="text-muted" style={{ margin: 0, fontSize: 12 }}>{inst.installed ? t.instance.installed : t.instance.notInstalled}</p>
@@ -59,7 +59,7 @@ export default function InstancePage({ id }: { id: string }) {
         {tab === 'worlds' && <WorldsTab id={inst.id} />}
         {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
         {tab === 'resourcepacks' && <ResourcePacksTab id={inst.id} />}
-        {(tab === 'mods' || tab === 'shaders') && <ReadOnlyFilesTab id={inst.id} kind={tab} />}
+        {(tab === 'mods' || tab === 'shaders') && <FilesTab id={inst.id} kind={tab} />}
       </div>
 
       {confirmDelete && (
@@ -256,22 +256,65 @@ function ResourcePacksTab({ id }: { id: string }) {
   )
 }
 
-function ReadOnlyFilesTab({ id, kind }: { id: string; kind: 'mods' | 'shaders' }) {
-  const { t } = useApp()
+/** Mods and shader packs: a drop zone plus Browse, a list, Remove. The backend
+ *  validates each file (a Fabric mod cannot land in a Forge instance). */
+function FilesTab({ id, kind }: { id: string; kind: 'mods' | 'shaders' }) {
+  const { t, refreshInstances } = useApp()
   const [files, setFiles] = useState<FileEntry[] | null>(null)
-  useEffect(() => { (kind === 'mods' ? api.ListMods(id) : api.ListShaders(id)).then(setFiles) }, [id, kind])
-  if (!files) return null
-  if (files.length === 0) return <Empty text={t.instance.empty[kind]} />
+  const [note, setNote] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [over, setOver] = useState(false)
+  const calls = kind === 'mods'
+    ? { list: api.ListMods, add: api.AddMod, pick: api.PickMod, remove: api.RemoveMod, sub: 'mods' }
+    : { list: api.ListShaders, add: api.AddShader, pick: api.PickShader, remove: api.RemoveShader, sub: 'shaderpacks' }
+  const load = useCallback(() => { calls.list(id).then(setFiles) }, [id, kind]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(load, [load])
+
+  const add = useCallback(async (paths: string[]) => {
+    setError(null); setNote(null)
+    for (const p of paths) {
+      try { const e = await calls.add(id, p); setNote(fmt(t.instance.fileAdded, { name: e.name })) } catch (e) { setError(String((e as Error)?.message ?? e)) }
+    }
+    load(); refreshInstances()
+  }, [id, kind, load, refreshInstances, t]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Native file drops arrive from Go with real paths; only the mounted tab listens.
+  useEffect(() => on('files:dropped', (paths) => { setOver(false); add(paths) }), [add])
+
+  const pick = async () => {
+    setError(null); setNote(null)
+    try { const e = await calls.pick(id); if (e.name) { setNote(fmt(t.instance.fileAdded, { name: e.name })); load(); refreshInstances() } } catch (e) { setError(String((e as Error)?.message ?? e)) }
+  }
+  const remove = async (name: string) => {
+    try { await calls.remove(id, name) } catch (e) { setError(String((e as Error)?.message ?? e)) }
+    load(); refreshInstances()
+  }
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {files.map((f) => (
-        <div key={f.name} className="card row-card">
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="row-title">{f.name}</div>
-            <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{bytes(f.sizeBytes)}</div>
-          </div>
+    <>
+      <div className={`dropzone ${over ? 'is-over' : ''}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
+        onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false) }}>
+        <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds[kind] })}</span>
+        <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
+        <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
+      </div>
+      {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
+      <Toast text={note} />
+      <FolderLink id={id} sub={calls.sub} />
+      {files && files.length === 0 && <Empty text={t.instance.empty[kind]} />}
+      {files && files.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {files.map((f) => (
+            <div key={f.name} className="card row-card">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row-title">{f.name}</div>
+                <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{bytes(f.sizeBytes)}</div>
+              </div>
+              <button type="button" className="btn btn-icon btn-danger" title={t.instance.remove} onClick={() => remove(f.name)}><X /></button>
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      )}
+    </>
   )
 }

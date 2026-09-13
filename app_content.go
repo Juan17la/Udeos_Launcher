@@ -119,13 +119,45 @@ func (a *App) ListResourcePacks(id string) ([]content.FileEntry, error) {
 	return content.ListFiles(dir, "resourcepacks", ".zip")
 }
 
-// ListMods lists mods/ (read-only until mod loaders are supported).
+// ListMods lists the .jar files in mods/.
 func (a *App) ListMods(id string) ([]content.FileEntry, error) {
 	dir, err := a.gameDir(id)
 	if err != nil {
 		return nil, err
 	}
 	return content.ListFiles(dir, "mods", ".jar")
+}
+
+// AddMod copies a .jar into mods/ after checking it is a mod for the
+// instance's loader.
+func (a *App) AddMod(id, path string) (content.FileEntry, error) {
+	inst, err := a.launcher.Instances.Get(id)
+	if err != nil {
+		return content.FileEntry{}, err
+	}
+	return content.AddMod(a.launcher.Dirs.GameDir(id), path, inst.Loader)
+}
+
+// PickMod opens a file chooser for a mod .jar and adds it. Returns an empty
+// name when cancelled.
+func (a *App) PickMod(id string) (content.FileEntry, error) {
+	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
+		Title:   "Choose a mod",
+		Filters: []wailsrt.FileFilter{{DisplayName: "Mod (*.jar)", Pattern: "*.jar"}},
+	})
+	if err != nil || path == "" {
+		return content.FileEntry{}, err
+	}
+	return a.AddMod(id, path)
+}
+
+// RemoveMod deletes a mod from the instance.
+func (a *App) RemoveMod(id, name string) error {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return err
+	}
+	return content.Remove(dir, "mods", name)
 }
 
 // ListShaders lists shaderpacks/.
@@ -135,6 +167,36 @@ func (a *App) ListShaders(id string) ([]content.FileEntry, error) {
 		return nil, err
 	}
 	return content.ListFiles(dir, "shaderpacks", ".zip")
+}
+
+// AddShader copies a shader pack (.zip or folder) into shaderpacks/.
+func (a *App) AddShader(id, path string) (content.FileEntry, error) {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return content.FileEntry{}, err
+	}
+	return content.AddShaderPack(dir, path)
+}
+
+// PickShader opens a file chooser for a shader pack .zip and adds it.
+func (a *App) PickShader(id string) (content.FileEntry, error) {
+	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
+		Title:   "Choose a shader pack",
+		Filters: []wailsrt.FileFilter{{DisplayName: "Shader pack (*.zip)", Pattern: "*.zip"}},
+	})
+	if err != nil || path == "" {
+		return content.FileEntry{}, err
+	}
+	return a.AddShader(id, path)
+}
+
+// RemoveShader deletes a shader pack from the instance.
+func (a *App) RemoveShader(id, name string) error {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return err
+	}
+	return content.Remove(dir, "shaderpacks", name)
 }
 
 // AddResourcePack copies a local .zip/folder into the instance after checking it is a pack.

@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, FileEntry, GameEvent, Instance, ProfileState, Profile, Progress, VersionList, World } from './types'
+import type { AppInfo, FileEntry, GameEvent, Instance, Loader, LoaderOption, ProfileState, Profile, Progress, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -11,10 +11,12 @@ type Backend = {
   SaveProfile(p: Profile): Promise<Profile>
   ListInstances(): Promise<Instance[]>
   GetInstance(id: string): Promise<Instance>
-  CreateInstance(name: string, version: string, icon: string): Promise<Instance>
+  /** loaderVersion comes from ListLoaderVersions (empty for Vanilla). Nothing is downloaded until Play. */
+  CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string): Promise<Instance>
   DeleteInstance(id: string): Promise<void>
   ListVersions(): Promise<VersionList>
-  InstallVersion(id: string): Promise<void>
+  ListLoaderVersions(loader: Loader): Promise<LoaderOption[]>
+  InstallInstance(id: string): Promise<void>
   LaunchInstance(id: string): Promise<void>
   IsRunning(id: string): Promise<boolean>
   ListWorlds(id: string): Promise<World[]>
@@ -26,7 +28,13 @@ type Backend = {
   ExportScreenshot(id: string, name: string): Promise<string>
   ListResourcePacks(id: string): Promise<FileEntry[]>
   ListMods(id: string): Promise<FileEntry[]>
+  AddMod(id: string, path: string): Promise<FileEntry>
+  PickMod(id: string): Promise<FileEntry>
+  RemoveMod(id: string, name: string): Promise<void>
   ListShaders(id: string): Promise<FileEntry[]>
+  AddShader(id: string, path: string): Promise<FileEntry>
+  PickShader(id: string): Promise<FileEntry>
+  RemoveShader(id: string, name: string): Promise<void>
   AddResourcePack(id: string, path: string): Promise<FileEntry>
   PickResourcePack(id: string): Promise<FileEntry>
   RemoveResourcePack(id: string, name: string): Promise<void>

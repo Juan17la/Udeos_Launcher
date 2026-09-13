@@ -36,7 +36,7 @@ export default function Dashboard() {
                     <div className="card-title" style={{ fontSize: 19, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{inst.name}</div>
                     <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                       <span className="tag tag-accent">{inst.version}</span>
-                      <span className="tag tag-accent-2">{inst.loader}</span>
+                      <span className="tag tag-accent-2">{inst.loaderLabel}</span>
                     </div>
                   </div>
                 </div>
@@ -64,7 +64,7 @@ export default function Dashboard() {
           <h3 style={{ margin: 0, fontSize: 26, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{last.name}</h3>
           <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
             <span className="tag tag-accent">{last.version}</span>
-            <span className="tag tag-accent-2">{last.loader}</span>
+            <span className="tag tag-accent-2">{last.loaderLabel}</span>
           </div>
           <p className="text-muted" style={{ margin: 0, fontSize: 13 }}>
             {last.lastPlayed ? fmt(t.dashboard.playedAgo, { when: ago(last.lastPlayed, t), hours: hours(last.playTimeSec) }) : t.dashboard.neverPlayed}

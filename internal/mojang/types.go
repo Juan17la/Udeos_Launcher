@@ -37,8 +37,12 @@ type ManifestVersion struct {
 }
 
 // Version is <id>.json: everything needed to download and start one version.
+// Mod loader profiles (Fabric, Forge) use the same shape but only carry what
+// they add on top of a vanilla version, named in InheritsFrom.
 type Version struct {
 	ID                 string              `json:"id"`
+	InheritsFrom       string              `json:"inheritsFrom,omitempty"` // parent vanilla version (mod loaders)
+	Jar                string              `json:"jar,omitempty"`          // version whose client jar to use; defaults to ID
 	Type               string              `json:"type"`
 	ReleaseTime        string              `json:"releaseTime"`
 	MainClass          string              `json:"mainClass"`
@@ -88,6 +92,18 @@ func (a *Argument) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(obj.Value, &a.Values)
 }
 
+// MarshalJSON writes the argument back in the shape it was read from, so a
+// version json can be saved and read again (loader profiles are).
+func (a Argument) MarshalJSON() ([]byte, error) {
+	if len(a.Rules) == 0 && len(a.Values) == 1 {
+		return json.Marshal(a.Values[0])
+	}
+	return json.Marshal(struct {
+		Rules []Rule   `json:"rules,omitempty"`
+		Value []string `json:"value"`
+	}{a.Rules, a.Values})
+}
+
 // Rule allows or disallows something depending on OS and launcher features.
 type Rule struct {
 	Action   string          `json:"action"` // allow | disallow
@@ -127,7 +143,9 @@ type Library struct {
 	Natives   map[string]string `json:"natives,omitempty"` // os -> classifier (old style, <= 1.18)
 	Rules     []Rule            `json:"rules,omitempty"`
 	Extract   *Extract          `json:"extract,omitempty"`
-	URL       string            `json:"url,omitempty"` // maven base URL (mod loaders)
+	URL       string            `json:"url,omitempty"`  // maven base URL (mod loaders)
+	SHA1      string            `json:"sha1,omitempty"` // Fabric meta lists the hash next to the maven URL
+	Size      int64             `json:"size,omitempty"`
 }
 
 // LibraryDownloads has the main artifact and, for old versions, native classifiers.
@@ -177,6 +195,78 @@ func (o AssetObject) URL() string { return ResourcesURL + o.Hash[:2] + "/" + o.H
 func (l Library) IsNativeOnly() bool {
 	parts := strings.Split(l.Name, ":")
 	return len(parts) == 4 && strings.HasPrefix(parts[3], "natives-")
+}
+
+// BaseID is the vanilla version that owns the client jar and natives: the
+// version itself, or the one a loader profile inherits from.
+func (v *Version) BaseID() string {
+	if v.Jar != "" {
+		return v.Jar
+	}
+	return v.ID
+}
+
+// Merge layers a loader profile (child) over the vanilla version it inherits
+// from, the way the official launcher does: the child's main class and
+// arguments win, its libraries go first on the classpath and replace parent
+// libraries with the same name, and everything about assets, downloads, Java
+// and logging comes from the parent.
+func Merge(parent, child *Version) *Version {
+	out := *parent
+	out.ID = child.ID
+	out.InheritsFrom = ""
+	out.Jar = parent.BaseID()
+	if child.Jar != "" {
+		out.Jar = child.Jar
+	}
+	if child.Type != "" {
+		out.Type = child.Type
+	}
+	if child.ReleaseTime != "" {
+		out.ReleaseTime = child.ReleaseTime
+	}
+	if child.MainClass != "" {
+		out.MainClass = child.MainClass
+	}
+	if child.MinecraftArguments != "" {
+		out.MinecraftArguments = child.MinecraftArguments
+	}
+	if child.Arguments != nil {
+		merged := Arguments{}
+		if parent.Arguments != nil {
+			merged.Game = append(merged.Game, parent.Arguments.Game...)
+			merged.JVM = append(merged.JVM, parent.Arguments.JVM...)
+		}
+		merged.Game = append(merged.Game, child.Arguments.Game...)
+		merged.JVM = append(merged.JVM, child.Arguments.JVM...)
+		out.Arguments = &merged
+	}
+	seen := map[string]bool{}
+	libs := make([]Library, 0, len(child.Libraries)+len(parent.Libraries))
+	for _, l := range child.Libraries {
+		seen[l.Key()] = true
+		libs = append(libs, l)
+	}
+	for _, l := range parent.Libraries {
+		if !seen[l.Key()] {
+			libs = append(libs, l)
+		}
+	}
+	out.Libraries = libs
+	return &out
+}
+
+// Key identifies a library regardless of its version: group:artifact[:classifier].
+func (l Library) Key() string {
+	parts := strings.Split(l.Name, ":")
+	if len(parts) < 3 {
+		return l.Name
+	}
+	key := parts[0] + ":" + parts[1]
+	if len(parts) > 3 {
+		key += ":" + parts[3]
+	}
+	return key
 }
 
 // MavenPath converts "group:artifact:version[:classifier]" into the relative

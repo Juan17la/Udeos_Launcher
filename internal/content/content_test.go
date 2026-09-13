@@ -160,3 +160,69 @@ func TestAddWorldFromZip(t *testing.T) {
 		t.Fatalf("zip without level.dat: %v", err)
 	}
 }
+
+func writeJar(t *testing.T, path string, entries ...string) {
+	t.Helper()
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	zw := zip.NewWriter(f)
+	for _, e := range entries {
+		w, _ := zw.Create(e)
+		w.Write([]byte("x"))
+	}
+	zw.Close()
+	f.Close()
+}
+
+func TestAddModChecksLoader(t *testing.T) {
+	dir := t.TempDir()
+	game := filepath.Join(dir, "game")
+	fabric := filepath.Join(dir, "sodium.jar")
+	forge := filepath.Join(dir, "jei.jar")
+	both := filepath.Join(dir, "both.jar")
+	writeJar(t, fabric, "fabric.mod.json", "net/x/A.class")
+	writeJar(t, forge, "META-INF/mods.toml", "net/x/A.class")
+	writeJar(t, both, "fabric.mod.json", "META-INF/mods.toml")
+
+	if _, err := AddMod(game, fabric, "Fabric"); err != nil {
+		t.Errorf("fabric mod on fabric: %v", err)
+	}
+	if _, err := AddMod(game, fabric, "Forge"); err == nil {
+		t.Error("fabric mod on forge should be refused")
+	}
+	if _, err := AddMod(game, forge, "Forge"); err != nil {
+		t.Errorf("forge mod on forge: %v", err)
+	}
+	if _, err := AddMod(game, both, "Fabric"); err != nil {
+		t.Errorf("multi-loader jar: %v", err)
+	}
+	if _, err := AddMod(game, fabric, "Vanilla"); err == nil {
+		t.Error("vanilla has no mods")
+	}
+	entries, _ := ListFiles(game, "mods", ".jar")
+	if len(entries) != 3 {
+		t.Errorf("expected 3 mods, got %d", len(entries))
+	}
+}
+
+func TestAddShaderPack(t *testing.T) {
+	dir := t.TempDir()
+	game := filepath.Join(dir, "game")
+	ok := filepath.Join(dir, "BSL.zip")
+	nested := filepath.Join(dir, "Nested.zip")
+	bad := filepath.Join(dir, "notes.zip")
+	writeJar(t, ok, "shaders/composite.fsh", "shaders/lang/en_us.lang")
+	writeJar(t, nested, "BSL_v8/shaders/composite.fsh")
+	writeJar(t, bad, "readme.txt")
+	if _, err := AddShaderPack(game, ok); err != nil {
+		t.Error(err)
+	}
+	if _, err := AddShaderPack(game, nested); err != nil {
+		t.Error(err)
+	}
+	if _, err := AddShaderPack(game, bad); err == nil {
+		t.Error("zip without shaders/ should be refused")
+	}
+}

@@ -3,8 +3,9 @@
 //
 //	go run ./cmd/udeoscli versions
 //	go run ./cmd/udeoscli profile Steve
-//	go run ./cmd/udeoscli create "My World" 1.21.1
-//	go run ./cmd/udeoscli install 1.21.1
+//	go run ./cmd/udeoscli create "My World" 1.21.1 [Fabric|Forge]
+//	go run ./cmd/udeoscli loaders Forge
+//	go run ./cmd/udeoscli install <instance id>
 //	go run ./cmd/udeoscli play <instance id>
 package main
 
@@ -16,22 +17,26 @@ import (
 
 	"udeos/launcher/internal/core"
 	"udeos/launcher/internal/download"
+	"udeos/launcher/internal/loader"
 	"udeos/launcher/internal/paths"
 	"udeos/launcher/internal/profile"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | profile <name> | create <name> <version> | list | install <version> | play <instance id>")
+		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Forge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id>")
 		os.Exit(2)
 	}
 	dirs, err := paths.Default()
 	check(err)
 	exited := make(chan core.GameEvent, 1)
 	l, err := core.New(dirs, "cli", func(p download.Progress) {
-		if p.Total > 0 {
+		switch {
+		case p.Total > 0:
 			fmt.Printf("\r%-10s %5d/%-5d %s                    ", p.Phase, p.Done, p.Total, p.Current)
-		} else {
+		case p.Current != "":
+			fmt.Printf("  %s\n", p.Current)
+		default:
 			fmt.Printf("\n[%s]\n", p.Phase)
 		}
 	}, func(ev core.GameEvent) {
@@ -58,16 +63,38 @@ func main() {
 		p, err := l.SaveProfile(profile.Profile{Nickname: arg(2), Agreed: true})
 		check(err)
 		fmt.Println("saved", p.Nickname, p.UUID)
+	case "loaders":
+		opts, err := l.Loaders.Options(ctx, arg(2))
+		check(err)
+		for _, o := range opts {
+			fmt.Println(o.Minecraft, o.Version)
+		}
 	case "create":
-		inst, err := l.Instances.Create(arg(2), arg(3), "grass")
+		ldr, lv := loader.Vanilla, ""
+		if len(os.Args) > 4 {
+			ldr = os.Args[4]
+			opts, err := l.Loaders.Options(ctx, ldr)
+			check(err)
+			for _, o := range opts {
+				if o.Minecraft == arg(3) {
+					lv = o.Version
+				}
+			}
+			if lv == "" {
+				check(fmt.Errorf("%s has no build for %s", ldr, arg(3)))
+			}
+		}
+		inst, err := l.Instances.Create(arg(2), arg(3), ldr, lv, "grass")
 		check(err)
 		fmt.Println("created", inst.ID)
 	case "list":
 		for _, it := range l.Instances.List() {
-			fmt.Println(it.ID, it.Name, it.Version, it.Loader)
+			fmt.Println(it.ID, it.Name, it.Version, it.Loader, it.LoaderVersion)
 		}
 	case "install":
-		_, java, err := l.Prepare(ctx, arg(2))
+		inst, err := l.Instances.Get(arg(2))
+		check(err)
+		_, java, err := l.Prepare(ctx, inst)
 		check(err)
 		fmt.Println("\ninstalled; java:", java)
 	case "play":

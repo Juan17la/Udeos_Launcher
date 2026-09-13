@@ -27,7 +27,7 @@ export default function ProgressOverlay() {
             </div>
             <div className="progress"><div style={{ width: `${phase === 'done' ? 100 : pct}%` }} /></div>
             {p?.current && <div className="text-dim" style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.current}</div>}
-            <p className="text-muted" style={{ margin: '6px 0 0', fontSize: 12 }}>{t.launch.firstTime}</p>
+            <p className="text-muted" style={{ margin: '6px 0 0', fontSize: 12 }}>{phase === 'loader' && inst?.loader === 'Forge' ? t.launch.loaderTakesAWhile : t.launch.firstTime}</p>
           </div>
         </div>
       </div>

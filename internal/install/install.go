@@ -51,9 +51,31 @@ func (i *Installer) phase(name string) {
 	}
 }
 
-// LoadVersion returns the cached version JSON, fetching it from the manifest
-// when it is not on disk yet.
+// LoadVersion returns the version JSON ready to use: cached on disk or fetched
+// from the manifest, and, for mod loader profiles, merged with the vanilla
+// version they inherit from.
 func (i *Installer) LoadVersion(ctx context.Context, id string) (*mojang.Version, error) {
+	v, err := i.loadOne(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	for depth := 0; v.InheritsFrom != ""; depth++ {
+		if depth > 4 {
+			return nil, fmt.Errorf("version %q: inheritsFrom chain too deep", id)
+		}
+		parent, err := i.loadOne(ctx, v.InheritsFrom)
+		if err != nil {
+			return nil, fmt.Errorf("parent of %s: %w", v.ID, err)
+		}
+		v = mojang.Merge(parent, v)
+	}
+	return v, nil
+}
+
+// loadOne reads versions/<id>/<id>.json, fetching it from Mojang's manifest
+// when it is not on disk yet. Loader profiles are only ever on disk (the
+// loader package writes them).
+func (i *Installer) loadOne(ctx context.Context, id string) (*mojang.Version, error) {
 	path := i.Dirs.VersionJSON(id)
 	if raw, err := os.ReadFile(path); err == nil {
 		var v mojang.Version
@@ -107,12 +129,24 @@ func (i *Installer) Manifest(ctx context.Context) (*mojang.Manifest, error) {
 	return &cached, nil
 }
 
-// IsInstalled is a fast check used by the UI: version json, client jar and
-// asset index present. Individual files are re-verified during Install.
+// IsInstalled is a fast check used by the UI: version json and client jar
+// present (for a loader profile, the jar of the version it inherits from).
+// Individual files are re-verified during Install.
 func (i *Installer) IsInstalled(id string) bool {
-	_, jsonErr := os.Stat(i.Dirs.VersionJSON(id))
-	_, jarErr := os.Stat(i.Dirs.ClientJar(id))
-	return jsonErr == nil && jarErr == nil
+	raw, err := os.ReadFile(i.Dirs.VersionJSON(id))
+	if err != nil {
+		return false
+	}
+	var v mojang.Version
+	if err := json.Unmarshal(raw, &v); err != nil || v.ID == "" {
+		return false
+	}
+	base := v.BaseID()
+	if v.InheritsFrom != "" && v.Jar == "" {
+		base = v.InheritsFrom
+	}
+	_, jarErr := os.Stat(i.Dirs.ClientJar(base))
+	return jarErr == nil
 }
 
 // Install downloads everything the version needs. It is safe to call again:
@@ -135,7 +169,7 @@ func (i *Installer) Install(ctx context.Context, id string) (*mojang.Version, er
 
 	clientTasks := []download.Task{}
 	if c, ok := v.Downloads["client"]; ok {
-		clientTasks = append(clientTasks, download.Task{URL: c.URL, Path: i.Dirs.ClientJar(id), SHA1: c.SHA1, Size: c.Size})
+		clientTasks = append(clientTasks, download.Task{URL: c.URL, Path: i.Dirs.ClientJar(v.BaseID()), SHA1: c.SHA1, Size: c.Size})
 	} else {
 		return nil, errors.New("version has no client download")
 	}
@@ -187,7 +221,7 @@ func (i *Installer) libraryTasks(v *mojang.Version) ([]download.Task, []nativeJa
 				base = mojang.LibrariesURL
 			}
 			rel := mojang.MavenPath(lib.Name)
-			add(download.Task{URL: strings.TrimSuffix(base, "/") + "/" + rel, Path: filepath.Join(i.Dirs.Libraries, filepath.FromSlash(rel))})
+			add(download.Task{URL: strings.TrimSuffix(base, "/") + "/" + rel, Path: filepath.Join(i.Dirs.Libraries, filepath.FromSlash(rel)), SHA1: lib.SHA1, Size: lib.Size})
 		}
 		// Old-style natives: a classifier chosen by OS.
 		if lib.Natives != nil && lib.Downloads != nil {
@@ -283,7 +317,7 @@ var NativeSubdirs = []string{"java", "jna", "lwjgl", "netty"}
 // passes). Since 1.19 the natives jars are also on the classpath, so the game
 // can load them even if this folder were empty.
 func (i *Installer) extractNatives(v *mojang.Version, jars []nativeJar) error {
-	dir := i.Dirs.NativesDir(v.ID)
+	dir := i.Dirs.NativesDir(v.BaseID())
 	for _, sub := range NativeSubdirs {
 		if err := os.MkdirAll(filepath.Join(dir, sub), 0o755); err != nil {
 			return err
