@@ -1,0 +1,80 @@
+// Thin bridge to the Go backend. Wails injects `window.go.main.App.<Method>`
+// (one promise-returning function per exported Go method) and
+// `window.runtime` (events, dialogs). When the page runs outside Wails —
+// `vite dev` in a browser — an in-memory mock stands in so the UI can be
+// worked on without building the desktop app.
+import type { AppInfo, FileEntry, GameEvent, Instance, ProfileState, Profile, Progress, VersionList, World } from './types'
+
+type Backend = {
+  GetAppInfo(): Promise<AppInfo>
+  GetProfile(): Promise<ProfileState>
+  SaveProfile(p: Profile): Promise<Profile>
+  ListInstances(): Promise<Instance[]>
+  GetInstance(id: string): Promise<Instance>
+  CreateInstance(name: string, version: string, icon: string): Promise<Instance>
+  DeleteInstance(id: string): Promise<void>
+  ListVersions(): Promise<VersionList>
+  InstallVersion(id: string): Promise<void>
+  LaunchInstance(id: string): Promise<void>
+  IsRunning(id: string): Promise<boolean>
+  ListWorlds(id: string): Promise<World[]>
+  ExportWorld(id: string, folder: string): Promise<string>
+  ListScreenshots(id: string): Promise<FileEntry[]>
+  ExportScreenshot(id: string, name: string): Promise<string>
+  ListResourcePacks(id: string): Promise<FileEntry[]>
+  ListMods(id: string): Promise<FileEntry[]>
+  ListShaders(id: string): Promise<FileEntry[]>
+  AddResourcePack(id: string, path: string): Promise<FileEntry>
+  PickResourcePack(id: string): Promise<FileEntry>
+  RemoveResourcePack(id: string, name: string): Promise<void>
+  OpenInstanceFolder(id: string): Promise<void>
+}
+
+type Events = {
+  'install:progress': Progress
+  'game:state': GameEvent
+  'files:dropped': string[]
+}
+
+declare global {
+  interface Window {
+    go?: { main: { App: Backend } }
+    runtime?: {
+      EventsOn(name: string, cb: (data: unknown) => void): () => void
+      EventsOff(name: string): void
+    }
+  }
+}
+
+export const inWails = typeof window !== 'undefined' && !!window.go
+
+let mock: { backend: Backend; on: <K extends keyof Events>(n: K, cb: (d: Events[K]) => void) => () => void } | null = null
+async function getMock() {
+  if (!mock) mock = (await import('./mock')).createMock()
+  return mock
+}
+
+export const api: Backend = new Proxy({} as Backend, {
+  get(_t, method: string) {
+    return async (...args: unknown[]) => {
+      if (inWails) {
+        const fn = (window.go!.main.App as unknown as Record<string, (...a: unknown[]) => Promise<unknown>>)[method]
+        return fn(...args)
+      }
+      const m = await getMock()
+      return (m.backend as unknown as Record<string, (...a: unknown[]) => Promise<unknown>>)[method](...args)
+    }
+  },
+})
+
+/** Subscribe to a backend event; returns the unsubscribe function. */
+export function on<K extends keyof Events>(name: K, cb: (data: Events[K]) => void): () => void {
+  if (inWails && window.runtime) {
+    const off = window.runtime.EventsOn(name, (d) => cb(d as Events[K]))
+    return typeof off === 'function' ? off : () => window.runtime?.EventsOff(name)
+  }
+  let off = () => {}
+  let cancelled = false
+  getMock().then((m) => { if (!cancelled) off = m.on(name, cb) })
+  return () => { cancelled = true; off() }
+}
