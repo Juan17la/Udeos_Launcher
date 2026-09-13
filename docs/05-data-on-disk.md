@@ -37,7 +37,9 @@ there.
   `saves/` (worlds), `screenshots/`, `options.txt`, `logs/`; the launcher
   pre-creates `resourcepacks/`, `mods/` and `shaderpacks/` so the instance
   page always has folders to show.
-- `instances/<id>/latest-launcher.log` — output of the last game session.
+- `instances/<id>/.minecraft/logs/udeos-launcher.log` — output of the last
+  game session as seen by the launcher (the game's own `latest.log` and any
+  `crash-reports/` sit right beside it).
 
 Deleting an instance from the launcher removes this folder entirely, which is
 why the button asks for confirmation.

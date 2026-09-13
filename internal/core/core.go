@@ -131,7 +131,11 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 	}
 	cmd := launch.Build(params)
 
-	logPath := filepath.Join(l.Dirs.InstanceDir(id), "latest-launcher.log")
+	// Next to the game's own logs/latest.log and crash-reports/, so one folder has everything.
+	logPath := filepath.Join(params.GameDir, "logs", "udeos-launcher.log")
+	if err := os.MkdirAll(filepath.Dir(logPath), 0o755); err != nil {
+		return err
+	}
 	logFile, err := os.Create(logPath)
 	if err != nil {
 		return err

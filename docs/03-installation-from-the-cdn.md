@@ -56,8 +56,11 @@ graphics, audio and input layers. Two conventions exist:
 - Versions from 1.19 on ship natives as ordinary libraries named
   `…:natives-linux`, `…:natives-windows` and so on, guarded by rules.
 
-Either way, the shared-library files inside those jars are unpacked into a
-`natives` folder for the version, and that folder is handed to Java at launch.
+Either way, the shared-library files inside those jars are unpacked into the
+version's `natives` folder (and its `natives/java` sub-folder, which 26.x
+names as `java.library.path`), and that folder is handed to Java at launch.
+The modern jars additionally stay on the classpath — see
+[04 — launching the game](04-launching-the-game.md).
 
 ## Step 4 — assets
 

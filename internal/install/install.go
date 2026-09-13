@@ -273,15 +273,27 @@ func (i *Installer) materializeLegacy(v *mojang.Version, index mojang.AssetIndex
 	return nil
 }
 
-// extractNatives unpacks every native jar into versions/<id>/natives.
+// NativeSubdirs are the folders modern version JSONs reference below
+// ${natives_directory}: java.library.path, jna.tmpdir, LWJGL's extract path and
+// netty's workdir. They must exist before the JVM starts.
+var NativeSubdirs = []string{"java", "jna", "lwjgl", "netty"}
+
+// extractNatives unpacks every native jar into versions/<id>/natives (what
+// versions <= 1.18 pass as java.library.path) and into natives/java (what 26.x
+// passes). Since 1.19 the natives jars are also on the classpath, so the game
+// can load them even if this folder were empty.
 func (i *Installer) extractNatives(v *mojang.Version, jars []nativeJar) error {
 	dir := i.Dirs.NativesDir(v.ID)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
+	for _, sub := range NativeSubdirs {
+		if err := os.MkdirAll(filepath.Join(dir, sub), 0o755); err != nil {
+			return err
+		}
 	}
 	for _, j := range jars {
-		if err := unzipNatives(j.Path, dir, j.Exclude); err != nil {
-			return fmt.Errorf("%s: %w", filepath.Base(j.Path), err)
+		for _, dst := range []string{dir, filepath.Join(dir, "java")} {
+			if err := unzipNatives(j.Path, dst, j.Exclude); err != nil {
+				return fmt.Errorf("%s: %w", filepath.Base(j.Path), err)
+			}
 		}
 	}
 	return nil

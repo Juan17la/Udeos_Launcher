@@ -18,7 +18,7 @@ const modern = `{
           {"rules":[{"action":"allow","features":{"is_demo_user":true}}],"value":"--demo"},
           {"rules":[{"action":"allow","features":{"has_custom_resolution":true}}],"value":["--width","${resolution_width}"]}],
   "jvm":[{"rules":[{"action":"allow","os":{"name":"osx"}}],"value":["-XstartOnFirstThread"]},
-         "-Djava.library.path=${natives_directory}","-cp","${classpath}"]},
+         "-Djava.library.path=${natives_directory}/java","-cp","${classpath}"]},
  "libraries":[
   {"name":"com.mojang:brigadier:1.2.9","downloads":{"artifact":{"path":"com/mojang/brigadier/1.2.9/brigadier-1.2.9.jar","url":"u"}}},
   {"name":"org.lwjgl:lwjgl:3.3.3:natives-linux","downloads":{"artifact":{"path":"org/lwjgl/lwjgl/3.3.3/lwjgl-3.3.3-natives-linux.jar","url":"u"}},"rules":[{"action":"allow","os":{"name":"linux"}}]},
@@ -45,12 +45,13 @@ func params(t *testing.T, raw string) Params {
 
 func TestModernArguments(t *testing.T) {
 	args := strings.Join(Arguments(params(t, modern)), " ")
-	for _, want := range []string{"-Xmx1024M", "--username Steve", "--version 1.21.1", "net.minecraft.client.main.Main", "brigadier-1.2.9.jar", "1.21.1.jar"} {
+	for _, want := range []string{"-Xmx1024M", "--username Steve", "--version 1.21.1", "net.minecraft.client.main.Main", "brigadier-1.2.9.jar", "1.21.1.jar",
+		"lwjgl-3.3.3-natives-linux.jar:", "-Djava.library.path=/data/versions/1.21.1/natives/java"} {
 		if !strings.Contains(args, want) {
 			t.Errorf("missing %q in %s", want, args)
 		}
 	}
-	for _, no := range []string{"--demo", "--width", "-XstartOnFirstThread", "java-objc-bridge", "natives-linux.jar:"} {
+	for _, no := range []string{"--demo", "--width", "-XstartOnFirstThread", "java-objc-bridge"} {
 		if strings.Contains(args, no) {
 			t.Errorf("unexpected %q in %s", no, args)
 		}
