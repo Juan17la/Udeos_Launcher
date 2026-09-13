@@ -29,8 +29,14 @@ java command:
    this adds the flag that makes the window open on the main thread, on
    Windows some OS-version hints. Placeholders are replaced: the natives
    folder, the launcher name and version, and the **classpath**.
-4. **Classpath** — every allowed library jar (natives-only jars excluded)
-   plus the client jar, joined with the platform's separator.
+4. **Classpath** — every allowed library jar plus the client jar, joined
+   with the platform's separator. The modern `…:natives-<os>` jars are kept
+   on the classpath on purpose: from 1.19 on LWJGL, JNA and netty pull their
+   shared libraries out of those jars themselves (into the `natives/lwjgl`,
+   `natives/jna` and `natives/netty` folders named in the JVM arguments).
+   Leaving them out is what produces `Failed to locate library: liblwjgl.so`
+   right after start. Only the old classifier-style natives (≤ 1.18) stay off
+   the classpath; those are unpacked into `natives/` instead.
 5. **Main class** from the version JSON.
 6. **Game arguments** with the placeholders substituted: nickname, UUID,
    version id and type, the instance's game directory, the assets folder and
@@ -48,9 +54,10 @@ directory, so saves, screenshots, options and packs land inside the
 instance and never mix with another one. On Windows the process is started
 without a console window.
 
-Everything the game prints is written to `latest-launcher.log` inside the
-instance folder, with the command line (minus the very long classpath) at the
-top. The launcher records when the game started, and when the process ends it
+Everything the game prints is written to `logs/udeos-launcher.log` inside the
+instance's `.minecraft` folder — next to the game's own `logs/latest.log` and
+`crash-reports/` — with the command line (minus the very long classpath) at
+the top. The launcher records when the game started, and when the process ends it
 updates the instance's *last played* time and total play time.
 
 Two events keep the window in sync: one when the process is running (the

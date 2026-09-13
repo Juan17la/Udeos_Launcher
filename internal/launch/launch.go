@@ -41,12 +41,15 @@ func Build(p Params) *exec.Cmd {
 	return cmd
 }
 
-// Classpath lists every non-native library jar plus the client jar.
+// Classpath lists every library jar allowed on this OS plus the client jar.
+// Modern (1.19+) natives jars stay on the classpath on purpose: LWJGL, JNA and
+// netty extract their .so/.dll files from the jar themselves. Only old-style
+// classifier natives (<= 1.18) are left out, they are extracted instead.
 func Classpath(p Params) []string {
 	var cp []string
 	seen := map[string]bool{}
 	for _, lib := range p.Version.Libraries {
-		if !rules.Allowed(lib.Rules, p.Env) || lib.IsNativeOnly() {
+		if !rules.Allowed(lib.Rules, p.Env) {
 			continue
 		}
 		var rel string
