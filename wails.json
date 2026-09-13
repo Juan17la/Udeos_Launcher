@@ -1,0 +1,19 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "Udeos Launcher",
+  "outputfilename": "udeos-launcher",
+  "frontend:install": "npm install",
+  "frontend:build": "npm run build",
+  "frontend:dev:watcher": "npm run dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": "Juan Diego López Arias"
+  },
+  "info": {
+    "companyName": "Udeos",
+    "productName": "Udeos Launcher",
+    "productVersion": "0.1.0",
+    "copyright": "Copyright © 2026",
+    "comments": "A Minecraft launcher that runs without a Microsoft account."
+  }
+}
