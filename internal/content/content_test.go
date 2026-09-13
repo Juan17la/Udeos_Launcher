@@ -1,6 +1,7 @@
 package content
 
 import (
+	"archive/zip"
 	"compress/gzip"
 	"os"
 	"path/filepath"
@@ -76,5 +77,86 @@ func TestListWorldsParsesLevelDat(t *testing.T) {
 	}
 	if st, err := os.Stat(dst); err != nil || st.Size() == 0 {
 		t.Fatal("zip not written")
+	}
+}
+
+func TestAddWorldFromFolder(t *testing.T) {
+	game, src := t.TempDir(), filepath.Join(t.TempDir(), "My World")
+	writeLevelDat(t, filepath.Join(src, "level.dat"))
+	os.WriteFile(filepath.Join(src, "region.mca"), []byte("x"), 0o644)
+	w, err := AddWorld(game, src)
+	if err != nil || w.Folder != "My World" || w.Name != "Hello World" {
+		t.Fatalf("AddWorld: %+v %v", w, err)
+	}
+	// Same name again gets a suffix instead of overwriting.
+	w2, err := AddWorld(game, src)
+	if err != nil || w2.Folder != "My World (2)" {
+		t.Fatalf("second import: %+v %v", w2, err)
+	}
+	if _, err := AddWorld(game, t.TempDir()); err != ErrNotWorld {
+		t.Fatalf("folder without level.dat: %v", err)
+	}
+	if err := RemoveWorld(game, "My World (2)"); err != nil {
+		t.Fatal(err)
+	}
+	worlds, _ := ListWorlds(game)
+	if len(worlds) != 1 {
+		t.Fatalf("want 1 world after remove, got %d", len(worlds))
+	}
+}
+
+func TestAddWorldFromZip(t *testing.T) {
+	game := t.TempDir()
+	src := filepath.Join(t.TempDir(), "Skyline")
+	writeLevelDat(t, filepath.Join(src, "level.dat"))
+	os.MkdirAll(filepath.Join(src, "region"), 0o755)
+	os.WriteFile(filepath.Join(src, "region", "r.0.0.mca"), []byte("x"), 0o644)
+
+	nested := filepath.Join(t.TempDir(), "backup.zip") // Skyline/level.dat inside
+	if err := zipDir(src, nested, "Skyline"); err != nil {
+		t.Fatal(err)
+	}
+	w, err := AddWorld(game, nested)
+	if err != nil || w.Folder != "Skyline" {
+		t.Fatalf("nested zip: %+v %v", w, err)
+	}
+	if _, err := os.Stat(filepath.Join(game, "saves", "Skyline", "region", "r.0.0.mca")); err != nil {
+		t.Fatal("region file missing after import")
+	}
+
+	flat := filepath.Join(t.TempDir(), "Flat World.zip") // level.dat at the root
+	if err := zipDir(src, flat, ""); err != nil {
+		t.Fatal(err)
+	}
+	w, err = AddWorld(game, flat)
+	if err != nil || w.Folder != "Flat World" {
+		t.Fatalf("flat zip: %+v %v", w, err)
+	}
+
+	bad := filepath.Join(t.TempDir(), "bad.zip")
+	f, _ := os.Create(bad)
+	zw := zip.NewWriter(f)
+	e, _ := zw.Create("level.dat")
+	e.Write([]byte("x"))
+	e, _ = zw.Create("../escape.txt")
+	e.Write([]byte("x"))
+	zw.Close()
+	f.Close()
+	if _, err := AddWorld(game, bad); err == nil {
+		t.Fatal("zip-slip entry must be rejected")
+	}
+	if _, err := os.Stat(filepath.Join(game, "escape.txt")); err == nil {
+		t.Fatal("zip-slip file was written")
+	}
+
+	notWorld := filepath.Join(t.TempDir(), "pack.zip")
+	f, _ = os.Create(notWorld)
+	zw = zip.NewWriter(f)
+	e, _ = zw.Create("pack.mcmeta")
+	e.Write([]byte("{}"))
+	zw.Close()
+	f.Close()
+	if _, err := AddWorld(game, notWorld); err != ErrNotWorld {
+		t.Fatalf("zip without level.dat: %v", err)
 	}
 }

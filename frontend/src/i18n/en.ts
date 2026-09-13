@@ -37,11 +37,13 @@ const en = {
     deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
     notInstalled: 'Not downloaded yet — Play will download it first.', installed: 'Ready to play',
     tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', worlds: 'Worlds', screenshots: 'Screenshots' },
-    saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder',
-    dropHere: 'Drag a {kind} file here', browse: 'Browse files', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack' },
+    saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
+    removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
+    worldAdded: 'Added world "{name}"',
+    dropHere: 'Drag a {kind} file here', browse: 'Browse files', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
     empty: {
       mods: 'No mods installed yet. Drag a .jar file here.', resourcepacks: 'No resource packs installed yet. Drag a .zip file here or use Browse.', shaders: 'No shaders installed yet. Drag a shader pack here.',
-      worlds: 'No worlds yet. Play the instance to create your first one.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',
+      worlds: 'No worlds yet. Play the instance to create one, or drag a world folder or .zip here.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',
     },
     worldMeta: 'Played {when} • {size}', savedTo: 'Saved to {path}',
   },
@@ -49,7 +51,7 @@ const en = {
     preparing: 'Getting {name} ready', starting: 'Starting the game…',
     phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', done: 'Launching' },
     firstTime: 'The first launch of a version downloads a few hundred MB. Later launches are instant.',
-    errorTitle: 'Could not start the game', exitedTitle: 'The game closed unexpectedly', exitBody: 'Exit code {code}. The launcher log is at:',
+    errorTitle: 'Could not start the game', exitedTitle: 'The game closed unexpectedly', exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
   },
 }
 export default en

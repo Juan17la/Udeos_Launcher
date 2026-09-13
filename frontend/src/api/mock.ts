@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { GameEvent, Instance, Profile, Progress } from './types'
+import type { GameEvent, Instance, Profile, Progress, World } from './types'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -17,6 +17,13 @@ export function createMock() {
     { id: 'i2', name: 'New World', version: '1.21.1', loader: 'Vanilla', icon: 'crafting_table', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
   ]
   const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+  const worlds: Record<string, World[]> = {
+    i1: [
+      { folder: 'Skyline City', name: 'Skyline City', lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), sizeBytes: 52_000_000 },
+      { folder: 'Nether Base', name: 'Nether Base', lastPlayed: new Date(Date.now() - 7 * 864e5).toISOString(), sizeBytes: 8_400_000 },
+    ],
+  }
+  const syncCounts = (id: string) => { const i = instances.find((x) => x.id === id); if (i) i.counts.worlds = (worlds[id] ?? []).length }
 
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock' } },
@@ -47,13 +54,16 @@ export function createMock() {
       setTimeout(() => { inst.running = false; inst.lastPlayed = new Date().toISOString(); emit('game:state', { instanceId: id, running: false, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent) }, 6000)
     },
     async IsRunning(id: string) { return !!instances.find((x) => x.id === id)?.running },
-    async ListWorlds(id: string) {
-      return id === 'i1' ? [
-        { folder: 'Skyline City', name: 'Skyline City', lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), sizeBytes: 52_000_000 },
-        { folder: 'Nether Base', name: 'Nether Base', lastPlayed: new Date(Date.now() - 7 * 864e5).toISOString(), sizeBytes: 8_400_000 },
-      ] : []
-    },
+    async ListWorlds(id: string) { return (worlds[id] ?? []).map((w) => ({ ...w })) },
     async ExportWorld(_id: string, folder: string) { await sleep(600); return `/home/player/${folder}.zip` },
+    async AddWorld(id: string, path: string) {
+      if (!/\.zip$/i.test(path) && path.includes('.')) throw new Error('worlds must be .zip files or folders')
+      const name = path.split('/').pop()!.replace(/\.zip$/i, '')
+      const w: World = { folder: name, name, lastPlayed: new Date().toISOString(), sizeBytes: 12_000_000 }
+      ;(worlds[id] ??= []).unshift(w); syncCounts(id); return w
+    },
+    async PickWorld(id: string) { await sleep(300); return backend.AddWorld(id, '/home/player/Picked World.zip') },
+    async RemoveWorld(id: string, folder: string) { worlds[id] = (worlds[id] ?? []).filter((w) => w.folder !== folder); syncCounts(id) },
     async ListScreenshots(id: string) {
       return id === 'i1' ? [1, 2, 3].map((n) => ({ name: `2026-09-1${n}_12.00.0${n}.png`, sizeBytes: 900_000, modTime: new Date().toISOString(), isDir: false })) : []
     },

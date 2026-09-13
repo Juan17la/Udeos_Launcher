@@ -7,6 +7,7 @@ import type { FileEntry, World } from '../api/types'
 import { fmt } from '../i18n/format'
 import { ago, bytes } from '../ui/time'
 import ConfirmDialog from '../components/ConfirmDialog'
+import Dialog from '../components/Dialog'
 
 type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots'
 
@@ -43,7 +44,7 @@ export default function InstancePage({ id }: { id: string }) {
         <button type="button" className="btn btn-primary btn-block" style={{ height: 48, fontSize: 18 }} disabled={busy || inst.running} onClick={() => play(inst.id)}>
           <Play size={16} /> {inst.running ? t.common.running : t.common.play}
         </button>
-        <button type="button" className="btn btn-secondary btn-block" style={{ fontSize: 13 }} onClick={() => api.OpenInstanceFolder(inst.id)}>
+        <button type="button" className="btn btn-secondary btn-block" style={{ fontSize: 13 }} onClick={() => api.OpenInstanceFolder(inst.id, '')}>
           <Folder /> {t.instance.openFolder}
         </button>
         <button type="button" className="btn btn-danger btn-block" style={{ fontSize: 13, whiteSpace: 'nowrap' }} disabled={inst.running} onClick={() => setConfirmDelete(true)}>{t.instance.deleteInstance}</button>
@@ -78,33 +79,81 @@ function Toast({ text }: { text: string | null }) {
   return <p className="text-muted" style={{ fontSize: 12, margin: '0 0 12px', wordBreak: 'break-all' }}>{text}</p>
 }
 
+/** Small right-aligned "Open folder" link shown above a tab's content. */
+function FolderLink({ id, sub }: { id: string; sub: string }) {
+  const { t } = useApp()
+  return (
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+      <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => api.OpenInstanceFolder(id, sub)}><Folder size={12} /> {t.instance.openFolder}</button>
+    </div>
+  )
+}
+
 function WorldsTab({ id }: { id: string }) {
-  const { t, launch } = useApp()
+  const { t, launch, refreshInstances } = useApp()
   const [worlds, setWorlds] = useState<World[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [over, setOver] = useState(false)
+  const [toDelete, setToDelete] = useState<World | null>(null)
   const load = useCallback(() => { api.ListWorlds(id).then(setWorlds) }, [id])
   useEffect(load, [load, launch.status])
 
+  const add = useCallback(async (paths: string[]) => {
+    setError(null); setNote(null)
+    for (const p of paths) {
+      try { const w = await api.AddWorld(id, p); setNote(fmt(t.instance.worldAdded, { name: w.name })) } catch (e) { setError(String((e as Error)?.message ?? e)) }
+    }
+    load(); refreshInstances()
+  }, [id, load, refreshInstances, t])
+
+  // Native file drops arrive from Go with real paths; only the mounted tab listens.
+  useEffect(() => on('files:dropped', (paths) => { setOver(false); add(paths) }), [add])
+
+  const pick = async () => {
+    setError(null); setNote(null)
+    try { const w = await api.PickWorld(id); if (w.folder) { setNote(fmt(t.instance.worldAdded, { name: w.name })); load(); refreshInstances() } } catch (e) { setError(String((e as Error)?.message ?? e)) }
+  }
   const save = async (w: World) => {
     const path = await api.ExportWorld(id, w.folder)
     if (path) setNote(fmt(t.instance.savedTo, { path }))
   }
-  if (!worlds) return null
-  if (worlds.length === 0) return <Empty text={t.instance.empty.worlds} />
+  const remove = async () => {
+    if (!toDelete) return
+    try { await api.RemoveWorld(id, toDelete.folder) } catch (e) { setError(String((e as Error)?.message ?? e)) }
+    setToDelete(null); load(); refreshInstances()
+  }
+
   return (
     <>
-      <Toast text={note} />
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        {worlds.map((w) => (
-          <div key={w.folder} className="card row-card">
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="row-title">{w.name}</div>
-              <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, t), size: bytes(w.sizeBytes) })}</div>
-            </div>
-            <button type="button" className="btn btn-secondary" onClick={() => save(w)}><Folder /> {t.instance.saveToDevice}</button>
-          </div>
-        ))}
+      <div className={`dropzone ${over ? 'is-over' : ''}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
+        onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false) }}>
+        <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds.worlds })}</span>
+        <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
+        <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
       </div>
+      {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
+      <Toast text={note} />
+      <FolderLink id={id} sub="saves" />
+      {worlds && worlds.length === 0 && <Empty text={t.instance.empty.worlds} />}
+      {worlds && worlds.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {worlds.map((w) => (
+            <div key={w.folder} className="card row-card">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="row-title">{w.name}</div>
+                <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, t), size: bytes(w.sizeBytes) })}</div>
+              </div>
+              <button type="button" className="btn btn-secondary" onClick={() => save(w)}><Folder /> {t.instance.saveToDevice}</button>
+              <button type="button" className="btn btn-icon btn-danger" title={t.instance.removeWorld} onClick={() => setToDelete(w)}><X /></button>
+            </div>
+          ))}
+        </div>
+      )}
+      {toDelete && (
+        <ConfirmDialog danger title={t.instance.confirmDeleteWorldTitle} body={fmt(t.instance.confirmDeleteWorld, { name: toDelete.name })} confirmLabel={t.common.delete}
+          onConfirm={remove} onClose={() => setToDelete(null)} />
+      )}
     </>
   )
 }
@@ -113,31 +162,44 @@ function ScreenshotsTab({ id }: { id: string }) {
   const { t, launch } = useApp()
   const [shots, setShots] = useState<FileEntry[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
+  const [open, setOpen] = useState<FileEntry | null>(null)
   const load = useCallback(() => { api.ListScreenshots(id).then(setShots) }, [id])
   useEffect(load, [load, launch.status])
 
+  const src = (s: FileEntry) => `/media/${encodeURIComponent(id)}/screenshots/${encodeURIComponent(s.name)}`
   const save = async (s: FileEntry) => {
     const path = await api.ExportScreenshot(id, s.name)
     if (path) setNote(fmt(t.instance.savedTo, { path }))
   }
   if (!shots) return null
-  if (shots.length === 0) return <Empty text={t.instance.empty.screenshots} />
   return (
     <>
       <Toast text={note} />
+      <FolderLink id={id} sub="screenshots" />
+      {shots.length === 0 && <Empty text={t.instance.empty.screenshots} />}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 14 }}>
         {shots.map((s) => (
           <div key={s.name} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <div className="shot" title={s.name} style={{ aspectRatio: '16/10', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              <img src={`/media/${encodeURIComponent(id)}/screenshots/${encodeURIComponent(s.name)}`} alt={s.name} loading="lazy"
+            <button type="button" className="shot" title={`${t.instance.view}: ${s.name}`} onClick={() => setOpen(s)}
+              style={{ aspectRatio: '16/10', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', padding: 0, border: 0, cursor: 'zoom-in' }}>
+              <img src={src(s)} alt={s.name} loading="lazy"
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 onError={(e) => { const el = e.currentTarget; el.style.display = 'none'; el.parentElement!.classList.add('no-img') }} />
               <span className="fallback-icon" style={{ position: 'absolute', color: 'var(--color-neutral-500)' }}><Camera /></span>
-            </div>
+            </button>
             <button type="button" className="btn btn-secondary" style={{ fontSize: 13 }} onClick={() => save(s)}>{t.instance.saveToDevice}</button>
           </div>
         ))}
       </div>
+      {open && (
+        <Dialog title={open.name} width={960} onClose={() => setOpen(null)} actions={<>
+          <button type="button" className="btn btn-secondary" onClick={() => save(open)}><Folder /> {t.instance.saveToDevice}</button>
+          <button type="button" className="btn btn-primary" onClick={() => setOpen(null)}>{t.common.close}</button>
+        </>}>
+          <img src={src(open)} alt={open.name} style={{ display: 'block', width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }} />
+          <p className="text-muted" style={{ margin: '8px 0 0', fontSize: 12 }}>{bytes(open.sizeBytes)} · {ago(open.modTime, t)}</p>
+        </Dialog>
+      )}
     </>
   )
 }

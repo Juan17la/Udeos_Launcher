@@ -39,11 +39,13 @@ const es: Dict = {
     deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
     notInstalled: 'Aún no descargada — Jugar la descargará primero.', installed: 'Lista para jugar',
     tabs: { mods: 'Mods', resourcepacks: 'Paquetes de recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas' },
-    saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta',
-    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader' },
+    saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta', view: 'Ver',
+    removeWorld: 'Eliminar mundo', confirmDeleteWorldTitle: '¿Eliminar este mundo?', confirmDeleteWorld: '"{name}" y todo lo construido en él se borrará de esta instancia. Guárdalo en tu equipo antes si quieres conservar una copia.',
+    worldAdded: 'Mundo "{name}" añadido',
+    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
     empty: {
       mods: 'Aún no hay mods. Arrastra un archivo .jar aquí.', resourcepacks: 'Aún no hay paquetes de recursos. Arrastra un .zip aquí o usa Buscar.', shaders: 'Aún no hay shaders. Arrastra un shader pack aquí.',
-      worlds: 'Aún no hay mundos. Juega la instancia para crear el primero.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',
+      worlds: 'Aún no hay mundos. Juega la instancia para crear uno, o arrastra aquí una carpeta o .zip de un mundo.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',
     },
     worldMeta: 'Jugado {when} • {size}', savedTo: 'Guardado en {path}',
   },
@@ -51,7 +53,7 @@ const es: Dict = {
     preparing: 'Preparando {name}', starting: 'Iniciando el juego…',
     phases: { version: 'Leyendo la versión', libraries: 'Descargando librerías del juego', assets: 'Descargando sonidos y texturas', client: 'Descargando el juego', natives: 'Desempaquetando librerías nativas', java: 'Descargando Java', done: 'Lanzando' },
     firstTime: 'La primera vez que juegas una versión se descargan unos cientos de MB. Las siguientes veces es instantáneo.',
-    errorTitle: 'No se pudo iniciar el juego', exitedTitle: 'El juego se cerró inesperadamente', exitBody: 'Código de salida {code}. El registro del launcher está en:',
+    errorTitle: 'No se pudo iniciar el juego', exitedTitle: 'El juego se cerró inesperadamente', exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',
   },
 }
 export default es

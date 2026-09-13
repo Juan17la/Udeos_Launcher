@@ -41,7 +41,10 @@ with CSS. The real frontend keeps exactly those pieces:
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
   Open folder, Delete with confirmation) and the tabs. A vanilla instance
   shows Resource Packs, Worlds and Screenshots; Mods and Shaders appear only
-  for modded instances.
+  for modded instances. Worlds and Resource Packs share the same drop zone
+  pattern (drag a file onto the window, or Browse); each row has Save to
+  Device and a Remove button that asks for confirmation. Screenshots open
+  in a preview dialog when clicked. Every tab has an "Open folder" link.
 
 The navigation bar carries Dashboard, the disabled Search and Skin entries
 (coming later), theme toggle, language, Privacy & Terms, the avatar initial
@@ -50,7 +53,9 @@ and New Instance.
 ## State and data flow
 
 A single React context holds the profile, the instance list, the current
-screen and the *launch state*. Screens never call the backend for the
+screen and the *launch state*. The "game closed unexpectedly" dialog offers
+"Open logs folder", which opens `.minecraft/logs/` where both the launcher's
+and the game's logs live. Screens never call the backend for the
 instance list themselves; they call `play`, `saveProfile` or `refreshInstances`
 on the context and re-render when it changes. Backend events feed the same
 context: progress updates the launch state while it is "preparing", a

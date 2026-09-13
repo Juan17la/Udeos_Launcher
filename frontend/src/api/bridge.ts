@@ -19,6 +19,9 @@ type Backend = {
   IsRunning(id: string): Promise<boolean>
   ListWorlds(id: string): Promise<World[]>
   ExportWorld(id: string, folder: string): Promise<string>
+  AddWorld(id: string, path: string): Promise<World>
+  PickWorld(id: string): Promise<World>
+  RemoveWorld(id: string, folder: string): Promise<void>
   ListScreenshots(id: string): Promise<FileEntry[]>
   ExportScreenshot(id: string, name: string): Promise<string>
   ListResourcePacks(id: string): Promise<FileEntry[]>
@@ -27,7 +30,8 @@ type Backend = {
   AddResourcePack(id: string, path: string): Promise<FileEntry>
   PickResourcePack(id: string): Promise<FileEntry>
   RemoveResourcePack(id: string, name: string): Promise<void>
-  OpenInstanceFolder(id: string): Promise<void>
+  /** sub: '' for .minecraft itself, or saves | screenshots | resourcepacks | mods | shaderpacks | logs */
+  OpenInstanceFolder(id: string, sub: string): Promise<void>
 }
 
 type Events = {

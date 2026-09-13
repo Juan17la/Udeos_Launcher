@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -9,6 +10,7 @@ import (
 	wailsrt "github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"udeos/launcher/internal/content"
+	"udeos/launcher/internal/sysopen"
 )
 
 // EventFilesDropped carries the paths of files dropped onto the window.
@@ -49,6 +51,37 @@ func (a *App) ExportWorld(id, folder string) (string, error) {
 		dst += ".zip"
 	}
 	return dst, content.ExportWorld(dir, folder, dst)
+}
+
+// AddWorld imports a world folder or .zip into saves/.
+func (a *App) AddWorld(id, path string) (content.World, error) {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return content.World{}, err
+	}
+	return content.AddWorld(dir, path)
+}
+
+// PickWorld opens a file chooser for a world .zip and imports it. Returns an
+// empty folder name when cancelled. Folders can be dragged onto the window.
+func (a *App) PickWorld(id string) (content.World, error) {
+	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
+		Title:   "Choose a world",
+		Filters: []wailsrt.FileFilter{{DisplayName: "World archive (*.zip)", Pattern: "*.zip"}},
+	})
+	if err != nil || path == "" {
+		return content.World{}, err
+	}
+	return a.AddWorld(id, path)
+}
+
+// RemoveWorld deletes a world from the instance.
+func (a *App) RemoveWorld(id, folder string) error {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return err
+	}
+	return content.RemoveWorld(dir, folder)
 }
 
 // ListScreenshots returns the PNG files in screenshots/. The UI shows them via /media/.
@@ -135,14 +168,24 @@ func (a *App) RemoveResourcePack(id, name string) error {
 	return content.Remove(dir, "resourcepacks", name)
 }
 
-// OpenInstanceFolder shows the game directory in the system file manager.
-func (a *App) OpenInstanceFolder(id string) error {
+// openableSubdirs are the game sub-folders the UI may ask to open.
+var openableSubdirs = map[string]bool{"": true, "saves": true, "screenshots": true, "resourcepacks": true, "mods": true, "shaderpacks": true, "logs": true}
+
+// OpenInstanceFolder shows the game directory (or one of its sub-folders,
+// e.g. "screenshots" or "logs") in the system file manager.
+func (a *App) OpenInstanceFolder(id, sub string) error {
 	dir, err := a.gameDir(id)
 	if err != nil {
 		return err
 	}
-	wailsrt.BrowserOpenURL(a.ctx, "file://"+filepath.ToSlash(dir))
-	return nil
+	if !openableSubdirs[sub] {
+		return errors.New("unknown folder " + sub)
+	}
+	dir = filepath.Join(dir, sub)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+	return sysopen.Dir(dir)
 }
 
 // mediaHandler serves /media/<instance>/screenshots/<file> from disk so the

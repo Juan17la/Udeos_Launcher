@@ -2,6 +2,7 @@ import Dialog from './Dialog'
 import { useApp } from '../state'
 import { fmt } from '../i18n/format'
 import { bytes } from '../ui/time'
+import { api } from '../api/bridge'
 
 /** Shows download progress while Play prepares a version, and launch errors. */
 export default function ProgressOverlay() {
@@ -35,7 +36,10 @@ export default function ProgressOverlay() {
 
   const title = launch.status === 'error' ? t.launch.errorTitle : t.launch.exitedTitle
   return (
-    <Dialog title={title} onClose={dismissLaunch} actions={<button type="button" className="btn btn-primary" onClick={dismissLaunch}>{t.common.gotIt}</button>}>
+    <Dialog title={title} onClose={dismissLaunch} actions={<>
+      {launch.status === 'exited' && <button type="button" className="btn btn-secondary" onClick={() => api.OpenInstanceFolder(launch.instanceId, 'logs')}>{t.launch.openLogs}</button>}
+      <button type="button" className="btn btn-primary" onClick={dismissLaunch}>{t.common.gotIt}</button>
+    </>}>
       {launch.status === 'error' ? (
         <p style={{ margin: 0, wordBreak: 'break-word' }}>{launch.message}</p>
       ) : (
