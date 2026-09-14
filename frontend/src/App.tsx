@@ -7,6 +7,7 @@ import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
 import CreateInstance from './screens/CreateInstance'
 import InstancePage from './screens/InstancePage'
+import Search from './screens/Search'
 
 function Shell() {
   const { ready, screen } = useApp()
@@ -18,6 +19,7 @@ function Shell() {
       {screen.name === 'dashboard' && <Dashboard />}
       {screen.name === 'create' && <CreateInstance />}
       {screen.name === 'instance' && <InstancePage id={screen.id} />}
+      {screen.name === 'search' && <Search />}
       <ProgressOverlay />
       <PrivacyDialog />
       <LanguageDialog />

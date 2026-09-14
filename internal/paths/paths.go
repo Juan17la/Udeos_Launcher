@@ -77,3 +77,14 @@ func (d Dirs) ProfileFile() string { return filepath.Join(d.Root, "profile.json"
 
 // InstancesFile stores the list of instances.
 func (d Dirs) InstancesFile() string { return filepath.Join(d.Root, "instances.json") }
+
+// SearchCacheDir holds cached content-search results so the search page
+// works offline, the same way cache/loaders/ does for loader lists.
+func (d Dirs) SearchCacheDir() string { return filepath.Join(d.Root, "cache", "search") }
+
+// SearchCacheFile is the cached page of results for one search query.
+func (d Dirs) SearchCacheFile(key string) string { return filepath.Join(d.SearchCacheDir(), key+".json") }
+
+// SearchVersionsCacheFile is the cached list of Minecraft versions the search
+// provider knows about, used to populate the version filter.
+func (d Dirs) SearchVersionsCacheFile() string { return filepath.Join(d.SearchCacheDir(), "game_versions.json") }

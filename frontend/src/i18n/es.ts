@@ -53,6 +53,13 @@ const es: Dict = {
     },
     worldMeta: 'Jugado {when} • {size}', savedTo: 'Guardado en {path}',
   },
+  search: {
+    title: 'Buscar', subtitle: 'Explora mods, paquetes de recursos, shaders y modpacks de Modrinth.',
+    searchPlaceholder: 'Buscar…', anyVersion: 'Cualquier versión', anyLoader: 'Cualquier cargador',
+    types: { mod: 'Mods', resourcepack: 'Paquetes de recursos', shader: 'Shaders', modpack: 'Modpacks' },
+    downloads: '{n} descargas', empty: 'No se encontraron resultados.', loadMore: 'Cargar más',
+    error: 'No se pudo conectar con Modrinth y no hay resultados guardados. Revisa tu conexión.',
+  },
   launch: {
     preparing: 'Preparando {name}', starting: 'Iniciando el juego…',
     phases: { version: 'Leyendo la versión', libraries: 'Descargando librerías del juego', assets: 'Descargando sonidos y texturas', client: 'Descargando el juego', natives: 'Desempaquetando librerías nativas', java: 'Descargando Java', loader: 'Instalando el cargador de mods', done: 'Lanzando' },

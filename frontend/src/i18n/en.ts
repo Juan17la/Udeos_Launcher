@@ -51,6 +51,13 @@ const en = {
     },
     worldMeta: 'Played {when} • {size}', savedTo: 'Saved to {path}',
   },
+  search: {
+    title: 'Search', subtitle: 'Browse mods, resource packs, shaders and modpacks from Modrinth.',
+    searchPlaceholder: 'Search…', anyVersion: 'Any version', anyLoader: 'Any loader',
+    types: { mod: 'Mods', resourcepack: 'Resource Packs', shader: 'Shaders', modpack: 'Modpacks' },
+    downloads: '{n} downloads', empty: 'No results found.', loadMore: 'Load more',
+    error: 'Could not reach Modrinth and no cached results are available. Check your connection.',
+  },
   launch: {
     preparing: 'Getting {name} ready', starting: 'Starting the game…',
     phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', loader: 'Installing the mod loader', done: 'Launching' },

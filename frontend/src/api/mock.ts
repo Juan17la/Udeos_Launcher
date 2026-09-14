@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { FileEntry, GameEvent, Instance, Loader, Profile, Progress, World } from './types'
+import type { FileEntry, GameEvent, Instance, Loader, Profile, ProjectType, Progress, SearchGameVersion, SearchResult, World } from './types'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -35,6 +35,30 @@ export function createMock() {
     ],
   }
   const syncCounts = (id: string) => { const i = instances.find((x) => x.id === id); if (i) i.counts.worlds = (worlds[id] ?? []).length }
+
+  const gameVersions: SearchGameVersion[] = [
+    { version: '24w33a', type: 'snapshot' }, { version: '1.21.1', type: 'release' }, { version: '1.20.4', type: 'release' },
+    { version: '1.19.2', type: 'release' }, { version: '1.12.2', type: 'release' },
+  ]
+  const searchResults: Record<ProjectType, SearchResult[]> = {
+    mod: [
+      { id: 'sodium', slug: 'sodium', title: 'Sodium', author: 'CaffeineMC', description: 'A modern rendering engine that boosts FPS.', iconUrl: '', downloads: 42_000_000, projectType: 'mod', loaders: ['fabric', 'quilt'], gameVersions: ['1.21.1', '1.20.4'] },
+      { id: 'jei', slug: 'jei', title: 'Just Enough Items', author: 'mezz', description: 'View items and recipes.', iconUrl: '', downloads: 30_000_000, projectType: 'mod', loaders: ['forge', 'fabric'], gameVersions: ['1.20.4', '1.19.2'] },
+      { id: 'create', slug: 'create', title: 'Create', author: 'simibubi', description: 'Building tools and aesthetic technology.', iconUrl: '', downloads: 18_000_000, projectType: 'mod', loaders: ['forge', 'neoforge'], gameVersions: ['1.20.4', '1.19.2', '1.12.2'] },
+    ],
+    resourcepack: [
+      { id: 'faithful', slug: 'faithful-32x', title: 'Faithful 32x', author: 'Vattic', description: 'Higher-resolution vanilla-style textures.', iconUrl: '', downloads: 9_000_000, projectType: 'resourcepack', loaders: [], gameVersions: ['1.21.1', '1.20.4', '1.19.2'] },
+      { id: 'dandelion', slug: 'dandelion', title: 'Dandelion X', author: 'AjTheKing', description: 'Clean modern texture pack.', iconUrl: '', downloads: 2_000_000, projectType: 'resourcepack', loaders: [], gameVersions: ['1.20.4'] },
+    ],
+    shader: [
+      { id: 'bsl', slug: 'bsl-shaders', title: 'BSL Shaders', author: 'capttatsu', description: 'Balanced shaders with realistic lighting.', iconUrl: '', downloads: 6_000_000, projectType: 'shader', loaders: [], gameVersions: ['1.21.1', '1.20.4'] },
+      { id: 'complementary', slug: 'complementary-reimagined', title: 'Complementary Reimagined', author: 'EminGT', description: 'Vanilla-friendly shader pack.', iconUrl: '', downloads: 5_500_000, projectType: 'shader', loaders: [], gameVersions: ['1.20.4', '1.19.2'] },
+    ],
+    modpack: [
+      { id: 'allthemods', slug: 'all-the-mods-10', title: 'All the Mods 10', author: 'ATMTeam', description: 'A kitchen-sink modpack for 1.20.1.', iconUrl: '', downloads: 4_000_000, projectType: 'modpack', loaders: ['forge'], gameVersions: ['1.20.4'] },
+      { id: 'vaultsurvival', slug: 'vault-survival', title: 'Vault Hunters', author: 'Team Vault Hunters', description: 'Roguelike vault dungeons.', iconUrl: '', downloads: 3_000_000, projectType: 'modpack', loaders: ['forge'], gameVersions: ['1.18.2'] },
+    ],
+  }
 
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock' } },
@@ -100,6 +124,15 @@ export function createMock() {
     async PickResourcePack() { return { name: 'Picked Pack.zip', sizeBytes: 1000, modTime: new Date().toISOString(), isDir: false } },
     async RemoveResourcePack() {},
     async OpenInstanceFolder() {},
+    async SearchContent(projectType: ProjectType, text: string, gameVersion: string, ldr: string, offset: number, limit: number) {
+      await sleep(200)
+      const all = searchResults[projectType].filter((r) =>
+        (!text || r.title.toLowerCase().includes(text.toLowerCase())) &&
+        (!gameVersion || r.gameVersions.includes(gameVersion)) &&
+        (!ldr || r.loaders.includes(ldr.toLowerCase())))
+      return { results: all.slice(offset, offset + limit), total: all.length, offset }
+    },
+    async ListSearchGameVersions() { return gameVersions.map((v) => ({ ...v })) },
   }
 
   async function fakeInstall(loader?: Loader) {

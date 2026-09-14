@@ -12,6 +12,7 @@ export type Screen =
   | { name: 'dashboard' }
   | { name: 'create' }
   | { name: 'instance'; id: string }
+  | { name: 'search' }
 
 /** What the Play button is doing right now. */
 export type LaunchState =
@@ -67,7 +68,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (want) {
           setProfile(st.profile); await refreshInstances()
           const [name, id] = want.split(':')
-          go(name === 'instance' ? { name: 'instance', id } : name === 'create' ? { name: 'create' } : { name: 'dashboard' })
+          go(name === 'instance' ? { name: 'instance', id } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' } : { name: 'dashboard' })
         }
       }
       setReady(true)

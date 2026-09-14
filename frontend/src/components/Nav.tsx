@@ -13,7 +13,7 @@ export default function Nav() {
         {t.app.name}
       </div>
       <button type="button" className="nav-link" aria-current={current('dashboard')} onClick={() => go({ name: 'dashboard' })}>{t.nav.dashboard}</button>
-      <button type="button" className="nav-link" disabled title={t.nav.comingSoon}>{t.nav.search}</button>
+      <button type="button" className="nav-link" aria-current={current('search')} onClick={() => go({ name: 'search' })}>{t.nav.search}</button>
       <button type="button" className="nav-link" disabled title={t.nav.comingSoon}>{t.nav.skin}</button>
       <button type="button" className="btn btn-icon btn-primary" title={dark ? t.nav.themeToLight : t.nav.themeToDark} onClick={() => setTheme(dark ? 'light' : 'dark')}>
         {dark ? <Sun /> : <Moon />}

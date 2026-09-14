@@ -45,3 +45,19 @@ export type AppInfo = { version: string; os: string; arch: string; dataDir: stri
 
 export type World = { folder: string; name: string; lastPlayed: string; sizeBytes: number }
 export type FileEntry = { name: string; sizeBytes: number; modTime: string; isDir: boolean }
+
+export type ProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack'
+export type SearchResult = {
+  id: string
+  slug: string
+  title: string
+  author: string
+  description: string
+  iconUrl: string
+  downloads: number
+  projectType: ProjectType
+  loaders: string[]
+  gameVersions: string[]
+}
+export type SearchPage = { results: SearchResult[]; total: number; offset: number }
+export type SearchGameVersion = { version: string; type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha' }
