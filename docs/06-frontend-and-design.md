@@ -2,7 +2,7 @@
 
 ## From mockup to app
 
-The interactive mockup in `Minecraft Launcher UI Mockups/` was built on a
+The interactive mockup the UI was designed in (kept outside this repository) was built on a
 small design system ("Organic": rounded cards, pill buttons, two accent
 ramps) and then re-skinned for Minecraft: JetBrains Mono everywhere, two
 themes, bevelled "Minecraft button" surfaces and pixel-art block icons drawn

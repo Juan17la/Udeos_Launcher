@@ -1,7 +1,7 @@
 /* Design tokens + component classes.
-   Base classes come from the "Organic" design system used by the mockups
-   (Minecraft Launcher UI Mockups/_ds/.../styles.css); colors and fonts are the
-   launcher's own two themes taken from the mockup's THEMES table. */
+   Base classes come from the "Organic" design system used by the design
+   mockups; colors and fonts are the launcher's own two themes taken from the
+   mockup's THEMES table. */
 
 :root {
   --font-heading: 'JetBrains Mono', 'Pixelify Sans', ui-monospace, monospace;

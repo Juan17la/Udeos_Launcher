@@ -1,7 +1,16 @@
+# Build output
 build/bin/
-frontend/dist/
+
+# Frontend: dependencies, Vite output and the bindings Wails regenerates on every build
 frontend/node_modules/
+frontend/dist/
 frontend/wailsjs/
-.Info_claude/
-.git/
 frontend/package.json.md5
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/

@@ -25,7 +25,7 @@ error from pkg-config. Windows and macOS ignore the tag.
 
 ## Development mode
 
-From the `launcher` folder, `wails dev` (plus the tag on Linux) does the
+From the repository root, `wails dev` (plus the tag on Linux) does the
 following automatically:
 
 1. Generates the JavaScript bindings for every exported Go method.
