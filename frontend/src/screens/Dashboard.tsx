@@ -1,13 +1,14 @@
 import PixelIcon from '../ui/PixelIcon'
 import Decor, { DASHBOARD_DECOR } from '../ui/Decor'
 import { Play } from '../ui/icons'
-import { useApp } from '../state'
+import { useApp, useLaunch } from '../state'
 import { fmt } from '../i18n/format'
 import { ago, hours } from '../ui/time'
 import type { Instance } from '../api/types'
 
 export default function Dashboard() {
-  const { t, instances, go, play, launch } = useApp()
+  const { t, instances, go } = useApp()
+  const { play, launch } = useLaunch()
   const last = instances[0]
   const busy = launch.status === 'preparing'
   const open = (inst: Instance) => go({ name: 'instance', id: inst.id })

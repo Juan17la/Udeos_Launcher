@@ -28,18 +28,19 @@ type Query struct {
 	Limit       int
 }
 
-// Result is one project shown in the search grid.
+// Result is one project shown in the search grid. It carries only what the
+// browsing UI displays; the full project (description, gallery, version and
+// file list) is fetched separately, once, when the player actually adds it.
 type Result struct {
-	ID           string      `json:"id"`
-	Slug         string      `json:"slug"`
-	Title        string      `json:"title"`
-	Author       string      `json:"author"`
-	Description  string      `json:"description"`
-	IconURL      string      `json:"iconUrl"`
-	Downloads    int64       `json:"downloads"`
-	ProjectType  ProjectType `json:"projectType"`
-	Loaders      []string    `json:"loaders"`
-	GameVersions []string    `json:"gameVersions"`
+	ID          string      `json:"id"`
+	Slug        string      `json:"slug"`
+	Title       string      `json:"title"`
+	Author      string      `json:"author"`
+	Description string      `json:"description"`
+	IconURL     string      `json:"iconUrl"`
+	Downloads   int64       `json:"downloads"`
+	ProjectType ProjectType `json:"projectType"`
+	Loaders     []string    `json:"loaders"`
 }
 
 // Page is one page of results.
@@ -57,7 +58,10 @@ type GameVersion struct {
 	Type    string `json:"type"`
 }
 
-// Provider is implemented once per marketplace.
+// Provider is implemented once per marketplace. It stays narrow on purpose:
+// when an "add to instance" flow exists, it should gain its own method (e.g.
+// Details(ctx, id) for the full project + version/file list) fetched once at
+// click time, rather than Search growing to carry that for every result.
 type Provider interface {
 	Name() string
 	Search(ctx context.Context, q Query) (Page, error)

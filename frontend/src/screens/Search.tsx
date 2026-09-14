@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useState } from 'react'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
@@ -78,10 +78,10 @@ export default function Search() {
   )
 }
 
-function ResultCard({ result }: { result: SearchResult }) {
+const ResultCard = memo(function ResultCard({ result }: { result: SearchResult }) {
   const { t } = useApp()
   return (
-    <div className="card elev-sm sheen" style={{ padding: 20, gap: 10 }}>
+    <div className="card elev-sm sheen search-card" style={{ padding: 20, gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {result.iconUrl && (
           <img src={result.iconUrl} alt="" loading="lazy" width={44} height={44}
@@ -100,4 +100,4 @@ function ResultCard({ result }: { result: SearchResult }) {
       </div>
     </div>
   )
-}
+})

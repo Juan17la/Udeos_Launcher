@@ -1,12 +1,13 @@
 import Dialog from './Dialog'
-import { useApp } from '../state'
+import { useApp, useLaunch } from '../state'
 import { fmt } from '../i18n/format'
 import { bytes } from '../ui/time'
 import { api } from '../api/bridge'
 
 /** Shows download progress while Play prepares a version, and launch errors. */
 export default function ProgressOverlay() {
-  const { t, launch, instances, dismissLaunch } = useApp()
+  const { t, instances } = useApp()
+  const { launch, dismissLaunch } = useLaunch()
   if (launch.status === 'idle') return null
   const inst = instances.find((i) => i.id === launch.instanceId)
   const name = inst?.name ?? ''

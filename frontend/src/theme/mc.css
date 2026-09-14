@@ -1,5 +1,9 @@
-/* Minecraft-flavoured overrides from the mockup: bevelled buttons, motion. */
-.card { transition: transform .34s cubic-bezier(.2,.9,.25,1), box-shadow .34s ease; }
+/* Minecraft-flavoured overrides from the mockup: bevelled buttons, motion.
+   Hover/active states only animate transform/background-color (compositor-
+   only, cheap); box-shadow values still change on hover but snap instantly
+   instead of being part of the transition, since animating box-shadow forces
+   a repaint of its bounding box on every frame. */
+.card { transition: transform .34s cubic-bezier(.2,.9,.25,1); }
 .card:hover { transform: translateY(-3px) scale(1.006); }
 .card.row-card:hover, .card.static:hover { transform: none; }
 
@@ -8,7 +12,7 @@
   background-image: linear-gradient(180deg, rgba(255,255,255,0.30), rgba(0,0,0,0.16));
   border-color: var(--mc-primary-border); color: var(--mc-primary-text);
   box-shadow: inset 0 1px 0 var(--mc-primary-top), inset 0 -2px 0 var(--mc-primary-bottom);
-  transition: transform .1s cubic-bezier(.3,1.6,.5,1), box-shadow .16s ease, background-color .2s ease;
+  transition: transform .1s cubic-bezier(.3,1.6,.5,1), background-color .2s ease;
 }
 .btn-primary:hover:not(:disabled) { background-color: var(--mc-primary-hover); transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--mc-primary-top), 0 6px 14px rgba(0,0,0,0.22); }
 .btn-primary:active:not(:disabled) { background-color: var(--mc-primary-active); transform: translateY(1px) scale(.985); }
@@ -28,7 +32,7 @@
   background-image: linear-gradient(180deg, rgba(255,255,255,0.24), rgba(0,0,0,0.16));
   border-color: var(--mc-danger-border); color: var(--mc-danger-text);
   box-shadow: inset 0 1px 0 var(--mc-danger-top), inset 0 -2px 0 var(--mc-danger-bottom);
-  transition: transform .1s cubic-bezier(.3,1.6,.5,1), box-shadow .16s ease, background-color .2s ease;
+  transition: transform .1s cubic-bezier(.3,1.6,.5,1), background-color .2s ease;
 }
 .btn-danger:hover:not(:disabled) { background-color: var(--mc-danger-hover); transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--mc-danger-top), 0 6px 14px rgba(0,0,0,0.22); }
 .btn-danger:active:not(:disabled) { background-color: var(--mc-danger-active); transform: translateY(1px) scale(.985); }
@@ -52,3 +56,9 @@
 
 .progress { height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--color-text) 12%, transparent); overflow: hidden; }
 .progress > div { height: 100%; background: var(--color-accent); transition: width .2s ease; border-radius: 999px; }
+
+/* Search results keep accumulating as the player clicks "Load more"; skip
+   layout/style/paint for cards scrolled off-screen so the page stays smooth
+   no matter how many pages are loaded. contain-intrinsic-size stands in for
+   the card's real height so the grid doesn't jump as visibility toggles. */
+.search-card { content-visibility: auto; contain-intrinsic-size: 270px 210px; }

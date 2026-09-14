@@ -30,12 +30,17 @@ type AppState = {
   profile: Profile | null; saveProfile: (p: Profile) => Promise<void>
   nickname: string
   instances: Instance[]; refreshInstances: () => Promise<void>
-  launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
   languageOpen: boolean; setLanguageOpen: (v: boolean) => void
 }
 
+/** Changes on every install/download progress tick — kept in its own context
+ *  so screens that don't play/launch anything (Nav, Search, dialogs, Decor,
+ *  CreateInstance) don't re-render on every tick. */
+type LaunchContextValue = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void }
+
 const Ctx = createContext<AppState | null>(null)
+const LaunchCtx = createContext<LaunchContextValue | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
@@ -127,15 +132,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(() => ({
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
     screen, go, profile, saveProfile, nickname: profile?.nickname ?? '',
-    instances, refreshInstances, launch, play, dismissLaunch,
+    instances, refreshInstances,
     privacyOpen, setPrivacyOpen, languageOpen, setLanguageOpen,
-  }), [ready, theme, language, screen, profile, instances, launch, privacyOpen, languageOpen, refreshInstances, saveProfile, play, dismissLaunch]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, language, screen, profile, instances, privacyOpen, languageOpen, refreshInstances, saveProfile]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+  const launchValue = useMemo<LaunchContextValue>(() => ({ launch, play, dismissLaunch }), [launch, play, dismissLaunch])
+
+  return (
+    <Ctx.Provider value={value}>
+      <LaunchCtx.Provider value={launchValue}>{children}</LaunchCtx.Provider>
+    </Ctx.Provider>
+  )
 }
 
 export function useApp(): AppState {
   const v = useContext(Ctx)
   if (!v) throw new Error('useApp must be used inside <AppProvider>')
+  return v
+}
+
+export function useLaunch(): LaunchContextValue {
+  const v = useContext(LaunchCtx)
+  if (!v) throw new Error('useLaunch must be used inside <AppProvider>')
   return v
 }

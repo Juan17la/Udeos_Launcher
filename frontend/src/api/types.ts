@@ -47,6 +47,8 @@ export type World = { folder: string; name: string; lastPlayed: string; sizeByte
 export type FileEntry = { name: string; sizeBytes: number; modTime: string; isDir: boolean }
 
 export type ProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack'
+/** Metadata shown while browsing. The full project (description, gallery,
+ *  version and file list) is only fetched once the player adds it. */
 export type SearchResult = {
   id: string
   slug: string
@@ -57,7 +59,6 @@ export type SearchResult = {
   downloads: number
   projectType: ProjectType
   loaders: string[]
-  gameVersions: string[]
 }
 export type SearchPage = { results: SearchResult[]; total: number; offset: number }
 export type SearchGameVersion = { version: string; type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha' }

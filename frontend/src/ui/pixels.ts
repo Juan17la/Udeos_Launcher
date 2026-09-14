@@ -48,16 +48,34 @@ export const THEME_DECOR: Record<'light' | 'dark', IconName[]> = {
   dark: ['ender_pearl', 'netherite_sword', 'netherite_ingot', 'golden_apple', 'ender_pearl', 'netherite_ingot', 'golden_apple'],
 }
 
-/** Builds the box-shadow string that paints a whole 8×8 icon at `size` px. */
-export function pixelShadow(name: string, size: number): { unit: number; shadow: string } {
+// Rasterized once per (name, size): a many-layer box-shadow is expensive to
+// paint and repaints on every mount (instance cards, the icon picker's ~13
+// icons at once, decorative background icons on every page). A cached PNG
+// data URL turns every later paint of that icon into a normal cheap image.
+const dataURLCache = new Map<string, string>()
+
+/** Rasterizes an 8×8 icon to a `size`×`size` PNG data URL, cached per (name, size). */
+export function pixelIconDataURL(name: string, size: number): string {
+  const key = `${name}:${size}`
+  const cached = dataURLCache.get(key)
+  if (cached) return cached
+
   const map = PIXELS[name] || PIXELS.grass
   const unit = size / 8
-  const parts: string[] = []
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
   map.forEach((row, y) => {
     row.split('').forEach((ch, x) => {
       const color = PALETTE[ch]
-      if (color) parts.push(`${(x * unit).toFixed(2)}px ${(y * unit).toFixed(2)}px 0 0 ${color}`)
+      if (color) {
+        ctx.fillStyle = color
+        ctx.fillRect(x * unit, y * unit, unit, unit)
+      }
     })
   })
-  return { unit, shadow: parts.join(',') }
+  const url = canvas.toDataURL('image/png')
+  dataURLCache.set(key, url)
+  return url
 }

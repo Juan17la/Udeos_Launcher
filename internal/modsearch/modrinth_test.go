@@ -1,6 +1,9 @@
 package modsearch
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestBuildFacets(t *testing.T) {
 	got := buildFacets(Query{Type: TypeMod})
@@ -21,6 +24,23 @@ func TestLoadersFrom(t *testing.T) {
 	}
 	if got := loadersFrom([]string{"decoration"}); len(got) != 0 {
 		t.Errorf("got %v, want none", got)
+	}
+}
+
+func TestTruncateDescription(t *testing.T) {
+	if got := truncateDescription("short", 160); got != "short" {
+		t.Errorf("got %q", got)
+	}
+	long := "This is a fairly long mod description that goes on and on about rendering engines and performance and keeps rambling well past what any card actually shows on screen to the player browsing the search results page"
+	got := truncateDescription(long, 80)
+	if len([]rune(got)) > 81 { // 80 + the ellipsis rune
+		t.Errorf("got %q (%d runes), want <= 81", got, len([]rune(got)))
+	}
+	if !strings.HasSuffix(got, "…") {
+		t.Errorf("got %q, want it to end with an ellipsis", got)
+	}
+	if strings.HasSuffix(strings.TrimSuffix(got, "…"), " ") {
+		t.Errorf("got %q, trailing space before the ellipsis", got)
 	}
 }
 

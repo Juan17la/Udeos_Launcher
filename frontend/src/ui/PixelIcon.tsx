@@ -1,14 +1,14 @@
 import { CSSProperties, useMemo } from 'react'
-import { pixelShadow } from './pixels'
+import { pixelIconDataURL } from './pixels'
 
 type Props = { name: string; size: number; style?: CSSProperties; className?: string; title?: string }
 
-/** A pixel-art block/item icon rendered with one box-shadow (no images). */
+/** A pixel-art block/item icon, rasterized once per (name, size) and cached. */
 export default function PixelIcon({ name, size, style, className, title }: Props) {
-  const { unit, shadow } = useMemo(() => pixelShadow(name, size), [name, size])
+  const src = useMemo(() => pixelIconDataURL(name, size), [name, size])
   return (
     <span className={`pixel ${className ?? ''}`} title={title} style={{ width: size, height: size, ...style }}>
-      <i style={{ width: unit, height: unit, boxShadow: shadow }} />
+      <img src={src} width={size} height={size} alt="" style={{ display: 'block', imageRendering: 'pixelated' }} />
     </span>
   )
 }

@@ -28,6 +28,11 @@ func NewModrinth() *Modrinth {
 
 func (m *Modrinth) Name() string { return "Modrinth" }
 
+// maxDescriptionLen caps the description sent to the frontend and written to
+// the cache file: the UI clamps it to two lines with CSS, so anything past a
+// couple of lines' worth of text is wasted bytes on the wire and on disk.
+const maxDescriptionLen = 160
+
 type modrinthHit struct {
 	ProjectID   string   `json:"project_id"`
 	Slug        string   `json:"slug"`
@@ -38,7 +43,6 @@ type modrinthHit struct {
 	Downloads   int64    `json:"downloads"`
 	ProjectType string   `json:"project_type"`
 	Categories  []string `json:"categories"`
-	Versions    []string `json:"versions"`
 }
 
 type modrinthSearchResponse struct {
@@ -66,16 +70,15 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 	page := Page{Total: raw.TotalHits, Offset: raw.Offset, Results: make([]Result, 0, len(raw.Hits))}
 	for _, h := range raw.Hits {
 		page.Results = append(page.Results, Result{
-			ID:           h.ProjectID,
-			Slug:         h.Slug,
-			Title:        h.Title,
-			Author:       h.Author,
-			Description:  h.Description,
-			IconURL:      h.IconURL,
-			Downloads:    h.Downloads,
-			ProjectType:  ProjectType(h.ProjectType),
-			Loaders:      loadersFrom(h.Categories),
-			GameVersions: h.Versions,
+			ID:          h.ProjectID,
+			Slug:        h.Slug,
+			Title:       h.Title,
+			Author:      h.Author,
+			Description: truncateDescription(h.Description, maxDescriptionLen),
+			IconURL:     h.IconURL,
+			Downloads:   h.Downloads,
+			ProjectType: ProjectType(h.ProjectType),
+			Loaders:     loadersFrom(h.Categories),
 		})
 	}
 	return page, nil
@@ -96,6 +99,20 @@ func buildFacets(q Query) string {
 		parts[i] = "[" + strings.Join(g, ",") + "]"
 	}
 	return "[" + strings.Join(parts, ",") + "]"
+}
+
+// truncateDescription cuts s to at most max runes, breaking on the last
+// space so words aren't split, and marks the cut with an ellipsis.
+func truncateDescription(s string, max int) string {
+	runes := []rune(s)
+	if len(runes) <= max {
+		return s
+	}
+	cut := string(runes[:max])
+	if i := strings.LastIndexByte(cut, ' '); i > 0 {
+		cut = cut[:i]
+	}
+	return strings.TrimRight(cut, " ") + "…"
 }
 
 // loadersFrom picks the loader names out of Modrinth's category list, which

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import PixelIcon from '../ui/PixelIcon'
 import { Camera, Folder, Play, X } from '../ui/icons'
-import { useApp } from '../state'
+import { useApp, useLaunch } from '../state'
 import { api, on } from '../api/bridge'
 import type { FileEntry, World } from '../api/types'
 import { fmt } from '../i18n/format'
@@ -12,7 +12,8 @@ import Dialog from '../components/Dialog'
 type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots'
 
 export default function InstancePage({ id }: { id: string }) {
-  const { t, instances, refreshInstances, go, play, launch } = useApp()
+  const { t, instances, refreshInstances, go } = useApp()
+  const { play, launch } = useLaunch()
   const inst = instances.find((i) => i.id === id)
   const vanilla = !inst || inst.loader === 'Vanilla'
   const tabs: Tab[] = vanilla ? ['resourcepacks', 'worlds', 'screenshots'] : ['mods', 'resourcepacks', 'shaders', 'worlds', 'screenshots']
@@ -90,7 +91,8 @@ function FolderLink({ id, sub }: { id: string; sub: string }) {
 }
 
 function WorldsTab({ id }: { id: string }) {
-  const { t, launch, refreshInstances } = useApp()
+  const { t, refreshInstances } = useApp()
+  const { launch } = useLaunch()
   const [worlds, setWorlds] = useState<World[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -159,7 +161,8 @@ function WorldsTab({ id }: { id: string }) {
 }
 
 function ScreenshotsTab({ id }: { id: string }) {
-  const { t, launch } = useApp()
+  const { t } = useApp()
+  const { launch } = useLaunch()
   const [shots, setShots] = useState<FileEntry[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const [open, setOpen] = useState<FileEntry | null>(null)
