@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"udeos/launcher/internal/mojang"
 )
@@ -25,6 +26,11 @@ type Modrinth struct {
 func NewModrinth() *Modrinth {
 	return &Modrinth{Client: mojang.NewClient()}
 }
+
+// requestTimeout bounds one search/version-list request. The shared client's
+// 60s timeout is sized for file downloads; a browse query that takes longer
+// than this should fail over to the cache instead of freezing the page.
+const requestTimeout = 15 * time.Second
 
 func (m *Modrinth) Name() string { return "Modrinth" }
 
@@ -63,6 +69,8 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 	facets := buildFacets(q)
 	u := fmt.Sprintf("%s/search?query=%s&facets=%s&offset=%d&limit=%d",
 		ModrinthBaseURL, url.QueryEscape(q.Text), url.QueryEscape(facets), q.Offset, limit)
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
 	var raw modrinthSearchResponse
 	if err := m.Client.GetJSON(ctx, u, &raw); err != nil {
 		return Page{}, err
@@ -135,6 +143,8 @@ type modrinthGameVersion struct {
 
 // GameVersions lists the Minecraft versions Modrinth has content for.
 func (m *Modrinth) GameVersions(ctx context.Context) ([]GameVersion, error) {
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
 	var raw []modrinthGameVersion
 	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/tag/game_version", &raw); err != nil {
 		return nil, err

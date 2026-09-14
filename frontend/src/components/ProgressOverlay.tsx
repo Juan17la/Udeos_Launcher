@@ -26,7 +26,7 @@ export default function ProgressOverlay() {
               <span>{phase === 'done' ? t.launch.starting : label}</span>
               {p && p.total > 0 && <span className="text-dim">{p.done}/{p.total}{p.totalBytes > 0 ? ` · ${bytes(p.bytes)}` : ''}</span>}
             </div>
-            <div className="progress"><div style={{ width: `${phase === 'done' ? 100 : pct}%` }} /></div>
+            <div className="progress"><div style={{ transform: `scaleX(${phase === 'done' ? 1 : pct / 100})` }} /></div>
             {p?.current && <div className="text-dim" style={{ fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.current}</div>}
             <p className="text-muted" style={{ margin: '6px 0 0', fontSize: 12 }}>{phase === 'loader' && inst?.loader === 'Forge' ? t.launch.loaderTakesAWhile : t.launch.firstTime}</p>
           </div>

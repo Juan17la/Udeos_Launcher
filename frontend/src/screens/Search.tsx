@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
@@ -8,6 +8,14 @@ const TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack']
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
 const PAGE_SIZE = 30
 
+// Fetched once per app run and shared by every mount of this screen: Go
+// already memoizes the list, this skips the bridge round-trip too.
+let versionsPromise: Promise<SearchGameVersion[]> | null = null
+function loadVersions() {
+  if (!versionsPromise) versionsPromise = api.ListSearchGameVersions().catch(() => { versionsPromise = null; return [] as SearchGameVersion[] })
+  return versionsPromise
+}
+
 export default function Search() {
   const { t } = useApp()
   const [type, setType] = useState<ProjectType>('mod')
@@ -16,24 +24,37 @@ export default function Search() {
   const [gameVersion, setGameVersion] = useState('')
   const [loader, setLoader] = useState('')
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
+  const [pageIndex, setPageIndex] = useState(0)
   const [page, setPage] = useState<SearchPage | null>(null)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Requests can resolve out of order (a slow query answered after a fast
+  // one); only the latest one issued is allowed to update the page.
+  const seq = useRef(0)
 
-  useEffect(() => { api.ListSearchGameVersions().then(setVersions).catch(() => setVersions([])) }, [])
+  useEffect(() => { let live = true; loadVersions().then((v) => { if (live) setVersions(v) }); return () => { live = false } }, [])
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedText(text), 350)
     return () => clearTimeout(id)
   }, [text])
 
+  // One page's worth of cards is ever mounted at a time: a new page REPLACES
+  // the results instead of piling on top of the last one, so the DOM stays a
+  // fixed size no matter how far the player pages through. Going back to a
+  // page seen in the last few minutes is answered from Go's memory cache,
+  // without a request.
   const load = useCallback((offset: number) => {
-    setError(null)
+    const mine = ++seq.current
+    setError(null); setLoading(true)
     api.SearchContent(type, debouncedText, gameVersion, loader, offset, PAGE_SIZE)
-      .then((p) => setPage((cur) => (offset === 0 || !cur ? p : { ...p, results: [...cur.results, ...p.results] })))
-      .catch((e) => setError(String((e as Error)?.message ?? e)))
+      .then((p) => { if (mine === seq.current) setPage(p) })
+      .catch((e) => { if (mine === seq.current) setError(String((e as Error)?.message ?? e)) })
+      .finally(() => { if (mine === seq.current) setLoading(false) })
   }, [type, debouncedText, gameVersion, loader])
 
-  useEffect(() => { setPage(null); load(0) }, [load])
+  useEffect(() => { setPageIndex(0); setPage(null); load(0) }, [load])
+  useEffect(() => () => { seq.current++ }, []) // unmount: drop whatever is still in flight
 
   const showLoaderFilter = type === 'mod' || type === 'modpack'
 
@@ -69,9 +90,15 @@ export default function Search() {
         {page?.results.map((r) => <ResultCard key={r.id} result={r} />)}
       </div>
 
-      {page && page.results.length < page.total && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
-          <button type="button" className="btn btn-secondary" onClick={() => load(page.results.length)}>{t.search.loadMore}</button>
+      {page && page.total > PAGE_SIZE && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
+          <button type="button" className="btn btn-secondary" disabled={loading || pageIndex === 0}
+            onClick={() => { const i = pageIndex - 1; setPageIndex(i); load(i * PAGE_SIZE) }}>{t.search.previous}</button>
+          <span className="text-muted" style={{ fontSize: 13 }}>
+            {fmt(t.search.pageOf, { page: pageIndex + 1, total: Math.ceil(page.total / PAGE_SIZE) })}
+          </span>
+          <button type="button" className="btn btn-secondary" disabled={loading || (pageIndex + 1) * PAGE_SIZE >= page.total}
+            onClick={() => { const i = pageIndex + 1; setPageIndex(i); load(i * PAGE_SIZE) }}>{t.search.next}</button>
         </div>
       )}
     </main>
@@ -81,10 +108,10 @@ export default function Search() {
 const ResultCard = memo(function ResultCard({ result }: { result: SearchResult }) {
   const { t } = useApp()
   return (
-    <div className="card elev-sm sheen search-card" style={{ padding: 20, gap: 10 }}>
+    <div className="card elev-sm sheen" style={{ padding: 20, gap: 10 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {result.iconUrl && (
-          <img src={result.iconUrl} alt="" loading="lazy" width={44} height={44}
+          <img src={result.iconUrl} alt="" loading="lazy" decoding="async" width={44} height={44}
             style={{ borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
             onError={(e) => { e.currentTarget.style.display = 'none' }} />
         )}

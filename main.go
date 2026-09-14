@@ -7,6 +7,7 @@ import (
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	"github.com/wailsapp/wails/v2/pkg/options/linux"
 )
 
 //go:embed all:frontend/dist
@@ -31,6 +32,13 @@ func main() {
 		},
 		DragAndDrop: &options.DragAndDrop{
 			EnableFileDrop: true,
+		},
+		// With options.Linux left nil, Wails forces WebviewGpuPolicyNever and
+		// WebKitGTK rasterizes every frame on the CPU. OnDemand lets it
+		// composite on the GPU when content asks for it (transforms, scroll).
+		// Switch to WebviewGpuPolicyNever if a driver shows artefacts.
+		Linux: &linux.Options{
+			WebviewGpuPolicy: linux.WebviewGpuPolicyOnDemand,
 		},
 	})
 	if err != nil {

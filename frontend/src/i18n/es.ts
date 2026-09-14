@@ -57,7 +57,8 @@ const es: Dict = {
     title: 'Buscar', subtitle: 'Explora mods, paquetes de recursos, shaders y modpacks de Modrinth.',
     searchPlaceholder: 'Buscar…', anyVersion: 'Cualquier versión', anyLoader: 'Cualquier cargador',
     types: { mod: 'Mods', resourcepack: 'Paquetes de recursos', shader: 'Shaders', modpack: 'Modpacks' },
-    downloads: '{n} descargas', empty: 'No se encontraron resultados.', loadMore: 'Cargar más',
+    downloads: '{n} descargas', empty: 'No se encontraron resultados.',
+    previous: 'Anterior', next: 'Siguiente', pageOf: 'Página {page} de {total}',
     error: 'No se pudo conectar con Modrinth y no hay resultados guardados. Revisa tu conexión.',
   },
   launch: {

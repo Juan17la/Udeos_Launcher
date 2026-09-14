@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"udeos/launcher/internal/paths"
 )
@@ -13,16 +14,19 @@ type fakeProvider struct {
 	page     Page
 	versions []GameVersion
 	err      error
+	calls    int // Search + GameVersions requests that reached the provider
 }
 
 func (f *fakeProvider) Name() string { return "Fake" }
 func (f *fakeProvider) Search(ctx context.Context, q Query) (Page, error) {
+	f.calls++
 	if f.err != nil {
 		return Page{}, f.err
 	}
 	return f.page, nil
 }
 func (f *fakeProvider) GameVersions(ctx context.Context) ([]GameVersion, error) {
+	f.calls++
 	if f.err != nil {
 		return nil, f.err
 	}
@@ -41,6 +45,7 @@ func TestSearchCachesOnSuccessAndFallsBackOnError(t *testing.T) {
 	}
 
 	fake.err = errors.New("network down")
+	m.pages = nil // forget the memory copy so the disk cache is what answers
 	page, err = m.Search(context.Background(), q)
 	if err != nil {
 		t.Fatalf("expected cache fallback, got error: %v", err)
@@ -70,9 +75,84 @@ func TestGameVersionsCachesOnSuccessAndFallsBackOnError(t *testing.T) {
 	}
 
 	fake.err = errors.New("network down")
+	m.versions = nil // forget the memory copy so the disk cache is what answers
 	got, err := m.GameVersions(context.Background())
 	if err != nil || len(got) != 1 || got[0].Version != "1.20.1" {
 		t.Fatalf("got %+v, %v", got, err)
+	}
+}
+
+func TestSearchServesFreshPagesFromMemory(t *testing.T) {
+	dirs := paths.FromRoot(t.TempDir())
+	fake := &fakeProvider{page: Page{Results: []Result{{ID: "abc"}}, Total: 1}}
+	m := &Manager{Dirs: dirs, Provider: fake}
+	q := Query{Type: TypeMod, Offset: 30}
+
+	for i := 0; i < 3; i++ {
+		if _, err := m.Search(context.Background(), q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if fake.calls != 1 {
+		t.Errorf("provider called %d times for the same page, want 1", fake.calls)
+	}
+	// A different page is a different key.
+	if _, err := m.Search(context.Background(), Query{Type: TypeMod, Offset: 60}); err != nil {
+		t.Fatal(err)
+	}
+	if fake.calls != 2 {
+		t.Errorf("provider called %d times after a second page, want 2", fake.calls)
+	}
+}
+
+func TestSearchRefetchesExpiredMemoryEntry(t *testing.T) {
+	dirs := paths.FromRoot(t.TempDir())
+	fake := &fakeProvider{page: Page{Results: []Result{{ID: "abc"}}}}
+	m := &Manager{Dirs: dirs, Provider: fake}
+	q := Query{Type: TypeMod}
+
+	if _, err := m.Search(context.Background(), q); err != nil {
+		t.Fatal(err)
+	}
+	e := m.pages[cacheKey(q)]
+	e.at = time.Now().Add(-memTTL - time.Second)
+	m.pages[cacheKey(q)] = e
+	if _, err := m.Search(context.Background(), q); err != nil {
+		t.Fatal(err)
+	}
+	if fake.calls != 2 {
+		t.Errorf("provider called %d times, want a refetch after expiry (2)", fake.calls)
+	}
+}
+
+func TestSearchMemoryIsBounded(t *testing.T) {
+	dirs := paths.FromRoot(t.TempDir())
+	fake := &fakeProvider{page: Page{}}
+	m := &Manager{Dirs: dirs, Provider: fake}
+	for i := 0; i <= memCap; i++ {
+		if _, err := m.Search(context.Background(), Query{Type: TypeMod, Offset: i}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if len(m.pages) != memCap {
+		t.Errorf("memory holds %d pages, want it capped at %d", len(m.pages), memCap)
+	}
+	if _, ok := m.pages[cacheKey(Query{Type: TypeMod, Offset: 0})]; ok {
+		t.Error("oldest page should have been evicted")
+	}
+}
+
+func TestGameVersionsFetchedOncePerProcess(t *testing.T) {
+	dirs := paths.FromRoot(t.TempDir())
+	fake := &fakeProvider{versions: []GameVersion{{Version: "1.20.1", Type: "release"}}}
+	m := &Manager{Dirs: dirs, Provider: fake}
+	for i := 0; i < 3; i++ {
+		if _, err := m.GameVersions(context.Background()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if fake.calls != 1 {
+		t.Errorf("provider called %d times, want 1", fake.calls)
 	}
 }
 
@@ -86,7 +166,8 @@ func TestShortFreeTextIsNotCached(t *testing.T) {
 		t.Fatal(err)
 	}
 	fake.err = errors.New("network down")
+	m.pages = nil // short text stays in memory while typing; only the disk copy is skipped
 	if _, err := m.Search(context.Background(), q); err == nil {
-		t.Error("expected no cache for a 2-char query, got a hit")
+		t.Error("expected no disk cache for a 2-char query, got a hit")
 	}
 }

@@ -55,7 +55,8 @@ const en = {
     title: 'Search', subtitle: 'Browse mods, resource packs, shaders and modpacks from Modrinth.',
     searchPlaceholder: 'Search…', anyVersion: 'Any version', anyLoader: 'Any loader',
     types: { mod: 'Mods', resourcepack: 'Resource Packs', shader: 'Shaders', modpack: 'Modpacks' },
-    downloads: '{n} downloads', empty: 'No results found.', loadMore: 'Load more',
+    downloads: '{n} downloads', empty: 'No results found.',
+    previous: 'Previous', next: 'Next', pageOf: 'Page {page} of {total}',
     error: 'Could not reach Modrinth and no cached results are available. Check your connection.',
   },
   launch: {

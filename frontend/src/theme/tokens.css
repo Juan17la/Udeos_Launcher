@@ -19,9 +19,11 @@
   --radius-md: 16px;
   --radius-lg: 28px;
 
+  /* Small blur radii on purpose: a blurred shadow is repainted with its
+     element, and cost grows with the blur. */
   --shadow-sm: 0 1px 2px color-mix(in srgb, #000 14%, transparent);
-  --shadow-md: 0 3px 10px color-mix(in srgb, #000 16%, transparent);
-  --shadow-lg: 0 12px 32px color-mix(in srgb, #000 22%, transparent);
+  --shadow-md: 0 2px 6px color-mix(in srgb, #000 14%, transparent);
+  --shadow-lg: 0 6px 16px color-mix(in srgb, #000 18%, transparent);
 }
 
 /* ── Light theme: grass green + oak brown ─────────────────────────────── */
@@ -42,10 +44,9 @@
   --mc-danger: #c1443a; --mc-danger-hover: #d1554a; --mc-danger-active: #a5372e;
   --mc-danger-border: #7c2a22; --mc-danger-text: #fff4f2;
   --mc-danger-top: rgba(255,255,255,0.32); --mc-danger-bottom: rgba(0,0,0,0.24);
-  --bg-grid: rgba(29, 45, 24, 0.05);
   --bg-glow: rgba(107, 178, 76, 0.18);
   --panel-tint: var(--color-accent-100);
-  --panel-sheen: inset 0 1px 0 rgba(255,255,255,0.65), inset 0 0 0 1px rgba(29,45,24,0.06), var(--shadow-md);
+  --panel-sheen: inset 0 1px 0 rgba(255,255,255,0.65), 0 0 0 1px rgba(29,45,24,0.06);
   --choice-bg: var(--color-accent-200);
   --choice-text: var(--color-accent-900);
 }
@@ -68,10 +69,9 @@
   --mc-danger: #b23a35; --mc-danger-hover: #c44a44; --mc-danger-active: #962e2a;
   --mc-danger-border: #6b1f1c; --mc-danger-text: #fff2f0;
   --mc-danger-top: rgba(255,255,255,0.20); --mc-danger-bottom: rgba(0,0,0,0.36);
-  --bg-grid: rgba(236, 231, 251, 0.05);
   --bg-glow: rgba(183, 156, 255, 0.16);
   --panel-tint: var(--color-accent-900);
-  --panel-sheen: inset 0 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(255,255,255,0.06), var(--shadow-md);
+  --panel-sheen: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(255,255,255,0.06);
   --choice-bg: var(--color-accent-800);
   --choice-text: var(--color-accent-100);
 }
@@ -83,12 +83,13 @@ body {
   margin: 0; font-size: 16px; line-height: 1.55; font-weight: 500;
   color: var(--color-text); font-family: var(--font-body);
   background-color: var(--color-bg);
+  /* Two soft glows, painted once and scrolled with the page. No
+     background-attachment: fixed (WebKit repaints the whole window on every
+     scroll for it) and no 1px grid layers. */
   background-image:
     radial-gradient(760px 420px at 12% -8%, var(--bg-glow), transparent 60%),
-    radial-gradient(620px 380px at 105% 110%, var(--bg-glow), transparent 62%),
-    repeating-linear-gradient(0deg, var(--bg-grid) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(90deg, var(--bg-grid) 0 1px, transparent 1px 24px);
-  background-attachment: fixed;
+    radial-gradient(620px 380px at 105% 110%, var(--bg-glow), transparent 62%);
+  background-repeat: no-repeat;
   -webkit-user-select: none; user-select: none;
 }
 input, textarea { -webkit-user-select: text; user-select: text; }
@@ -169,7 +170,7 @@ select.input { appearance: auto; }
 /* ── Cards ────────────────────────────────────────────────────────────── */
 .card {
   display: flex; flex-direction: column; gap: var(--space-2);
-  padding: var(--space-3); border-radius: calc(var(--radius-lg) * 1.15); background: var(--color-surface);
+  padding: var(--space-3); border-radius: var(--radius-lg); background: var(--color-surface);
 }
 .card-kicker { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-accent); }
 .card-title { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 17px; line-height: 1.2; }
@@ -216,7 +217,7 @@ select.input { appearance: auto; }
 .dialog {
   position: relative; z-index: 9001;
   width: min(440px, 100%); display: flex; flex-direction: column; gap: var(--space-3);
-  padding: var(--space-4); border-radius: calc(var(--radius-lg) * 1.15);
+  padding: var(--space-4); border-radius: var(--radius-lg);
   background: var(--color-surface); box-shadow: var(--shadow-lg);
 }
 .dialog-title { font-family: var(--font-heading); font-weight: var(--font-heading-weight); font-size: 20px; }
@@ -231,7 +232,6 @@ select.input { appearance: auto; }
   border: 1.5px dashed var(--color-divider); border-radius: var(--radius-lg); padding: 18px; text-align: center;
   margin-bottom: 16px; font-size: 14px; color: color-mix(in srgb, var(--color-text) 75%, transparent);
   display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
-  transition: border-color .2s ease, background .2s ease;
 }
 .dropzone.is-over { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
 .row-card { flex-direction: row; align-items: center; padding: 12px 16px; }

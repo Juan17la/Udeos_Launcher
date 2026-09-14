@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import PixelIcon from './PixelIcon'
 import { THEME_DECOR } from './pixels'
 import { useApp } from '../state'
@@ -16,8 +17,10 @@ export const LOGIN_DECOR: DecorSlot[] = [
   { top: '40%', left: '3%', size: 52, rot: 6 }, { top: '8%', left: '62%', size: 48, rot: -8 },
 ]
 
-/** Faint pixel items floating behind a page. Parent must be position:relative + overflow:hidden. */
-export default function Decor({ slots, opacity = 0.13, offset = 0 }: { slots: DecorSlot[]; opacity?: number; offset?: number }) {
+/** Faint pixel items floating behind a page. Parent must be position:relative + overflow:hidden.
+ *  Memoized: only the theme matters to it, but the parent screens re-render on
+ *  every instances refresh / screen change through the shared context. */
+export default memo(function Decor({ slots, opacity = 0.13, offset = 0 }: { slots: DecorSlot[]; opacity?: number; offset?: number }) {
   const { theme } = useApp()
   const items = THEME_DECOR[theme]
   return (
@@ -29,4 +32,4 @@ export default function Decor({ slots, opacity = 0.13, offset = 0 }: { slots: De
       ))}
     </>
   )
-}
+})
