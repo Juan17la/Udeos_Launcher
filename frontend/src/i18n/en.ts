@@ -5,19 +5,22 @@ const en = {
     comingSoon: 'Coming soon', privacy: 'Privacy & Terms', theme: 'Theme',
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
   },
-  common: { cancel: 'Cancel', done: 'Done', gotIt: 'Got it', back: 'Back', close: 'Close', play: 'Play', delete: 'Delete', save: 'Save', ok: 'OK', or: 'or', running: 'Running…' },
+  common: { cancel: 'Cancel', done: 'Done', gotIt: 'Got it', back: 'Back', close: 'Close', play: 'Play', delete: 'Delete', save: 'Save', ok: 'OK', or: 'or', running: 'Running…', loading: 'Loading' },
   privacy: {
     title: 'Privacy & Terms',
     body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded — the launcher only connects out to download game files, mods, and updates.',
   },
-  language: { title: 'Language', more: 'More languages are coming in a later release.', choose: 'Choose your language' },
+  language: { title: 'Language', choose: 'Choose your language' },
   login: {
-    introLanguage: 'Pick the language you want the launcher to use. You can change it later from the top bar.',
-    introNickname: 'Set a nickname to start playing. No account, no Microsoft sign-in — everything stays on your machine.',
     continue: 'Continue', nickname: 'Nickname', placeholder: 'e.g. CraftyFox',
     agree: 'I agree to the', and: 'and', privacyPolicy: 'Privacy Policy', terms: 'Terms of Use',
     start: 'Start Playing', backToLanguage: 'Back to language',
-    hint: '3–16 letters, numbers or underscores.',
+  },
+  /** Error headlines: 1–3 words, the reason goes underneath as detail (lib/errors.ts). */
+  errors: {
+    failed: 'Failed', loadFailed: 'Load failed', connectionLost: 'Connection lost', incompatible: 'Incompatible mod',
+    noBuild: 'No build', alreadyAdded: 'Already added', launchFailed: 'Launch failed', gameCrashed: 'Game crashed',
+    invalidNickname: 'Invalid nickname',
   },
   dashboard: {
     title: 'Your Instances', subtitle: 'Pick one to play, or create a new instance for a different version or mod setup.',
@@ -29,7 +32,7 @@ const en = {
   create: {
     title: 'Create New Instance', subtitle: 'Give it a name, pick a version and choose a block for its icon.',
     name: 'Instance name', namePlaceholder: 'e.g. Survival World', version: 'Minecraft version', chooseVersion: 'Choose a version',
-    showSnapshots: 'Show snapshots and old versions', loader: 'Mod loader', icon: 'Instance icon', required: 'Name and version are both required.',
+    showSnapshots: 'Show snapshots and old versions', loader: 'Mod loader', icon: 'Instance icon',
     submit: 'Create Instance', loadingVersions: 'Loading versions from Mojang…', versionsError: 'Could not load the version list. Check your connection.',
     latest: 'latest',
     loaderVanilla: 'The game as Mojang ships it. No mods.',
