@@ -1,13 +1,17 @@
-/* Design tokens + component classes.
-   Base classes come from the "Organic" design system used by the design
-   mockups; colors and fonts are the launcher's own two themes taken from the
-   mockup's THEMES table. */
+/* Theme source of truth. Everything a component needs — colors, radii,
+   shadows, fonts — is registered once in @theme below and used as ordinary
+   Tailwind utilities (bg-accent, rounded-lg, shadow-md, ...) in components
+   and screens. No component CSS classes live here anymore.
+
+   Colors stay runtime CSS variables (set in the :root / [data-theme='dark']
+   blocks further down) because Tailwind's @theme is compile-time and the
+   launcher swaps light/dark at runtime; `@theme inline` re-uses those
+   variables by reference instead of baking in a value, so the same
+   `bg-accent` utility resolves to the light or dark color depending on
+   `data-theme`. Radius/shadow are theme-invariant so they're plain values. */
 
 @import "tailwindcss";
 
-/* Maps the runtime theme variables below to Tailwind utilities (bg-accent,
-   rounded-lg, ...). The variables themselves stay runtime values (light/dark
-   swap via :root[data-theme]) since Tailwind's @theme is compile-time only. */
 @theme inline {
   --font-heading: 'JetBrains Mono', 'Pixelify Sans', ui-monospace, monospace;
   --font-body: 'JetBrains Mono', ui-monospace, monospace;
@@ -15,41 +19,60 @@
   --color-bg: var(--color-bg);
   --color-surface: var(--color-surface);
   --color-text: var(--color-text);
+  --color-divider: var(--color-divider);
+
   --color-accent: var(--color-accent);
   --color-accent-2: var(--color-accent-2);
-  --color-divider: var(--color-divider);
   --color-accent-100: var(--color-accent-100);
   --color-accent-200: var(--color-accent-200);
   --color-accent-300: var(--color-accent-300);
+  --color-accent-400: var(--color-accent-400);
+  --color-accent-500: var(--color-accent-500);
+  --color-accent-600: var(--color-accent-600);
+  --color-accent-700: var(--color-accent-700);
   --color-accent-800: var(--color-accent-800);
   --color-accent-900: var(--color-accent-900);
+
   --color-accent-2-100: var(--color-accent-2-100);
+  --color-accent-2-200: var(--color-accent-2-200);
+  --color-accent-2-300: var(--color-accent-2-300);
+  --color-accent-2-400: var(--color-accent-2-400);
+  --color-accent-2-500: var(--color-accent-2-500);
+  --color-accent-2-600: var(--color-accent-2-600);
+  --color-accent-2-700: var(--color-accent-2-700);
   --color-accent-2-800: var(--color-accent-2-800);
+  --color-accent-2-900: var(--color-accent-2-900);
+
   --color-neutral-100: var(--color-neutral-100);
   --color-neutral-200: var(--color-neutral-200);
   --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-500);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
   --color-neutral-800: var(--color-neutral-800);
+  --color-neutral-900: var(--color-neutral-900);
 
-  --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 28px;
+  /* Minecraft-flavoured flat button skin (bevelled, from the mockup). */
+  --color-mc-btn: var(--mc-btn);
+  --color-mc-btn-hover: var(--mc-btn-hover);
+  --color-mc-btn-active: var(--mc-btn-active);
+  --color-mc-btn-border: var(--mc-btn-border);
+  --color-mc-btn-text: var(--mc-btn-text);
+  --color-mc-primary: var(--mc-primary);
+  --color-mc-primary-hover: var(--mc-primary-hover);
+  --color-mc-primary-active: var(--mc-primary-active);
+  --color-mc-primary-border: var(--mc-primary-border);
+  --color-mc-primary-text: var(--mc-primary-text);
+  --color-mc-danger: var(--mc-danger);
+  --color-mc-danger-hover: var(--mc-danger-hover);
+  --color-mc-danger-active: var(--mc-danger-active);
+  --color-mc-danger-border: var(--mc-danger-border);
+  --color-mc-danger-text: var(--mc-danger-text);
 
-  --shadow-sm: 0 1px 2px color-mix(in srgb, #000 14%, transparent);
-  --shadow-md: 0 2px 6px color-mix(in srgb, #000 14%, transparent);
-  --shadow-lg: 0 6px 16px color-mix(in srgb, #000 18%, transparent);
-}
-
-:root {
-  --font-heading: 'JetBrains Mono', 'Pixelify Sans', ui-monospace, monospace;
-  --font-heading-weight: 800;
-  --font-body: 'JetBrains Mono', ui-monospace, monospace;
-
-  --space-1: 4.4px;
-  --space-2: 8.8px;
-  --space-3: 13.2px;
-  --space-4: 17.6px;
-  --space-6: 26.4px;
-  --space-8: 35.2px;
+  --color-panel-tint: var(--panel-tint);
+  --color-choice-bg: var(--choice-bg);
+  --color-choice-text: var(--choice-text);
 
   --radius-sm: 8px;
   --radius-md: 16px;
@@ -60,26 +83,29 @@
   --shadow-sm: 0 1px 2px color-mix(in srgb, #000 14%, transparent);
   --shadow-md: 0 2px 6px color-mix(in srgb, #000 14%, transparent);
   --shadow-lg: 0 6px 16px color-mix(in srgb, #000 18%, transparent);
+  /* Inset "sheen" highlight used on elevated panel-tinted surfaces; the
+     actual value is theme-dependent (see --panel-sheen below). */
+  --shadow-sheen: var(--panel-sheen);
 }
 
 /* ── Light theme: grass green + oak brown ─────────────────────────────── */
 :root, :root[data-theme='light'] {
   color-scheme: light;
   --color-bg: #eef7e4; --color-surface: #e0f0cf; --color-text: #1d2d18;
-  --color-accent: #3f7f2c; --color-accent-2: #8b5a2b;
+  --color-accent: rgb(43, 91, 28); --color-accent-2: #3f7f2c;
   --color-accent-100: #edf8e1; --color-accent-200: #d9f0c4; --color-accent-300: #bde3a0; --color-accent-400: #94cd74; --color-accent-500: #6bb24c; --color-accent-600: #3f7f2c; --color-accent-700: #326522; --color-accent-800: #264c19; --color-accent-900: #193210;
   --color-accent-2-100: #f7ece0; --color-accent-2-200: #ecd7ba; --color-accent-2-300: #d9b184; --color-accent-2-400: #bc8b54; --color-accent-2-500: #8b5a2b; --color-accent-2-600: #734822; --color-accent-2-700: #5c391a; --color-accent-2-800: #432912; --color-accent-2-900: #2b1a0b;
   --color-neutral-100: #f7fbee; --color-neutral-200: #e9f2dc; --color-neutral-300: #d5e2c3; --color-neutral-400: #b7c8a1; --color-neutral-500: #98ab81; --color-neutral-600: #788a63; --color-neutral-700: #5b6a49; --color-neutral-800: #3f4a32; --color-neutral-900: #26301c;
   --color-divider: rgba(29, 45, 24, 0.30);
   --mc-btn: #c6c6c6; --mc-btn-hover: #d4d4d4; --mc-btn-active: #a8a8a8;
   --mc-btn-border: #8a8a8a; --mc-btn-text: #1f1f1f;
-  --mc-btn-top: rgba(255,255,255,0.70); --mc-btn-bottom: rgba(0,0,0,0.22);
+  --mc-btn-bottom: rgba(0,0,0,0.22);
   --mc-primary: #5b9e3f; --mc-primary-hover: #6bb04c; --mc-primary-active: #4a8631;
   --mc-primary-border: #396727; --mc-primary-text: #f4fff0;
-  --mc-primary-top: rgba(255,255,255,0.42); --mc-primary-bottom: rgba(0,0,0,0.24);
+  --mc-primary-bottom: rgba(0,0,0,0.24);
   --mc-danger: #c1443a; --mc-danger-hover: #d1554a; --mc-danger-active: #a5372e;
   --mc-danger-border: #7c2a22; --mc-danger-text: #fff4f2;
-  --mc-danger-top: rgba(255,255,255,0.32); --mc-danger-bottom: rgba(0,0,0,0.24);
+  --mc-danger-bottom: rgba(0,0,0,0.24);
   --bg-glow: rgba(107, 178, 76, 0.18);
   --panel-tint: var(--color-accent-100);
   --panel-sheen: inset 0 1px 0 rgba(255,255,255,0.65), 0 0 0 1px rgba(29,45,24,0.06);
@@ -90,21 +116,21 @@
 /* ── Dark theme: end-stone purple + prismarine teal ───────────────────── */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #2b2440; --color-surface: #372e52; --color-text: #ece7fb;
-  --color-accent: #b79cff; --color-accent-2: #7fd4c1;
+  --color-bg: #211924; --color-surface: #382A3E; --color-text: #d8ccfa;
+  --color-accent: #b480f8; --color-accent-2: #9465da;
   --color-accent-100: #f3ecff; --color-accent-200: #e3d5ff; --color-accent-300: #cdb6ff; --color-accent-400: #b79cff; --color-accent-500: #9a78f0; --color-accent-600: #7d5cd4; --color-accent-700: #6246ab; --color-accent-800: #4a357f; --color-accent-900: #332455;
-  --color-accent-2-100: #e8faf5; --color-accent-2-200: #cbf2e8; --color-accent-2-300: #a6e6d6; --color-accent-2-400: #7fd4c1; --color-accent-2-500: #59b7a2; --color-accent-2-600: #429685; --color-accent-2-700: #327468; --color-accent-2-800: #24554c; --color-accent-2-900: #173832;
+  --color-accent-2-100: #cfbbec; --color-accent-2-200: #d7c5f3; --color-accent-2-300: #c3a4f5; --color-accent-2-400: #9465da; --color-accent-2-500: #6e4ba4; --color-accent-2-600: #6f4ca3; --color-accent-2-700: #9465da; --color-accent-2-800: #6e4ba3; --color-accent-2-900: #583c83;
   --color-neutral-100: #efecf7; --color-neutral-200: #ddd7ed; --color-neutral-300: #c2b9db; --color-neutral-400: #9f95bd; --color-neutral-500: #80749f; --color-neutral-600: #645a80; --color-neutral-700: #4b4363; --color-neutral-800: #362f49; --color-neutral-900: #221c31;
   --color-divider: rgba(226, 219, 252, 0.42);
   --mc-btn: #6b6b73; --mc-btn-hover: #7c7c85; --mc-btn-active: #5a5a61;
   --mc-btn-border: #43434a; --mc-btn-text: #f4f2fb;
-  --mc-btn-top: rgba(255,255,255,0.22); --mc-btn-bottom: rgba(0,0,0,0.34);
+  --mc-btn-bottom: rgba(0,0,0,0.34);
   --mc-primary: #8b5cf6; --mc-primary-hover: #9d74fa; --mc-primary-active: #7440e0;
   --mc-primary-border: #5a2fc2; --mc-primary-text: #f7f2ff;
-  --mc-primary-top: rgba(255,255,255,0.30); --mc-primary-bottom: rgba(0,0,0,0.34);
+  --mc-primary-bottom: rgba(0,0,0,0.34);
   --mc-danger: #b23a35; --mc-danger-hover: #c44a44; --mc-danger-active: #962e2a;
   --mc-danger-border: #6b1f1c; --mc-danger-text: #fff2f0;
-  --mc-danger-top: rgba(255,255,255,0.20); --mc-danger-bottom: rgba(0,0,0,0.36);
+  --mc-danger-bottom: rgba(0,0,0,0.36);
   --bg-glow: rgba(183, 156, 255, 0.16);
   --panel-tint: var(--color-accent-900);
   --panel-sheen: inset 0 1px 0 rgba(255,255,255,0.10), 0 0 0 1px rgba(255,255,255,0.06);
@@ -112,7 +138,8 @@
   --choice-text: var(--color-accent-100);
 }
 
-/* ── Base ─────────────────────────────────────────────────────────────── */
+/* ── Base tag defaults (element selectors, not component classes — same
+   role as Tailwind's own preflight layer) ──────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
 html, body, #root { min-height: 100vh; }
 body {
@@ -130,140 +157,20 @@ body {
 }
 input, textarea { -webkit-user-select: text; user-select: text; }
 #root { display: flex; flex-direction: column; }
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading); font-weight: var(--font-heading-weight);
-  line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 var(--space-2);
-}
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-heading); font-weight: 800; line-height: 1.12; letter-spacing: -0.01em; margin: 0 0 8px; }
 h1 { font-size: 42px; }
 h2 { font-size: 32px; }
 h3 { font-size: 25px; }
 h4 { font-size: 20px; }
 h5 { font-size: 16px; }
 h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
-p { margin: 0 0 var(--space-3); }
+p { margin: 0 0 13px; }
 a { color: var(--color-accent); text-underline-offset: 3px; }
 img { display: block; max-width: 100%; }
-.text-muted { color: color-mix(in srgb, var(--color-text) 78%, transparent); }
-.text-dim { color: color-mix(in srgb, var(--color-text) 72%, transparent); }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 ::selection { background: color-mix(in srgb, var(--color-accent) 30%, transparent); }
 
-/* ── Buttons ──────────────────────────────────────────────────────────── */
-.btn {
-  @apply inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline
-    font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] text-text
-    bg-transparent border border-transparent px-[15.84px] py-[8.8px] rounded-full
-    disabled:opacity-45 disabled:cursor-not-allowed;
-}
-.btn svg { display: block; }
-.btn-primary { @apply bg-accent text-bg; }
-.btn-accent2 { @apply bg-accent-2 text-bg; }
-.btn-secondary { @apply border-divider; }
-.btn-ghost {
-  @apply text-accent px-[4.4px]
-    hover:bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)]
-    active:bg-[color-mix(in_srgb,var(--color-accent)_18%,transparent)];
-}
-.btn-icon { @apply w-9 h-9 p-0; }
-.btn-block { @apply w-full mt-[8.8px]; }
-
-/* ── Forms ────────────────────────────────────────────────────────────── */
-.field { margin-bottom: var(--space-3); }
-.field > label {
-  display: block; font-size: 12px; margin-bottom: 5px;
-  color: color-mix(in srgb, var(--color-text) 70%, transparent);
-}
-.input {
-  width: 100%; min-height: 36px; padding: 6px 14px; font: inherit;
-  font-size: 14px; color: var(--color-text); caret-color: var(--color-accent);
-  background: var(--color-surface);
-  border: 1px solid var(--color-divider); border-radius: 999px;
-}
-select.input { appearance: auto; }
-.input:focus-visible { border-color: var(--color-accent); outline-offset: 0; }
-.radio { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
-.radio input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
-.radio .dot { width: 16px; height: 16px; flex: none; border-radius: 50%; border: 1.5px solid var(--color-divider); }
-.radio:hover .dot { border-color: var(--color-accent); }
-.radio input:checked + .dot {
-  border-color: var(--color-accent); background: var(--color-accent);
-  box-shadow: inset 0 0 0 4px var(--color-bg);
-}
-.radio input:focus-visible + .dot { outline: 2px solid var(--color-accent); outline-offset: 2px; }
-.seg { display: inline-flex; overflow: hidden; border: 1px solid var(--color-divider); border-radius: 999px; }
-.seg-opt {
-  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
-  padding: 7px 12px; font-size: 13px; cursor: pointer; border: 0; background: transparent;
-  color: inherit; font: inherit; font-size: 13px;
-}
-.seg-opt + .seg-opt { border-left: 1px solid var(--color-divider); }
-.seg-opt[aria-checked='true'], .seg-opt.is-active { background: var(--color-accent); color: var(--color-bg); }
-.seg-opt:not(.is-active):not([aria-checked='true']):hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
-.seg-opt:disabled { opacity: 0.45; cursor: not-allowed; }
-
-/* ── Cards ────────────────────────────────────────────────────────────── */
-.card { @apply flex flex-col gap-[8.8px] p-[13.2px] rounded-lg bg-surface; }
-.card-kicker { @apply text-[10px] tracking-[0.12em] uppercase text-accent; }
-.card-title { @apply font-heading font-extrabold text-[17px] leading-[1.2]; }
-.card-body { @apply m-0 text-[13px] opacity-80 flex-1; }
-.card-meta {
-  @apply flex items-center gap-1.5 text-[11px]
-    text-[color-mix(in_srgb,var(--color-text)_72%,transparent)];
-}
-.elev-sm { @apply shadow-sm; }
-.elev-md { @apply shadow-md; }
-.elev-lg { @apply shadow-lg; }
-.panel { background: var(--panel-tint); box-shadow: var(--panel-sheen); }
-.sheen { box-shadow: var(--panel-sheen); }
-
-/* ── Tags ─────────────────────────────────────────────────────────────── */
-.tag { @apply inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap; }
-.tag-accent { @apply bg-accent-100 text-accent-800; }
-.tag-accent-2 { @apply bg-accent-2-100 text-accent-2-800; }
-.tag-neutral { @apply bg-neutral-100 text-neutral-800; }
-.tag-outline { @apply border border-accent text-accent; }
-
-/* Nav / account menu are Tailwind utilities directly in Nav.tsx / AccountMenu.tsx. */
-
-/* ── Dialog ───────────────────────────────────────────────────────────── */
-.dialog-backdrop {
-  @apply fixed inset-0 grid place-items-center z-[9000] p-[17.6px]
-    bg-[color-mix(in_srgb,var(--color-neutral-900)_50%,transparent)];
-}
-.dialog {
-  @apply relative z-[9001] flex flex-col gap-[13.2px] p-[17.6px] rounded-lg bg-surface shadow-lg;
-  width: min(440px, 100%);
-}
-.dialog-title { @apply font-heading font-extrabold text-xl; }
-.dialog-body { @apply text-sm opacity-85; }
-.dialog-actions { @apply flex justify-end gap-[8.8px] mt-[8.8px]; }
-
-/* ── Layout helpers ───────────────────────────────────────────────────── */
-.page { padding: 36px 44px 60px; flex: 1; position: relative; }
-.empty-state { padding: 40px 20px; text-align: center; color: color-mix(in srgb, var(--color-text) 72%, transparent); }
-.empty-state p { margin: 0; font-size: 14px; }
-.dropzone {
-  border: 1.5px dashed var(--color-divider); border-radius: var(--radius-lg); padding: 18px; text-align: center;
-  margin-bottom: 16px; font-size: 14px; color: color-mix(in srgb, var(--color-text) 75%, transparent);
-  display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap;
-}
-.dropzone.is-over { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, transparent); }
-.row-card { flex-direction: row; align-items: center; padding: 12px 16px; }
-.row-card .row-title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pixel { position: relative; flex: none; image-rendering: pixelated; }
-.pixel > i { position: absolute; top: 0; left: 0; background: transparent; }
-.decor { position: absolute; pointer-events: none; z-index: 0; image-rendering: pixelated; }
-.shot { position: relative; }
-.shot .fallback-icon { display: none; }
-.shot.no-img .fallback-icon { display: block; }
-
-/* ── Checkbox (same look as .radio, square) ───────────────────────────── */
-.checkbox { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; }
-.checkbox input { position: absolute; opacity: 0; width: 0; height: 0; pointer-events: none; }
-.checkbox .box { width: 16px; height: 16px; flex: none; border-radius: 5px; border: 1.5px solid var(--color-divider); display: inline-flex; align-items: center; justify-content: center; color: var(--color-bg); }
-.checkbox:hover .box { border-color: var(--color-accent); }
-.checkbox input:checked + .box { border-color: var(--color-accent); background: var(--color-accent); }
-.checkbox .box svg { display: none; }
-.checkbox input:checked + .box svg { display: block; }
-.checkbox input:focus-visible + .box { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+/* One keyframe Tailwind can't express without a name declared somewhere;
+   applied as `animate-[dialog-fade_0.12s_ease-out]`. */
+@keyframes dialog-fade { from { opacity: 0; } to { opacity: 1; } }
