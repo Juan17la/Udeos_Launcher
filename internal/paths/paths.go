@@ -83,8 +83,22 @@ func (d Dirs) InstancesFile() string { return filepath.Join(d.Root, "instances.j
 func (d Dirs) SearchCacheDir() string { return filepath.Join(d.Root, "cache", "search") }
 
 // SearchCacheFile is the cached page of results for one search query.
-func (d Dirs) SearchCacheFile(key string) string { return filepath.Join(d.SearchCacheDir(), key+".json") }
+func (d Dirs) SearchCacheFile(key string) string {
+	return filepath.Join(d.SearchCacheDir(), key+".json")
+}
 
 // SearchVersionsCacheFile is the cached list of Minecraft versions the search
 // provider knows about, used to populate the version filter.
-func (d Dirs) SearchVersionsCacheFile() string { return filepath.Join(d.SearchCacheDir(), "game_versions.json") }
+func (d Dirs) SearchVersionsCacheFile() string {
+	return filepath.Join(d.SearchCacheDir(), "game_versions.json")
+}
+
+// ContentFile lists what was installed into an instance from the content
+// provider (project, version, file name), next to its .minecraft.
+func (d Dirs) ContentFile(id string) string { return filepath.Join(d.Instances, id, "content.json") }
+
+// ContentCacheFile is where a downloaded mod/pack file is kept before being
+// copied into an instance; keyed by SHA-1 so two instances share one download.
+func (d Dirs) ContentCacheFile(sha1, name string) string {
+	return filepath.Join(d.Root, "cache", "content", sha1, name)
+}

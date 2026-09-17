@@ -19,6 +19,7 @@ import (
 	"udeos/launcher/internal/jre"
 	"udeos/launcher/internal/launch"
 	"udeos/launcher/internal/loader"
+	"udeos/launcher/internal/modinstall"
 	"udeos/launcher/internal/modsearch"
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/paths"
@@ -44,14 +45,18 @@ type Launcher struct {
 	JRE       *jre.Manager
 	Loaders   *loader.Manager
 	Search    *modsearch.Manager
+	Content   *modinstall.Manager
 	OnGame    func(GameEvent)
 
 	mu      sync.Mutex
 	running map[string]*exec.Cmd
 }
 
-// New opens the data directory and the instance list.
-func New(dirs paths.Dirs, version string, report func(download.Progress), onGame func(GameEvent)) (*Launcher, error) {
+// New opens the data directory and the instance list. report receives the
+// progress of game/Java/loader installs, reportContent that of content
+// (mods, packs) being added to an instance; they are separate so the UI can
+// show each in its own place.
+func New(dirs paths.Dirs, version string, report, reportContent func(download.Progress), onGame func(GameEvent)) (*Launcher, error) {
 	if err := dirs.EnsureAll(); err != nil {
 		return nil, err
 	}
@@ -59,11 +64,13 @@ func New(dirs paths.Dirs, version string, report func(download.Progress), onGame
 	if err != nil {
 		return nil, err
 	}
+	search := modsearch.New(dirs)
 	return &Launcher{
 		Dirs: dirs, Version: version, Instances: store,
 		Installer: install.New(dirs, report), JRE: jre.New(dirs, report), Loaders: loader.New(dirs, report),
-		Search: modsearch.New(dirs),
-		OnGame: onGame, running: map[string]*exec.Cmd{},
+		Search:  search,
+		Content: modinstall.New(dirs, search.Provider, reportContent),
+		OnGame:  onGame, running: map[string]*exec.Cmd{},
 	}, nil
 }
 

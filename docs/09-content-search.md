@@ -9,15 +9,17 @@ narrows results, a version dropdown filters to one Minecraft version, and
 NeoForge. Each result shows its icon, title, author, a short description,
 its loaders and its download count.
 
-This page is read-only for now: there is no "add to instance" button and no
-compatibility check against an instance's loader or game version. Browsing
-is the whole feature — installing a browsed mod into an instance, and
-verifying it actually fits, are later work.
+Browsing is only half of it: every mod, resource pack and shader card has
+**Add to…** buttons, and an instance can be picked at the top of the page so
+the results are filtered to what fits it. How a result is checked against
+the instance and installed is the subject of
+[Adding content to an instance](10-adding-content.md).
 
 ## Provider and caching
 
 `internal/modsearch` defines a small `Provider` interface (`Search`,
-`GameVersions`) so a marketplace other than Modrinth could be added later
+`GameVersions`, plus `Versions`, `VersionByID` and `Projects` used when a
+result is added) so a marketplace other than Modrinth could be added later
 without touching the frontend or the Wails bindings. `Modrinth` is the only
 implementation today, hitting `api.modrinth.com/v2`:
 

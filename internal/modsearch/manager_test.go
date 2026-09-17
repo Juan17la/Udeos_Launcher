@@ -32,6 +32,18 @@ func (f *fakeProvider) GameVersions(ctx context.Context) ([]GameVersion, error) 
 	}
 	return f.versions, nil
 }
+func (f *fakeProvider) Versions(context.Context, string, string, string) ([]Version, error) {
+	return nil, errors.New("not implemented")
+}
+func (f *fakeProvider) VersionByID(context.Context, string) (Version, error) {
+	return Version{}, errors.New("not implemented")
+}
+func (f *fakeProvider) Projects(context.Context, []string) ([]ProjectInfo, error) {
+	return nil, errors.New("not implemented")
+}
+func (f *fakeProvider) ProjectDetail(context.Context, string) (ProjectDetail, error) {
+	return ProjectDetail{}, errors.New("not implemented")
+}
 
 func TestSearchCachesOnSuccessAndFallsBackOnError(t *testing.T) {
 	dirs := paths.FromRoot(t.TempDir())

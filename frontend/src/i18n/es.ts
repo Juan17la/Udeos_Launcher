@@ -46,7 +46,7 @@ const es: Dict = {
     saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta', view: 'Ver',
     removeWorld: 'Eliminar mundo', confirmDeleteWorldTitle: '¿Eliminar este mundo?', confirmDeleteWorld: '"{name}" y todo lo construido en él se borrará de esta instancia. Guárdalo en tu equipo antes si quieres conservar una copia.',
     worldAdded: 'Mundo "{name}" añadido', fileAdded: '{name} añadido',
-    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
+    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', browseModrinth: 'Explorar Modrinth', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
     empty: {
       mods: 'Aún no hay mods. Arrastra un archivo .jar aquí.', resourcepacks: 'Aún no hay paquetes de recursos. Arrastra un .zip aquí o usa Buscar.', shaders: 'Aún no hay shaders. Arrastra un shader pack aquí.',
       worlds: 'Aún no hay mundos. Juega la instancia para crear uno, o arrastra aquí una carpeta o .zip de un mundo.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',
@@ -60,6 +60,23 @@ const es: Dict = {
     downloads: '{n} descargas', empty: 'No se encontraron resultados.',
     previous: 'Anterior', next: 'Siguiente', pageOf: 'Página {page} de {total}',
     error: 'No se pudo conectar con Modrinth y no hay resultados guardados. Revisa tu conexión.',
+    add: 'Añadir', details: 'Detalles', createInstance: 'Crear instancia',
+  },
+  compat: {
+    vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
+  },
+  detail: {
+    back: 'Volver a Buscar', loading: 'Cargando…',
+    versionsHeading: 'Versiones disponibles', loadersHeading: 'Cargadores', instancesHeading: 'Tus instancias',
+    noInstances: 'Todavía no tienes instancias.', add: 'Añadir a una instancia',
+  },
+  content: {
+    pickTitle: 'Añadir {title} a…', pickEmpty: 'Crea una instancia primero.',
+    noCompatible: 'Ninguna instancia puede usar esto todavía. Crea una instancia {loaders} para {versions} para instalarlo.',
+    planTitle: 'Añadir {title} a {name}', planning: 'Comprobando versiones y dependencias…',
+    willInstall: 'Se descargará:', requiredBy: 'requerido por {name}', alreadyInstalled: '{title} ya está en {name}.',
+    add: 'Añadir', installing: 'Descargando…', done: '{n} archivo(s) añadidos a {name}.', doneOne: '{title} añadido a {name}.',
+    phases: { content: 'Descargando archivos' },
   },
   launch: {
     preparing: 'Preparando {name}', starting: 'Iniciando el juego…',
