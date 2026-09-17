@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Udeos Launcher
+Comment=A Minecraft launcher that runs without a Microsoft account
+Exec=udeos-launcher
+Icon=udeos-launcher
+Terminal=false
+Categories=Game;
+Keywords=minecraft;launcher;
+StartupWMClass=udeos-launcher
