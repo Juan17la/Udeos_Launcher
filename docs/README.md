@@ -15,6 +15,7 @@ plain language. They are meant to be read in order the first time.
 | 8 | [Mod loaders](08-mod-loaders.md) | How Fabric and Forge are installed without the player running anything, and how mods get into an instance |
 | 9 | [Content search](09-content-search.md) | Browsing mods, resource packs, shaders and modpacks from Modrinth, and how results are cached for offline use |
 | 10 | [Adding content](10-adding-content.md) | Installing a search result into an instance: version and loader checks, dependencies, incompatibilities, and what is remembered |
+| 11 | [Design system](11-design-system.md) | The pastel Minecraft design rules the UI follows, and how they map to tokens, atoms and molecules |
 
 The requirements, diagrams and the interactive UI mockup the design was ported
 from are working material kept outside this repository.
