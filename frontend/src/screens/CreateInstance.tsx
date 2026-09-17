@@ -1,22 +1,20 @@
 import { useEffect, useMemo, useState } from 'react'
 import PixelIcon from '../ui/PixelIcon'
 import { ICON_CHOICES } from '../ui/pixels'
-import { Check } from '../ui/icons'
+import Button from '../ui/atoms/Button'
+import { Input, Label, Select } from '../ui/atoms/Field'
+import { Checkbox, Selectable } from '../ui/atoms/Selectable'
+import { Panel } from '../ui/atoms/Surface'
+import { AutoLoader } from '../ui/atoms/Loader'
+import StatusMessage from '../ui/atoms/Status'
+import SegmentedControl from '../ui/molecules/SegmentedControl'
+import { errorHeadline, messageOf } from '../lib/errors'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import type { Loader, LoaderOption, VersionList } from '../api/types'
 
 const LOADERS: Loader[] = ['Vanilla', 'Forge', 'Fabric']
-
-const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
-const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
-const btnSecondary = 'bg-mc-btn border-mc-btn-border text-mc-btn-text shadow-[inset_0_-2px_0_var(--mc-btn-bottom)] hover:bg-mc-btn-hover active:bg-mc-btn-active active:shadow-none'
-const inputCls = 'w-full min-h-9 px-3.5 py-1.5 font-inherit text-sm text-text caret-accent bg-surface border border-divider rounded-full hover:border-accent-400 focus-visible:border-accent focus-visible:outline-0 focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_22%,transparent)]'
-const fieldLabel = 'block text-xs mb-1 text-[color-mix(in_srgb,var(--color-text)_70%,transparent)]'
-const segOpt = 'inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-[7px] text-[13px] cursor-pointer border-0 bg-transparent text-inherit font-inherit [&:not(:first-child)]:border-l [&:not(:first-child)]:border-divider disabled:opacity-45 disabled:cursor-not-allowed'
-const segOptActive = 'bg-accent text-bg'
-const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
 
 /** Loader support tables are fetched once per loader and kept for the life of the screen. */
 type LoaderTable = { status: 'loading' } | { status: 'error' } | { status: 'ready'; byVersion: Map<string, LoaderOption> }
@@ -73,81 +71,76 @@ export default function CreateInstance() {
       await refreshInstances()
       go({ name: 'instance', id: inst.id })
     } catch (e) {
-      setError(String((e as Error)?.message ?? e)); setBusy(false)
+      setError(messageOf(e)); setBusy(false)
     }
   }
 
+  // Loading states get a loader; the note only ever explains a ready table.
+  const loadersLoading = loader !== 'Vanilla' && (!table || table.status === 'loading')
   const loaderNote = (() => {
     if (loader === 'Vanilla') return t.create.loaderVanilla
-    if (!table || table.status === 'loading') return fmt(t.create.loadingLoaders, { loader })
-    if (table.status === 'error') return fmt(t.create.loadersError, { loader })
+    if (!table || table.status !== 'ready') return ''
     if (version && !loaderOption) return fmt(t.create.loaderUnsupported, { loader, version })
     return fmt(t.create.loaderHint, { loader, version: loaderOption?.label ?? table.byVersion.values().next().value?.label ?? '' })
   })()
 
   return (
-    <main className="flex-1 flex justify-center pt-9 px-11 pb-15">
-      <div className="flex flex-col gap-4.5 self-start rounded-lg bg-surface shadow-sheen w-[min(520px,100%)] p-7.5">
-        <h2 className="mb-0.5 text-[32px]">{t.create.title}</h2>
-        <p className={`${textMuted} mb-1.5 text-sm`}>{t.create.subtitle}</p>
-
-        <div className="mb-3">
-          <label htmlFor="create-name" className={fieldLabel}>{t.create.name}</label>
-          <input id="create-name" className={inputCls} type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} />
-        </div>
-
-        <div className="mb-3">
-          <label id="create-loader-label" className={fieldLabel}>{t.create.loader}</label>
-          <div className="inline-flex overflow-hidden border border-divider rounded-full" role="radiogroup" aria-labelledby="create-loader-label">
-            {LOADERS.map((l) => (
-              <button key={l} type="button" role="radio" className={`${segOpt} ${l === loader ? segOptActive : ''}`} aria-checked={l === loader} onClick={() => setLoader(l)}>{l}</button>
-            ))}
-          </div>
-          <p className={`mt-2 text-xs ${table?.status === 'error' ? 'text-mc-danger' : textMuted}`}>{loaderNote}</p>
-        </div>
-
-        <div className="mb-3">
-          <label htmlFor="create-version" className={fieldLabel}>{t.create.version}</label>
-          <select id="create-version" className={`${inputCls} appearance-auto`} value={version} onChange={(e) => setVersion(e.target.value)} disabled={!versions || (table?.status === 'loading')}>
-            <option value="">{versions ? t.create.chooseVersion : versionsError ? t.create.versionsError : t.create.loadingVersions}</option>
-            {options.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.id}{v.id === versions?.latestRelease ? ` (${t.create.latest})` : ''}{v.type !== 'release' ? ` — ${v.type}` : ''}
-              </option>
-            ))}
-          </select>
-          <label className="mt-2 text-xs inline-flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="peer absolute w-0 h-0 opacity-0 pointer-events-none" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
-            <span className="w-4 h-4 flex-none rounded-[5px] border-[1.5px] border-divider inline-flex items-center justify-center text-bg peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-accent peer-focus-visible:outline-offset-2 [&>svg]:hidden peer-checked:[&>svg]:block">
-              <Check size={10} />
-            </span>
-            {t.create.showSnapshots}
-          </label>
-        </div>
-
-        <div className="mb-3">
-          <label className={fieldLabel}>{t.create.icon}</label>
-          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}>
-            {ICON_CHOICES.map(([key, label]) => {
-              const active = icon === key
-              return (
-                <button
-                  key={key} type="button" title={label} onClick={() => setIcon(key)}
-                  className={`flex items-center justify-center p-2 cursor-pointer rounded-md border-[1.5px] ${active ? 'bg-choice-bg text-choice-text border-accent' : 'bg-bg text-text border-divider'}`}
-                >
-                  <PixelIcon name={key} size={32} />
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        <p className={`${textMuted} m-0 text-[13px]`}>{error ?? t.create.required}</p>
-        <div className="flex gap-2.5 justify-end mt-1">
-          <button type="button" className={`${btnBase} ${btnSecondary}`} onClick={() => go({ name: 'dashboard' })}>{t.common.cancel}</button>
-          <button type="button" className={`${btnBase} ${btnPrimary}`} disabled={!canSubmit} onClick={submit}>{t.create.submit}</button>
-        </div>
+    <main className="flex-1 flex flex-col items-center gap-6 pt-8 px-10 pb-12">
+      {/* Heading on the canvas, the form in the panel. */}
+      <div className="w-[min(560px,100%)]">
+        <h2 className="mb-2">{t.create.title}</h2>
+        <p className="m-0 text-muted">{t.create.subtitle}</p>
       </div>
+
+      <Panel className="w-[min(560px,100%)] p-6 gap-6">
+        <div>
+          <Label htmlFor="create-name">{t.create.name}</Label>
+          <Input id="create-name" type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Label id="create-loader-label" className="mb-0">{t.create.loader}</Label>
+          <SegmentedControl aria-labelledby="create-loader-label" options={LOADERS.map((l) => ({ value: l, label: l }))} value={loader} onChange={setLoader} />
+          <AutoLoader active={loadersLoading} label={fmt(t.create.loadingLoaders, { loader })} />
+          {table?.status === 'error' && <StatusMessage kind="error" headline={t.errors.loadFailed} detail={fmt(t.create.loadersError, { loader })} />}
+          {loaderNote && <p className="m-0 text-xs text-muted">{loaderNote}</p>}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Label htmlFor="create-version" className="mb-0">{t.create.version}</Label>
+          <AutoLoader active={!versions && !versionsError} label={t.create.loadingVersions} />
+          {versionsError && <StatusMessage kind="error" headline={t.errors.connectionLost} detail={t.create.versionsError} />}
+          {versions && (
+            <Select id="create-version" value={version} onChange={(e) => setVersion(e.target.value)} disabled={loadersLoading}>
+              <option value="">{t.create.chooseVersion}</option>
+              {options.map((v) => (
+                <option key={v.id} value={v.id}>
+                  {v.id}{v.id === versions.latestRelease ? ` (${t.create.latest})` : ''}{v.type !== 'release' ? ` — ${v.type}` : ''}
+                </option>
+              ))}
+            </Select>
+          )}
+          <Checkbox checked={showAll} onChange={(e) => setShowAll(e.target.checked)} label={<span className="text-xs">{t.create.showSnapshots}</span>} />
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <Label className="mb-0">{t.create.icon}</Label>
+          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}>
+            {ICON_CHOICES.map(([key, label]) => (
+              <Selectable key={key} square selected={icon === key} title={label} onClick={() => setIcon(key)}>
+                <PixelIcon name={key} size={32} />
+              </Selectable>
+            ))}
+          </div>
+        </div>
+
+        {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
+        <AutoLoader active={busy} />
+        <div className="flex gap-4 justify-end">
+          <Button variant="idle" onClick={() => go({ name: 'dashboard' })}>{t.common.cancel}</Button>
+          <Button variant="primary" disabled={!canSubmit} onClick={submit}>{t.create.submit}</Button>
+        </div>
+      </Panel>
     </main>
   )
 }
