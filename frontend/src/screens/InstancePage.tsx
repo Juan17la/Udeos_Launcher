@@ -11,6 +11,23 @@ import Dialog from '../components/Dialog'
 
 type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots'
 
+const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
+const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
+const btnSecondary = 'bg-mc-btn border-mc-btn-border text-mc-btn-text shadow-[inset_0_-2px_0_var(--mc-btn-bottom)] hover:bg-mc-btn-hover active:bg-mc-btn-active active:shadow-none'
+const btnDanger = 'bg-mc-danger border-mc-danger-border text-mc-danger-text shadow-[inset_0_-2px_0_var(--mc-danger-bottom)] hover:bg-mc-danger-hover active:bg-mc-danger-active active:shadow-none'
+const btnGhost = 'text-accent border-transparent px-1.5 bg-transparent hover:bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)] active:bg-[color-mix(in_srgb,var(--color-accent)_18%,transparent)]'
+const btnIcon = 'w-9 h-9 p-0'
+const btnBlock = 'w-full mt-2'
+const cardBase = 'flex flex-col gap-2 rounded-lg bg-surface'
+const tagBase = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap'
+const tagAccent = `${tagBase} bg-accent-100 text-accent-800`
+const tagAccent2 = `${tagBase} bg-accent-2-100 text-accent-2-800`
+const cardMeta = 'flex items-center gap-1.5 text-[11px] text-[color-mix(in_srgb,var(--color-text)_72%,transparent)]'
+const segOpt = 'inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-[7px] text-[13px] cursor-pointer border-0 bg-transparent text-inherit font-inherit [&:not(:first-child)]:border-l [&:not(:first-child)]:border-divider disabled:opacity-45 disabled:cursor-not-allowed'
+const segOptActive = 'bg-accent text-bg'
+const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
+const dropzone = (over: boolean) => `border-[1.5px] border-dashed rounded-lg p-4.5 text-center mb-4 text-sm ${textMuted} flex items-center justify-center gap-3.5 flex-wrap ${over ? 'border-accent bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)]' : 'border-divider'}`
+
 export default function InstancePage({ id }: { id: string }) {
   const { t, instances, refreshInstances, go } = useApp()
   const { play, launch } = useLaunch()
@@ -31,30 +48,30 @@ export default function InstancePage({ id }: { id: string }) {
   }
 
   return (
-    <main className="page" style={{ display: 'grid', gridTemplateColumns: '290px minmax(0,1fr)', gap: 28, alignItems: 'start' }}>
-      <div className="card elev-sm panel static" style={{ padding: 26, gap: 16, alignItems: 'center', textAlign: 'center', position: 'sticky', top: 24 }}>
+    <main className="flex-1 grid items-start gap-7 pt-9 px-11 pb-15" style={{ gridTemplateColumns: '290px minmax(0,1fr)' }}>
+      <div className={`${cardBase} items-center text-center gap-4 bg-panel-tint shadow-sheen sticky top-6 py-6.5 px-5.5`}>
         <PixelIcon name={inst.icon} size={96} />
-        <div style={{ maxWidth: '100%' }}>
-          <h3 style={{ marginBottom: 8, fontSize: 26, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '100%' }}>{inst.name}</h3>
-          <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-            <span className="tag tag-accent">{inst.version}</span>
-            <span className="tag tag-accent-2">{inst.loaderLabel}</span>
+        <div className="max-w-full">
+          <h3 className="mb-2 text-[26px] whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{inst.name}</h3>
+          <div className="flex gap-1.5 justify-center">
+            <span className={tagAccent}>{inst.version}</span>
+            <span className={tagAccent2}>{inst.loaderLabel}</span>
           </div>
         </div>
-        <p className="text-muted" style={{ margin: 0, fontSize: 12 }}>{inst.installed ? t.instance.installed : t.instance.notInstalled}</p>
-        <button type="button" className="btn btn-primary btn-block" style={{ height: 48, fontSize: 18 }} disabled={busy || inst.running} onClick={() => play(inst.id)}>
+        <p className={`${textMuted} m-0 text-xs`}>{inst.installed ? t.instance.installed : t.instance.notInstalled}</p>
+        <button type="button" className={`${btnBase} ${btnPrimary} ${btnBlock} h-12 text-lg`} disabled={busy || inst.running} onClick={() => play(inst.id)}>
           <Play size={16} /> {inst.running ? t.common.running : t.common.play}
         </button>
-        <button type="button" className="btn btn-secondary btn-block" style={{ fontSize: 13 }} onClick={() => api.OpenInstanceFolder(inst.id, '')}>
+        <button type="button" className={`${btnBase} ${btnSecondary} ${btnBlock} text-[13px]`} onClick={() => api.OpenInstanceFolder(inst.id, '')}>
           <Folder /> {t.instance.openFolder}
         </button>
-        <button type="button" className="btn btn-danger btn-block" style={{ fontSize: 13, whiteSpace: 'nowrap' }} disabled={inst.running} onClick={() => setConfirmDelete(true)}>{t.instance.deleteInstance}</button>
+        <button type="button" className={`${btnBase} ${btnDanger} ${btnBlock} text-[13px] whitespace-nowrap`} disabled={inst.running} onClick={() => setConfirmDelete(true)}>{t.instance.deleteInstance}</button>
       </div>
 
-      <div style={{ minWidth: 0 }}>
-        <div className="seg" style={{ marginBottom: 20 }}>
+      <div className="min-w-0">
+        <div className="inline-flex overflow-hidden border border-divider rounded-full mb-5">
           {tabs.map((k) => (
-            <button key={k} type="button" className={`seg-opt ${tab === k ? 'is-active' : ''}`} onClick={() => setTab(k)}>{t.instance.tabs[k]}</button>
+            <button key={k} type="button" className={`${segOpt} ${tab === k ? segOptActive : ''}`} onClick={() => setTab(k)}>{t.instance.tabs[k]}</button>
           ))}
         </div>
         {tab === 'worlds' && <WorldsTab id={inst.id} />}
@@ -72,20 +89,20 @@ export default function InstancePage({ id }: { id: string }) {
 }
 
 function Empty({ text }: { text: string }) {
-  return <div className="empty-state"><p>{text}</p></div>
+  return <div className={`${textMuted} text-center px-5 py-10`}><p className="m-0 text-sm">{text}</p></div>
 }
 
 function Toast({ text }: { text: string | null }) {
   if (!text) return null
-  return <p className="text-muted" style={{ fontSize: 12, margin: '0 0 12px', wordBreak: 'break-all' }}>{text}</p>
+  return <p className={`${textMuted} text-xs mb-3 break-all`}>{text}</p>
 }
 
 /** Small right-aligned "Open folder" link shown above a tab's content. */
 function FolderLink({ id, sub }: { id: string; sub: string }) {
   const { t } = useApp()
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-      <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => api.OpenInstanceFolder(id, sub)}><Folder size={12} /> {t.instance.openFolder}</button>
+    <div className="flex justify-end mb-2.5">
+      <button type="button" className={`${btnBase} ${btnGhost} text-xs`} onClick={() => api.OpenInstanceFolder(id, sub)}><Folder size={12} /> {t.instance.openFolder}</button>
     </div>
   )
 }
@@ -94,7 +111,7 @@ function FolderLink({ id, sub }: { id: string; sub: string }) {
 function BrowseModrinth({ id, type }: { id: string; type: ProjectType }) {
   const { t, go } = useApp()
   return (
-    <button type="button" className="btn btn-secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={() => go({ name: 'search', instanceId: id, type })}>
+    <button type="button" className={`${btnBase} ${btnSecondary} text-[13px] whitespace-nowrap`} onClick={() => go({ name: 'search', instanceId: id, type })}>
       <SearchIcon size={13} /> {t.instance.browseModrinth}
     </button>
   )
@@ -138,26 +155,26 @@ function WorldsTab({ id }: { id: string }) {
 
   return (
     <>
-      <div className={`dropzone ${over ? 'is-over' : ''}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
+      <div className={dropzone(over)} style={{ ['--wails-drop-target' as string]: 'drop' }}
         onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false) }}>
         <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds.worlds })}</span>
-        <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
-        <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
+        <span className="text-[13px]">{t.common.or}</span>
+        <button type="button" className={`${btnBase} ${btnPrimary} text-[13px] whitespace-nowrap`} onClick={pick}>{t.instance.browse}</button>
       </div>
-      {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
+      {error && <p className="mb-3 text-[13px] text-mc-danger">{error}</p>}
       <Toast text={note} />
       <FolderLink id={id} sub="saves" />
       {worlds && worlds.length === 0 && <Empty text={t.instance.empty.worlds} />}
       {worlds && worlds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="flex flex-col gap-2">
           {worlds.map((w) => (
-            <div key={w.folder} className="card row-card">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="row-title">{w.name}</div>
-                <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, t), size: bytes(w.sizeBytes) })}</div>
+            <div key={w.folder} className={`${cardBase} flex-row items-center py-3 px-4`}>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{w.name}</div>
+                <div className={`${cardMeta} mt-0.5 text-xs`}>{fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, t), size: bytes(w.sizeBytes) })}</div>
               </div>
-              <button type="button" className="btn btn-secondary" onClick={() => save(w)}><Folder /> {t.instance.saveToDevice}</button>
-              <button type="button" className="btn btn-icon btn-danger" title={t.instance.removeWorld} onClick={() => setToDelete(w)}><X /></button>
+              <button type="button" className={`${btnBase} ${btnSecondary}`} onClick={() => save(w)}><Folder /> {t.instance.saveToDevice}</button>
+              <button type="button" className={`${btnBase} ${btnDanger} ${btnIcon}`} title={t.instance.removeWorld} onClick={() => setToDelete(w)}><X /></button>
             </div>
           ))}
         </div>
@@ -176,6 +193,7 @@ function ScreenshotsTab({ id }: { id: string }) {
   const [shots, setShots] = useState<FileEntry[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
   const [open, setOpen] = useState<FileEntry | null>(null)
+  const [failed, setFailed] = useState<Set<string>>(new Set())
   const load = useCallback(() => { api.ListScreenshots(id).then(setShots) }, [id])
   useEffect(load, [load, launch.status])
 
@@ -190,27 +208,31 @@ function ScreenshotsTab({ id }: { id: string }) {
       <Toast text={note} />
       <FolderLink id={id} sub="screenshots" />
       {shots.length === 0 && <Empty text={t.instance.empty.screenshots} />}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 14 }}>
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))' }}>
         {shots.map((s) => (
-          <div key={s.name} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <button type="button" className="shot" title={`${t.instance.view}: ${s.name}`} onClick={() => setOpen(s)}
-              style={{ aspectRatio: '16/10', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative', padding: 0, border: 0, cursor: 'zoom-in' }}>
-              <img src={src(s)} alt={s.name} loading="lazy"
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                onError={(e) => { const el = e.currentTarget; el.style.display = 'none'; el.parentElement!.classList.add('no-img') }} />
-              <span className="fallback-icon" style={{ position: 'absolute', color: 'var(--color-neutral-500)' }}><Camera /></span>
+          <div key={s.name} className="flex flex-col gap-1.5">
+            <button
+              type="button" title={`${t.instance.view}: ${s.name}`} onClick={() => setOpen(s)}
+              className="relative aspect-[16/10] rounded-md bg-surface flex items-center justify-center overflow-hidden p-0 border-0 cursor-zoom-in"
+            >
+              {failed.has(s.name) ? (
+                <span className="text-neutral-500"><Camera /></span>
+              ) : (
+                <img src={src(s)} alt={s.name} loading="lazy" className="w-full h-full object-cover"
+                  onError={() => setFailed((f) => new Set(f).add(s.name))} />
+              )}
             </button>
-            <button type="button" className="btn btn-secondary" style={{ fontSize: 13 }} onClick={() => save(s)}>{t.instance.saveToDevice}</button>
+            <button type="button" className={`${btnBase} ${btnSecondary} text-[13px]`} onClick={() => save(s)}>{t.instance.saveToDevice}</button>
           </div>
         ))}
       </div>
       {open && (
         <Dialog title={open.name} width={960} onClose={() => setOpen(null)} actions={<>
-          <button type="button" className="btn btn-secondary" onClick={() => save(open)}><Folder /> {t.instance.saveToDevice}</button>
-          <button type="button" className="btn btn-primary" onClick={() => setOpen(null)}>{t.common.close}</button>
+          <button type="button" className={`${btnBase} ${btnSecondary}`} onClick={() => save(open)}><Folder /> {t.instance.saveToDevice}</button>
+          <button type="button" className={`${btnBase} ${btnPrimary}`} onClick={() => setOpen(null)}>{t.common.close}</button>
         </>}>
-          <img src={src(open)} alt={open.name} style={{ display: 'block', width: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 'var(--radius-md)', background: 'var(--color-surface)' }} />
-          <p className="text-muted" style={{ margin: '8px 0 0', fontSize: 12 }}>{bytes(open.sizeBytes)} · {ago(open.modTime, t)}</p>
+          <img src={src(open)} alt={open.name} className="block w-full max-h-[70vh] object-contain rounded-md bg-surface" />
+          <p className={`${textMuted} mt-2 text-xs`}>{bytes(open.sizeBytes)} · {ago(open.modTime, t)}</p>
         </Dialog>
       )}
     </>
@@ -244,24 +266,24 @@ function ResourcePacksTab({ id }: { id: string }) {
 
   return (
     <>
-      <div className={`dropzone ${over ? 'is-over' : ''}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
+      <div className={dropzone(over)} style={{ ['--wails-drop-target' as string]: 'drop' }}
         onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false) }}>
         <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds.resourcepacks })}</span>
-        <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
-        <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
+        <span className="text-[13px]">{t.common.or}</span>
+        <button type="button" className={`${btnBase} ${btnPrimary} text-[13px] whitespace-nowrap`} onClick={pick}>{t.instance.browse}</button>
         <BrowseModrinth id={id} type="resourcepack" />
       </div>
-      {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
+      {error && <p className="mb-3 text-[13px] text-mc-danger">{error}</p>}
       {packs && packs.length === 0 && <Empty text={t.instance.empty.resourcepacks} />}
       {packs && packs.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="flex flex-col gap-2">
           {packs.map((p) => (
-            <div key={p.name} className="card row-card">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="row-title">{p.name}</div>
-                <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{bytes(p.sizeBytes)}</div>
+            <div key={p.name} className={`${cardBase} flex-row items-center py-3 px-4`}>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{p.name}</div>
+                <div className={`${cardMeta} mt-0.5 text-xs`}>{bytes(p.sizeBytes)}</div>
               </div>
-              <button type="button" className="btn btn-icon btn-danger" title={t.instance.remove} onClick={() => remove(p.name)}><X /></button>
+              <button type="button" className={`${btnBase} ${btnDanger} ${btnIcon}`} title={t.instance.remove} onClick={() => remove(p.name)}><X /></button>
             </div>
           ))}
         </div>
@@ -306,26 +328,26 @@ function FilesTab({ id, kind }: { id: string; kind: 'mods' | 'shaders' }) {
 
   return (
     <>
-      <div className={`dropzone ${over ? 'is-over' : ''}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
+      <div className={dropzone(over)} style={{ ['--wails-drop-target' as string]: 'drop' }}
         onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false) }}>
         <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds[kind] })}</span>
-        <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
-        <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
+        <span className="text-[13px]">{t.common.or}</span>
+        <button type="button" className={`${btnBase} ${btnPrimary} text-[13px] whitespace-nowrap`} onClick={pick}>{t.instance.browse}</button>
         <BrowseModrinth id={id} type={kind === 'mods' ? 'mod' : 'shader'} />
       </div>
-      {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
+      {error && <p className="mb-3 text-[13px] text-mc-danger">{error}</p>}
       <Toast text={note} />
       <FolderLink id={id} sub={calls.sub} />
       {files && files.length === 0 && <Empty text={t.instance.empty[kind]} />}
       {files && files.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div className="flex flex-col gap-2">
           {files.map((f) => (
-            <div key={f.name} className="card row-card">
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div className="row-title">{f.name}</div>
-                <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{bytes(f.sizeBytes)}</div>
+            <div key={f.name} className={`${cardBase} flex-row items-center py-3 px-4`}>
+              <div className="flex-1 min-w-0">
+                <div className="text-[15px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{f.name}</div>
+                <div className={`${cardMeta} mt-0.5 text-xs`}>{bytes(f.sizeBytes)}</div>
               </div>
-              <button type="button" className="btn btn-icon btn-danger" title={t.instance.remove} onClick={() => remove(f.name)}><X /></button>
+              <button type="button" className={`${btnBase} ${btnDanger} ${btnIcon}`} title={t.instance.remove} onClick={() => remove(f.name)}><X /></button>
             </div>
           ))}
         </div>

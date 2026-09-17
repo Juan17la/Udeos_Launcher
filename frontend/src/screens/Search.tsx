@@ -17,6 +17,18 @@ function loadVersions() {
   return versionsPromise
 }
 
+const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
+const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
+const btnSecondary = 'bg-mc-btn border-mc-btn-border text-mc-btn-text shadow-[inset_0_-2px_0_var(--mc-btn-bottom)] hover:bg-mc-btn-hover active:bg-mc-btn-active active:shadow-none'
+const inputCls = 'min-h-9 px-3.5 py-1.5 font-inherit text-sm text-text caret-accent bg-surface border border-divider rounded-full hover:border-accent-400 focus-visible:border-accent focus-visible:outline-0 focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_22%,transparent)]'
+const segOpt = 'inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-[7px] text-[13px] cursor-pointer border-0 bg-transparent text-inherit font-inherit [&:not(:first-child)]:border-l [&:not(:first-child)]:border-divider disabled:opacity-45 disabled:cursor-not-allowed'
+const segOptActive = 'bg-accent text-bg'
+const cardBase = 'flex flex-col gap-2 rounded-lg bg-surface'
+const cardTitle = 'font-heading font-extrabold leading-[1.2]'
+const tagAccent = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap bg-accent-100 text-accent-800'
+const tagAccent2 = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap bg-accent-2-100 text-accent-2-800'
+const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
+
 type Props = { instanceId?: string; type?: ProjectType }
 
 /** Browsing is unrestricted: the version/loader filters narrow the catalog
@@ -68,34 +80,34 @@ export default function Search({ instanceId, type: initialType }: Props) {
   const showLoaderFilter = type === 'mod' || type === 'modpack'
 
   return (
-    <main className="page" style={{ padding: '36px 44px 48px' }}>
-      <h2 style={{ marginBottom: 6, fontSize: 34 }}>{t.search.title}</h2>
-      <p className="text-muted" style={{ margin: '0 0 24px', fontSize: 15 }}>{t.search.subtitle}</p>
+    <main className="flex-1 pt-9 px-11 pb-12">
+      <h2 className="mb-1.5 text-[34px]">{t.search.title}</h2>
+      <p className={`${textMuted} mb-6 text-[15px]`}>{t.search.subtitle}</p>
 
-      <div className="seg" style={{ marginBottom: 20 }}>
+      <div className="inline-flex overflow-hidden border border-divider rounded-full mb-5">
         {TYPES.map((k) => (
-          <button key={k} type="button" className={`seg-opt ${type === k ? 'is-active' : ''}`} onClick={() => setType(k)}>{t.search.types[k]}</button>
+          <button key={k} type="button" className={`${segOpt} ${type === k ? segOptActive : ''}`} onClick={() => setType(k)}>{t.search.types[k]}</button>
         ))}
       </div>
 
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
-        <input className="input" style={{ flex: '1 1 220px' }} type="text" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
-        <select className="input" style={{ flex: '0 1 180px' }} value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
+      <div className="flex gap-3 mb-6 flex-wrap">
+        <input className={`${inputCls} flex-[1_1_220px]`} type="text" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
+        <select className={`${inputCls} appearance-auto flex-[0_1_180px]`} value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
           <option value="">{t.search.anyVersion}</option>
           {versions?.map((v) => <option key={v.version} value={v.version}>{v.version}</option>)}
         </select>
         {showLoaderFilter && (
-          <select className="input" style={{ flex: '0 1 160px' }} value={loader} onChange={(e) => setLoader(e.target.value)}>
+          <select className={`${inputCls} appearance-auto flex-[0_1_160px]`} value={loader} onChange={(e) => setLoader(e.target.value)}>
             <option value="">{t.search.anyLoader}</option>
             {LOADERS.map((l) => <option key={l} value={l}>{l[0].toUpperCase() + l.slice(1)}</option>)}
           </select>
         )}
       </div>
 
-      {error && <p style={{ margin: '0 0 16px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
-      {page && page.results.length === 0 && <div className="empty-state"><p>{t.search.empty}</p></div>}
+      {error && <p className="mb-4 text-[13px] text-mc-danger">{error}</p>}
+      {page && page.results.length === 0 && <div className={`${textMuted} text-center px-5 py-10`}><p className="m-0 text-sm">{t.search.empty}</p></div>}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 20 }}>
+      <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
         {page?.results.map((r) => (
           <ResultCard key={r.id} result={r}
             onAdd={r.projectType === 'modpack' ? undefined : () => setAdding(r)}
@@ -108,13 +120,13 @@ export default function Search({ instanceId, type: initialType }: Props) {
       )}
 
       {page && page.total > PAGE_SIZE && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
-          <button type="button" className="btn btn-secondary" disabled={loading || pageIndex === 0}
+        <div className="flex items-center justify-center gap-4 mt-6">
+          <button type="button" className={`${btnBase} ${btnSecondary}`} disabled={loading || pageIndex === 0}
             onClick={() => { const i = pageIndex - 1; setPageIndex(i); load(i * PAGE_SIZE) }}>{t.search.previous}</button>
-          <span className="text-muted" style={{ fontSize: 13 }}>
+          <span className={`${textMuted} text-[13px]`}>
             {fmt(t.search.pageOf, { page: pageIndex + 1, total: Math.ceil(page.total / PAGE_SIZE) })}
           </span>
-          <button type="button" className="btn btn-secondary" disabled={loading || (pageIndex + 1) * PAGE_SIZE >= page.total}
+          <button type="button" className={`${btnBase} ${btnSecondary}`} disabled={loading || (pageIndex + 1) * PAGE_SIZE >= page.total}
             onClick={() => { const i = pageIndex + 1; setPageIndex(i); load(i * PAGE_SIZE) }}>{t.search.next}</button>
         </div>
       )}
@@ -127,28 +139,28 @@ type CardProps = { result: SearchResult; onAdd?: () => void; onDetails: () => vo
 const ResultCard = memo(function ResultCard({ result, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
-    <div className="card elev-sm sheen" style={{ padding: 20, gap: 10 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div className={`${cardBase} p-5 gap-2.5 shadow-sheen transition-transform duration-150 ease hover:-translate-y-0.5`}>
+      <div className="flex items-center gap-3">
         {result.iconUrl && (
           <img src={result.iconUrl} alt="" loading="lazy" decoding="async" width={44} height={44}
-            style={{ borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
+            className="rounded-sm object-cover shrink-0"
             onError={(e) => { e.currentTarget.style.display = 'none' }} />
         )}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="card-title" style={{ fontSize: 17, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{result.title}</div>
-          <div className="text-muted" style={{ fontSize: 12 }}>{result.author}</div>
+        <div className="flex-1 min-w-0">
+          <div className={`${cardTitle} text-[17px] whitespace-nowrap overflow-hidden text-ellipsis`}>{result.title}</div>
+          <div className={`${textMuted} text-xs`}>{result.author}</div>
         </div>
       </div>
-      <p className="text-muted" style={{ margin: 0, fontSize: 13, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{result.description}</p>
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-        {result.loaders.map((l) => <span key={l} className="tag tag-accent-2">{l}</span>)}
-        <span className="tag tag-accent">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
+      <p className={`${textMuted} m-0 text-[13px] line-clamp-2`}>{result.description}</p>
+      <div className="flex gap-1.5 flex-wrap">
+        {result.loaders.map((l) => <span key={l} className={tagAccent2}>{l}</span>)}
+        <span className={tagAccent}>{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
       </div>
       {/* Two big, equal-weight actions: Add opens the instance picker (which
          does the real compatibility check), Details is a full page. */}
-      <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
-        {onAdd && <button type="button" className="btn btn-primary" style={{ flex: 1, height: 44, fontSize: 15 }} onClick={onAdd}>{t.search.add}</button>}
-        <button type="button" className="btn btn-secondary" style={{ flex: 1, height: 44, fontSize: 15 }} onClick={onDetails}>{t.search.details}</button>
+      <div className="flex gap-2.5 mt-auto">
+        {onAdd && <button type="button" className={`${btnBase} ${btnPrimary} flex-1 h-11 text-[15px]`} onClick={onAdd}>{t.search.add}</button>}
+        <button type="button" className={`${btnBase} ${btnSecondary} flex-1 h-11 text-[15px]`} onClick={onDetails}>{t.search.details}</button>
       </div>
     </div>
   )
