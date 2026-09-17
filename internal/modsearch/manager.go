@@ -130,18 +130,21 @@ func (m *Manager) remember(key string, page Page) {
 	m.pages[key] = memEntry{page: page, at: time.Now()}
 }
 
-// cacheKey names one cache file per distinct (type, version, loader, offset,
-// text) combination.
+// cacheKey names one cache file per distinct (type, version, loader, sort,
+// offset, text) combination.
 func cacheKey(q Query) string {
-	gv, ldr := q.GameVersion, q.Loader
+	gv, ldr, idx := q.GameVersion, q.Loader, q.Index
 	if gv == "" {
 		gv = "any"
 	}
 	if ldr == "" {
 		ldr = "any"
 	}
+	if idx == "" {
+		idx = "relevance"
+	}
 	sum := sha1.Sum([]byte(q.Text))
-	return fmt.Sprintf("%s_%s_%s_%d_%s", q.Type, gv, ldr, q.Offset, hex.EncodeToString(sum[:])[:8])
+	return fmt.Sprintf("%s_%s_%s_%s_%d_%s", q.Type, gv, ldr, idx, q.Offset, hex.EncodeToString(sum[:])[:8])
 }
 
 func writeCache(path string, v any) {

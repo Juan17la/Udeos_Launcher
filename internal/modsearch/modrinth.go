@@ -66,9 +66,7 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 	if limit > 50 {
 		limit = 50
 	}
-	facets := buildFacets(q)
-	u := fmt.Sprintf("%s/search?query=%s&facets=%s&offset=%d&limit=%d",
-		ModrinthBaseURL, url.QueryEscape(q.Text), url.QueryEscape(facets), q.Offset, limit)
+	u := searchURL(q, limit)
 	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
 	defer cancel()
 	var raw modrinthSearchResponse
@@ -90,6 +88,18 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 		})
 	}
 	return page, nil
+}
+
+// searchURL builds the /search request. Modrinth's index parameter picks the
+// sort order (relevance | downloads | follows | newest | updated); it is left
+// out for the default, relevance, so a plain browse hits the same URL as before.
+func searchURL(q Query, limit int) string {
+	u := fmt.Sprintf("%s/search?query=%s&facets=%s&offset=%d&limit=%d",
+		ModrinthBaseURL, url.QueryEscape(q.Text), url.QueryEscape(buildFacets(q)), q.Offset, limit)
+	if q.Index != "" {
+		u += "&index=" + url.QueryEscape(q.Index)
+	}
+	return u
 }
 
 // buildFacets turns a Query into Modrinth's facets syntax: a JSON array of

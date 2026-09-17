@@ -53,6 +53,17 @@ func TestNormalizeVersionType(t *testing.T) {
 	}
 }
 
+func TestSearchURLIndex(t *testing.T) {
+	got := searchURL(Query{Type: TypeMod}, 30)
+	if strings.Contains(got, "index=") {
+		t.Errorf("relevance must not send an index: %s", got)
+	}
+	got = searchURL(Query{Type: TypeMod, Index: "downloads"}, 30)
+	if !strings.HasSuffix(got, "&index=downloads") {
+		t.Errorf("got %s", got)
+	}
+}
+
 func TestVersionsURL(t *testing.T) {
 	got := versionsURL("AANobbMI", "", "")
 	if got != ModrinthBaseURL+"/project/AANobbMI/version" {

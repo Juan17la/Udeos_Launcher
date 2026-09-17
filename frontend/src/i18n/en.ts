@@ -44,7 +44,7 @@ const en = {
     saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
     removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
     worldAdded: 'Added world "{name}"', fileAdded: 'Added {name}',
-    dropHere: 'Drag a {kind} file here', browse: 'Browse files', browseModrinth: 'Browse Modrinth', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
+    dropHere: 'Drag a {kind} file here', browse: 'Browse files', browseModrinth: 'Add from Modrinth', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
     empty: {
       mods: 'No mods installed yet. Drag a .jar file here.', resourcepacks: 'No resource packs installed yet. Drag a .zip file here or use Browse.', shaders: 'No shaders installed yet. Drag a shader pack here.',
       worlds: 'No worlds yet. Play the instance to create one, or drag a world folder or .zip here.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',
@@ -59,6 +59,9 @@ const en = {
     previous: 'Previous', next: 'Next', pageOf: 'Page {page} of {total}',
     error: 'Could not reach Modrinth and no cached results are available. Check your connection.',
     add: 'Add', details: 'Details', createInstance: 'Create instance',
+    added: 'Added', adding: 'Adding…',
+    sort: { relevance: 'Relevance', downloads: 'Most downloaded', newest: 'Newest', updated: 'Recently updated' },
+    forInstance: 'Adding to {name}', backToInstance: 'Back to {name}', lockedTo: 'Version and loader are locked to {name}.',
   },
   compat: {
     vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
@@ -69,12 +72,12 @@ const en = {
     noInstances: 'You have no instances yet.', add: 'Add to an instance',
   },
   content: {
-    pickTitle: 'Add {title} to…', pickEmpty: 'Create an instance first.',
+    pickTitle: 'Add {title} to…', pickHint: 'Choose an instance — it installs right away.',
     noCompatible: 'No instance can use this yet. Create a {loaders} instance for {versions} to install it.',
-    planTitle: 'Add {title} to {name}', planning: 'Checking versions and dependencies…',
-    willInstall: 'This will download:', requiredBy: 'required by {name}', alreadyInstalled: '{title} is already in {name}.',
-    add: 'Add', installing: 'Downloading…', done: 'Added {n} file(s) to {name}.', doneOne: 'Added {title} to {name}.',
-    phases: { content: 'Downloading files' },
+    noInstancesTitle: 'No instances yet', noInstancesBody: 'Create an instance first, then add {title} to it.',
+    planning: 'Checking versions…',
+    installingTo: 'Adding {title} to {name}', queued: 'Waiting…', failed: 'Could not add {title} to {name}',
+    alreadyInstalled: '{title} is already in {name}.', done: 'Added {n} file(s) to {name}.', doneOne: 'Added {title} to {name}.',
   },
   launch: {
     preparing: 'Getting {name} ready', starting: 'Starting the game…',

@@ -6,15 +6,24 @@ import (
 	"udeos/launcher/internal/modsearch"
 )
 
+// searchSorts are the sort orders the frontend may ask for; relevance (the
+// provider's default) is the empty string, anything unknown falls back to it.
+var searchSorts = map[string]bool{"downloads": true, "newest": true, "updated": true}
+
 // SearchContent browses one content type (mod, resourcepack, shader,
 // modpack) from Modrinth, optionally filtered by Minecraft version and mod
-// loader. Results are cached so the search page keeps working offline.
-func (a *App) SearchContent(projectType, text, gameVersion, ldr string, offset, limit int) (modsearch.Page, error) {
+// loader and sorted by sortBy ("" = relevance, downloads, newest, updated).
+// Results are cached so the search page keeps working offline.
+func (a *App) SearchContent(projectType, text, gameVersion, ldr, sortBy string, offset, limit int) (modsearch.Page, error) {
+	if !searchSorts[sortBy] {
+		sortBy = ""
+	}
 	q := modsearch.Query{
 		Type:        modsearch.ProjectType(projectType),
 		Text:        text,
 		GameVersion: gameVersion,
 		Loader:      strings.ToLower(ldr),
+		Index:       sortBy,
 		Offset:      offset,
 		Limit:       limit,
 	}
