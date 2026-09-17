@@ -3,7 +3,7 @@ import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { ChevronLeft } from '../ui/icons'
-import AddInstancePickerDialog from '../components/AddInstancePickerDialog'
+import { useAddAction } from '../components/AddInstancePickerDialog'
 import { computeCompat } from '../lib/compat'
 import type { ProjectDetail as ProjectDetailData, SearchResult } from '../api/types'
 
@@ -17,16 +17,18 @@ const tagNeutral = `${tagBase} bg-neutral-100 text-neutral-800`
 const cardMeta = 'flex items-center gap-1.5 text-[11px] text-[color-mix(in_srgb,var(--color-text)_72%,transparent)]'
 const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
 
-type Props = { result: SearchResult }
+/** instanceId is the instance Search was locked to, so Back returns there
+ *  and Add installs into it without a picker. */
+type Props = { result: SearchResult; instanceId?: string }
 
 /** Full-page view of one search result: its description, every Minecraft
  *  version/loader it has ever published a build for, and which of the
  *  player's instances can take it — the "detect versions, show compatible
  *  instances" view the Search cards no longer try to cram in. */
-export default function ProjectDetail({ result }: Props) {
+export default function ProjectDetail({ result, instanceId }: Props) {
   const { t, instances, go } = useApp()
   const [detail, setDetail] = useState<ProjectDetailData | null>(null)
-  const [adding, setAdding] = useState(false)
+  const { add, dialog } = useAddAction(instanceId)
 
   useEffect(() => {
     let live = true
@@ -40,7 +42,7 @@ export default function ProjectDetail({ result }: Props) {
 
   return (
     <main className="flex-1 pt-9 px-11 pb-15 max-w-[800px]">
-      <button type="button" className={`${btnBase} ${btnGhost} mb-4.5 whitespace-nowrap`} onClick={() => go({ name: 'search' })}>
+      <button type="button" className={`${btnBase} ${btnGhost} mb-4.5 whitespace-nowrap`} onClick={() => go({ name: 'search', instanceId, type: result.projectType })}>
         <ChevronLeft /> {t.detail.back}
       </button>
 
@@ -92,13 +94,13 @@ export default function ProjectDetail({ result }: Props) {
               ))}
             </div>
           )}
-          <button type="button" className={`${btnBase} ${btnPrimary} h-12 text-base mt-2`} disabled={!detail} onClick={() => setAdding(true)}>
+          <button type="button" className={`${btnBase} ${btnPrimary} h-12 text-base mt-2`} disabled={!detail} onClick={() => add(result)}>
             {t.detail.add}
           </button>
         </>
       )}
 
-      {adding && <AddInstancePickerDialog result={result} onClose={() => setAdding(false)} />}
+      {dialog}
     </main>
   )
 }

@@ -183,3 +183,15 @@ func TestShortFreeTextIsNotCached(t *testing.T) {
 		t.Error("expected no disk cache for a 2-char query, got a hit")
 	}
 }
+
+func TestCacheKeyDistinguishesSortOrder(t *testing.T) {
+	base := Query{Type: TypeMod, Text: "sodium"}
+	byDownloads := base
+	byDownloads.Index = "downloads"
+	if cacheKey(base) == cacheKey(byDownloads) {
+		t.Errorf("sorted and unsorted pages share a cache key: %s", cacheKey(base))
+	}
+	if cacheKey(base) != cacheKey(Query{Type: TypeMod, Text: "sodium", Index: ""}) {
+		t.Errorf("key must be stable for the same query")
+	}
+}
