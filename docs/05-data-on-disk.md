@@ -28,6 +28,9 @@ elsewhere, which is how tests run against a throw-away directory and how a
   Mojang, one per component actually used.
 - `cache/loaders/` — the Fabric and Forge support tables, so the create form
   can still offer them offline; `cache/forge/` — downloaded Forge installers.
+- `cache/search/` — cached search pages; `cache/content/<sha1>/<file>` — every
+  mod, pack or shader downloaded from Modrinth, kept so a second instance
+  adding the same file does not download it again.
 - `launcher_profiles.json` — an empty stub Forge's installer requires.
 
 Deleting any of these only costs a re-download; nothing the player made lives
@@ -44,6 +47,10 @@ there.
 - `instances/<id>/.minecraft/logs/udeos-launcher.log` — output of the last
   game session as seen by the launcher (the game's own `latest.log` and any
   `crash-reports/` sit right beside it).
+- `instances/<id>/content.json` — what the launcher installed from Modrinth
+  into this instance (project, version, file name, SHA-1, what it was
+  required by, what it is incompatible with). Files added by hand are not in
+  it; see [Adding content](10-adding-content.md).
 
 Deleting an instance from the launcher removes this folder entirely, which is
 why the button asks for confirmation.

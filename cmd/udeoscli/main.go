@@ -7,6 +7,7 @@
 //	go run ./cmd/udeoscli loaders Forge
 //	go run ./cmd/udeoscli install <instance id>
 //	go run ./cmd/udeoscli play <instance id>
+//	go run ./cmd/udeoscli add <instance id> <project id or slug> [mod|resourcepack|shader]
 package main
 
 import (
@@ -18,19 +19,20 @@ import (
 	"udeos/launcher/internal/core"
 	"udeos/launcher/internal/download"
 	"udeos/launcher/internal/loader"
+	"udeos/launcher/internal/modsearch"
 	"udeos/launcher/internal/paths"
 	"udeos/launcher/internal/profile"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Forge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id>")
+		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Forge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id> | add <instance id> <project> [type]")
 		os.Exit(2)
 	}
 	dirs, err := paths.Default()
 	check(err)
 	exited := make(chan core.GameEvent, 1)
-	l, err := core.New(dirs, "cli", func(p download.Progress) {
+	printProgress := func(p download.Progress) {
 		switch {
 		case p.Total > 0:
 			fmt.Printf("\r%-10s %5d/%-5d %s                    ", p.Phase, p.Done, p.Total, p.Current)
@@ -39,7 +41,8 @@ func main() {
 		default:
 			fmt.Printf("\n[%s]\n", p.Phase)
 		}
-	}, func(ev core.GameEvent) {
+	}
+	l, err := core.New(dirs, "cli", printProgress, printProgress, func(ev core.GameEvent) {
 		if !ev.Running {
 			exited <- ev
 		}
@@ -97,6 +100,34 @@ func main() {
 		_, java, err := l.Prepare(ctx, inst)
 		check(err)
 		fmt.Println("\ninstalled; java:", java)
+	case "add":
+		inst, err := l.Instances.Get(arg(2))
+		check(err)
+		kind := modsearch.TypeMod
+		if len(os.Args) > 4 {
+			kind = modsearch.ProjectType(os.Args[4])
+		}
+		plan, err := l.Content.Plan(ctx, inst, arg(3), kind)
+		check(err)
+		if plan.AlreadyInstalled {
+			fmt.Println(plan.Title, "is already installed")
+			return
+		}
+		for _, it := range plan.Items {
+			why := ""
+			if it.Reason != "" {
+				why = " (required by " + it.Reason + ")"
+			}
+			fmt.Printf("will install %s %s%s\n", it.Title, it.Version.VersionNumber, why)
+		}
+		for _, w := range plan.Warnings {
+			fmt.Println("note:", w)
+		}
+		entries, err := l.Content.Apply(ctx, inst, plan)
+		check(err)
+		for _, e := range entries {
+			fmt.Println("\nadded", e.File)
+		}
 	case "play":
 		check(l.Launch(ctx, arg(2)))
 		fmt.Println("\ngame started, waiting for it to exit...")
