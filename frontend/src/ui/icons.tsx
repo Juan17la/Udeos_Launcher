@@ -41,3 +41,6 @@ export const ChevronLeft = ({ size = 14, strokeWidth = 2.75 }: P) => (
 export const Upload = ({ size = 20, strokeWidth = 2.5 }: P) => (
   <svg {...base(size, strokeWidth)}><path d="M12 3v12" /><path d="m7 8 5-5 5 5" /><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /></svg>
 )
+export const Search = ({ size = 14, strokeWidth = 2.75 }: P) => (
+  <svg {...base(size, strokeWidth)}><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+)

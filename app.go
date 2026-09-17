@@ -18,6 +18,7 @@ const Version = "0.1.0"
 // Events pushed to the frontend (see frontend/src/api/bridge.ts).
 const (
 	EventInstallProgress = "install:progress"
+	EventContentProgress = "content:progress"
 	EventGame            = "game:state"
 )
 
@@ -41,6 +42,7 @@ func (a *App) startup(ctx context.Context) {
 	}
 	a.launcher, err = core.New(dirs, Version,
 		func(p download.Progress) { wailsrt.EventsEmit(a.ctx, EventInstallProgress, p) },
+		func(p download.Progress) { wailsrt.EventsEmit(a.ctx, EventContentProgress, p) },
 		func(ev core.GameEvent) { wailsrt.EventsEmit(a.ctx, EventGame, ev) },
 	)
 	if err != nil {

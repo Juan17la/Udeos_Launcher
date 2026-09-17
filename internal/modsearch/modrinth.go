@@ -170,3 +170,146 @@ func normalizeVersionType(t string) string {
 		return t
 	}
 }
+
+// Raw shapes of Modrinth's version and project objects; only what the launcher reads.
+type modrinthVersion struct {
+	ID            string    `json:"id"`
+	ProjectID     string    `json:"project_id"`
+	Name          string    `json:"name"`
+	VersionNumber string    `json:"version_number"`
+	GameVersions  []string  `json:"game_versions"`
+	Loaders       []string  `json:"loaders"`
+	VersionType   string    `json:"version_type"`
+	DatePublished time.Time `json:"date_published"`
+	Files         []struct {
+		Hashes   map[string]string `json:"hashes"`
+		URL      string            `json:"url"`
+		Filename string            `json:"filename"`
+		Primary  bool              `json:"primary"`
+		Size     int64             `json:"size"`
+	} `json:"files"`
+	Dependencies []struct {
+		VersionID      string `json:"version_id"`
+		ProjectID      string `json:"project_id"`
+		DependencyType string `json:"dependency_type"`
+	} `json:"dependencies"`
+}
+
+type modrinthProject struct {
+	ID          string `json:"id"`
+	Slug        string `json:"slug"`
+	Title       string `json:"title"`
+	ProjectType string `json:"project_type"`
+}
+
+func (raw modrinthVersion) toVersion() Version {
+	v := Version{
+		ID: raw.ID, ProjectID: raw.ProjectID, Name: raw.Name, VersionNumber: raw.VersionNumber,
+		GameVersions: raw.GameVersions, Loaders: raw.Loaders, Type: raw.VersionType, DatePublished: raw.DatePublished,
+		Files: make([]File, 0, len(raw.Files)), Dependencies: make([]Dependency, 0, len(raw.Dependencies)),
+	}
+	for _, f := range raw.Files {
+		v.Files = append(v.Files, File{URL: f.URL, Filename: f.Filename, SHA1: f.Hashes["sha1"], SHA512: f.Hashes["sha512"], Size: f.Size, Primary: f.Primary})
+	}
+	for _, d := range raw.Dependencies {
+		v.Dependencies = append(v.Dependencies, Dependency{ProjectID: d.ProjectID, VersionID: d.VersionID, Type: d.DependencyType})
+	}
+	return v
+}
+
+// versionsURL builds GET /project/{id}/version with Modrinth's JSON-array
+// filters, e.g. ?game_versions=["1.20.1"]&loaders=["fabric"].
+func versionsURL(projectID, gameVersion, loader string) string {
+	u := fmt.Sprintf("%s/project/%s/version", ModrinthBaseURL, url.PathEscape(projectID))
+	params := url.Values{}
+	if gameVersion != "" {
+		params.Set("game_versions", fmt.Sprintf(`["%s"]`, gameVersion))
+	}
+	if loader != "" {
+		params.Set("loaders", fmt.Sprintf(`["%s"]`, strings.ToLower(loader)))
+	}
+	if len(params) > 0 {
+		u += "?" + params.Encode()
+	}
+	return u
+}
+
+// Versions lists the project's versions for the game version / loader pair.
+func (m *Modrinth) Versions(ctx context.Context, projectID, gameVersion, loader string) ([]Version, error) {
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+	var raw []modrinthVersion
+	if err := m.Client.GetJSON(ctx, versionsURL(projectID, gameVersion, loader), &raw); err != nil {
+		return nil, err
+	}
+	out := make([]Version, 0, len(raw))
+	for _, r := range raw {
+		out = append(out, r.toVersion())
+	}
+	return out, nil
+}
+
+// VersionByID fetches one version.
+func (m *Modrinth) VersionByID(ctx context.Context, id string) (Version, error) {
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+	var raw modrinthVersion
+	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/version/"+url.PathEscape(id), &raw); err != nil {
+		return Version{}, err
+	}
+	return raw.toVersion(), nil
+}
+
+// Projects fetches several projects in one request (GET /projects?ids=[...]).
+func (m *Modrinth) Projects(ctx context.Context, ids []string) ([]ProjectInfo, error) {
+	if len(ids) == 0 {
+		return []ProjectInfo{}, nil
+	}
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+	quoted := make([]string, len(ids))
+	for i, id := range ids {
+		quoted[i] = `"` + id + `"`
+	}
+	u := ModrinthBaseURL + "/projects?ids=" + url.QueryEscape("["+strings.Join(quoted, ",")+"]")
+	var raw []modrinthProject
+	if err := m.Client.GetJSON(ctx, u, &raw); err != nil {
+		return nil, err
+	}
+	out := make([]ProjectInfo, 0, len(raw))
+	for _, p := range raw {
+		out = append(out, ProjectInfo{ID: p.ID, Slug: p.Slug, Title: p.Title, ProjectType: ProjectType(p.ProjectType)})
+	}
+	return out, nil
+}
+
+type modrinthProjectDetail struct {
+	ID           string   `json:"id"`
+	Slug         string   `json:"slug"`
+	Title        string   `json:"title"`
+	Description  string   `json:"description"`
+	IconURL      string   `json:"icon_url"`
+	Downloads    int64    `json:"downloads"`
+	ProjectType  string   `json:"project_type"`
+	GameVersions []string `json:"game_versions"`
+	Loaders      []string `json:"loaders"`
+}
+
+func (raw modrinthProjectDetail) toProjectDetail() ProjectDetail {
+	return ProjectDetail{
+		ID: raw.ID, Slug: raw.Slug, Title: raw.Title, Description: raw.Description, IconURL: raw.IconURL,
+		Downloads: raw.Downloads, ProjectType: ProjectType(raw.ProjectType), GameVersions: raw.GameVersions, Loaders: raw.Loaders,
+	}
+}
+
+// ProjectDetail fetches the whole project (GET /project/{id}): its full
+// description and the game versions/loaders aggregated across every version.
+func (m *Modrinth) ProjectDetail(ctx context.Context, id string) (ProjectDetail, error) {
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+	var raw modrinthProjectDetail
+	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/project/"+url.PathEscape(id), &raw); err != nil {
+		return ProjectDetail{}, err
+	}
+	return raw.toProjectDetail(), nil
+}

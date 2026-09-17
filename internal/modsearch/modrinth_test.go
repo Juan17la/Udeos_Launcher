@@ -3,6 +3,7 @@ package modsearch
 import (
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestBuildFacets(t *testing.T) {
@@ -49,5 +50,55 @@ func TestNormalizeVersionType(t *testing.T) {
 		if got := normalizeVersionType(in); got != want {
 			t.Errorf("normalizeVersionType(%s) = %s, want %s", in, got, want)
 		}
+	}
+}
+
+func TestVersionsURL(t *testing.T) {
+	got := versionsURL("AANobbMI", "", "")
+	if got != ModrinthBaseURL+"/project/AANobbMI/version" {
+		t.Errorf("got %s", got)
+	}
+	got = versionsURL("AANobbMI", "1.20.1", "Fabric")
+	if !strings.Contains(got, "game_versions=%5B%221.20.1%22%5D") || !strings.Contains(got, "loaders=%5B%22fabric%22%5D") {
+		t.Errorf("got %s", got)
+	}
+}
+
+func TestPickVersionPrefersReleasesThenNewest(t *testing.T) {
+	old := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
+	newer := old.AddDate(0, 6, 0)
+	got, ok := PickVersion([]Version{
+		{ID: "beta-new", Type: "beta", DatePublished: newer.AddDate(1, 0, 0)},
+		{ID: "rel-old", Type: "release", DatePublished: old},
+		{ID: "rel-new", Type: "release", DatePublished: newer},
+	})
+	if !ok || got.ID != "rel-new" {
+		t.Errorf("got %q, want rel-new", got.ID)
+	}
+	if _, ok := PickVersion(nil); ok {
+		t.Error("empty list should not pick")
+	}
+}
+
+func TestPrimaryFile(t *testing.T) {
+	v := Version{Files: []File{{Filename: "sources.jar"}, {Filename: "mod.jar", Primary: true}}}
+	if f, ok := v.PrimaryFile(); !ok || f.Filename != "mod.jar" {
+		t.Errorf("got %+v", f)
+	}
+	if _, ok := (Version{}).PrimaryFile(); ok {
+		t.Error("no files should not pick")
+	}
+}
+
+func TestProjectDetailAggregatesAcrossVersions(t *testing.T) {
+	raw := modrinthProjectDetail{
+		ID: "AANobbMI", Slug: "sodium", Title: "Sodium",
+		Description: "A high-performance rendering engine replacement.",
+		IconURL:     "https://cdn/sodium.png", Downloads: 42_000_000, ProjectType: "mod",
+		GameVersions: []string{"1.20.1", "1.20.4", "1.21.1"}, Loaders: []string{"fabric", "neoforge", "quilt"},
+	}
+	got := raw.toProjectDetail()
+	if got.Title != "Sodium" || got.ProjectType != TypeMod || len(got.GameVersions) != 3 || len(got.Loaders) != 3 {
+		t.Errorf("got %+v", got)
 	}
 }

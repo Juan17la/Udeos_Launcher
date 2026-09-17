@@ -160,3 +160,22 @@ func readCache(path string, v any) error {
 	}
 	return json.Unmarshal(raw, v)
 }
+
+// Versions, VersionByID and Projects go straight to the provider: they are
+// asked once, when the player adds a project, and must be fresh.
+func (m *Manager) Versions(ctx context.Context, projectID, gameVersion, loader string) ([]Version, error) {
+	return m.Provider.Versions(ctx, projectID, gameVersion, loader)
+}
+
+func (m *Manager) VersionByID(ctx context.Context, id string) (Version, error) {
+	return m.Provider.VersionByID(ctx, id)
+}
+
+func (m *Manager) Projects(ctx context.Context, ids []string) ([]ProjectInfo, error) {
+	return m.Provider.Projects(ctx, ids)
+}
+
+// ProjectDetail goes straight to the provider: fetched once, at click time.
+func (m *Manager) ProjectDetail(ctx context.Context, id string) (ProjectDetail, error) {
+	return m.Provider.ProjectDetail(ctx, id)
+}

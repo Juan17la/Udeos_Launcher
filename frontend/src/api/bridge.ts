@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, FileEntry, GameEvent, Instance, Loader, LoaderOption, ProfileState, Profile, ProjectType, Progress, SearchGameVersion, SearchPage, VersionList, World } from './types'
+import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, Loader, LoaderOption, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -43,10 +43,20 @@ type Backend = {
   /** loader is '' for any, or fabric|forge|quilt|neoforge. Cached, so it keeps working offline. */
   SearchContent(projectType: ProjectType, text: string, gameVersion: string, loader: string, offset: number, limit: number): Promise<SearchPage>
   ListSearchGameVersions(): Promise<SearchGameVersion[]>
+  /** What adding the project would install (version that fits, required dependencies), or a rejection
+   *  (no build for the instance's version/loader, incompatible with an installed mod) as the error message. */
+  PlanContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentPlan>
+  /** Plans again and downloads; progress arrives on 'content:progress'. */
+  AddContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentEntry[]>
+  /** Modrinth project ids already installed in the instance. */
+  ListInstalledProjects(instanceId: string): Promise<string[]>
+  /** The whole project (full description, aggregated versions/loaders) for the Details page. */
+  GetProjectDetail(projectId: string): Promise<ProjectDetail>
 }
 
 type Events = {
   'install:progress': Progress
+  'content:progress': Progress
   'game:state': GameEvent
   'files:dropped': string[]
 }

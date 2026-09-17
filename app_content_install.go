@@ -1,0 +1,45 @@
+package main
+
+import (
+	"udeos/launcher/internal/modinstall"
+	"udeos/launcher/internal/modsearch"
+)
+
+// PlanContent says what adding a search result to an instance would do:
+// which version fits the instance's Minecraft version and loader, which
+// required dependencies come with it, or why it cannot be added (no build
+// for that version, wrong loader, incompatible with an installed mod).
+func (a *App) PlanContent(instanceID, projectID, projectType string) (modinstall.Plan, error) {
+	inst, err := a.launcher.Instances.Get(instanceID)
+	if err != nil {
+		return modinstall.Plan{}, err
+	}
+	return a.launcher.Content.Plan(a.ctx, inst, projectID, modsearch.ProjectType(projectType))
+}
+
+// AddContent plans again (cheap, and the plan must not be stale) and installs
+// the files. Progress arrives through the "content:progress" event.
+func (a *App) AddContent(instanceID, projectID, projectType string) ([]modinstall.Entry, error) {
+	inst, err := a.launcher.Instances.Get(instanceID)
+	if err != nil {
+		return nil, err
+	}
+	return a.launcher.Content.Add(a.ctx, inst, projectID, modsearch.ProjectType(projectType))
+}
+
+// ListInstalledProjects returns the provider project ids already in the
+// instance, so the search page can mark them as added.
+func (a *App) ListInstalledProjects(instanceID string) ([]string, error) {
+	inst, err := a.launcher.Instances.Get(instanceID)
+	if err != nil {
+		return nil, err
+	}
+	return a.launcher.Content.InstalledProjects(inst)
+}
+
+// GetProjectDetail fetches the whole project (full description, and the
+// Minecraft versions/loaders aggregated across every version) for the
+// Details page and the Add-to-instance picker's compatibility check.
+func (a *App) GetProjectDetail(projectID string) (modsearch.ProjectDetail, error) {
+	return a.launcher.Search.ProjectDetail(a.ctx, projectID)
+}

@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { FileEntry, GameEvent, Instance, Loader, Profile, ProjectType, Progress, SearchGameVersion, SearchResult, World } from './types'
+import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, Loader, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, World } from './types'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -16,6 +16,7 @@ export function createMock() {
     { id: 'i1', name: 'Skyline Adventures', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'grass', createdAt: new Date().toISOString(), lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), playTimeSec: 61200, counts: { mods: 0, resourcePacks: 1, worlds: 2, screenshots: 3 }, installed: true, running: false },
     { id: 'i2', name: 'New World', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'crafting_table', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
     { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'furnace', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
+    { id: 'i4', name: 'Fabric Fun', version: '1.20.1', loader: 'Fabric', loaderVersion: '0.16.9', loaderLabel: 'Fabric 0.16.9', icon: 'diamond', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
   ]
   const loaderOptions: Record<string, Array<[string, string]>> = {
     Fabric: [['24w33a', '0.16.9'], ['1.21.1', '0.16.9'], ['1.20.4', '0.16.9'], ['1.19.2', '0.16.9']],
@@ -43,8 +44,10 @@ export function createMock() {
   const searchResults: Record<ProjectType, SearchResult[]> = {
     mod: [
       { id: 'sodium', slug: 'sodium', title: 'Sodium', author: 'CaffeineMC', description: 'A modern rendering engine that boosts FPS.', iconUrl: '', downloads: 42_000_000, projectType: 'mod', loaders: ['fabric', 'quilt'] },
+      { id: 'iris', slug: 'iris', title: 'Iris Shaders', author: 'IrisShaders', description: 'Shader support for Fabric; needs Sodium and Fabric API.', iconUrl: '', downloads: 20_000_000, projectType: 'mod', loaders: ['fabric', 'quilt'] },
       { id: 'jei', slug: 'jei', title: 'Just Enough Items', author: 'mezz', description: 'View items and recipes.', iconUrl: '', downloads: 30_000_000, projectType: 'mod', loaders: ['forge', 'fabric'] },
       { id: 'create', slug: 'create', title: 'Create', author: 'simibubi', description: 'Building tools and aesthetic technology.', iconUrl: '', downloads: 18_000_000, projectType: 'mod', loaders: ['forge', 'neoforge'] },
+      { id: 'optifine', slug: 'optifine', title: 'OptiFine (mock)', author: 'sp614x', description: 'Incompatible with Sodium, for testing the refusal.', iconUrl: '', downloads: 1_000, projectType: 'mod', loaders: ['fabric', 'forge'] },
     ],
     resourcepack: [
       { id: 'faithful', slug: 'faithful-32x', title: 'Faithful 32x', author: 'Vattic', description: 'Higher-resolution vanilla-style textures.', iconUrl: '', downloads: 9_000_000, projectType: 'resourcepack', loaders: [] },
@@ -63,10 +66,97 @@ export function createMock() {
   // kept off SearchResult itself since the real API filters by version
   // server-side and the UI never displays this.
   const mockVersionsById: Record<string, string[]> = {
-    sodium: ['1.21.1', '1.20.4'], jei: ['1.20.4', '1.19.2'], create: ['1.20.4', '1.19.2', '1.12.2'],
+    sodium: ['1.21.1', '1.20.4', '1.20.1'], iris: ['1.21.1', '1.20.4', '1.20.1'], jei: ['1.20.4', '1.20.1', '1.19.2'], create: ['1.20.4', '1.20.1', '1.19.2', '1.12.2'], optifine: ['1.20.1'],
     faithful: ['1.21.1', '1.20.4', '1.19.2'], dandelion: ['1.20.4'],
     bsl: ['1.21.1', '1.20.4'], complementary: ['1.20.4', '1.19.2'],
     allthemods: ['1.20.4'], vaultsurvival: ['1.18.2'],
+  }
+
+  // Dev fixture for the add-to-instance flow: what each project "publishes" and
+  // what it depends on. fabric-api is not searchable, only pulled in as a dependency.
+  const titles: Record<string, string> = { sodium: 'Sodium', iris: 'Iris Shaders', jei: 'Just Enough Items', create: 'Create', optifine: 'OptiFine (mock)', 'fabric-api': 'Fabric API', faithful: 'Faithful 32x', dandelion: 'Dandelion X', bsl: 'BSL Shaders', complementary: 'Complementary Reimagined' }
+  const descriptions: Record<string, string> = {
+    sodium: 'Sodium is a free and open-source rendering engine for Minecraft that dramatically improves frame rates while fixing many graphical issues. It has no downsides and is compatible with most existing mods.',
+    iris: 'Iris brings modern shader support to the Fabric mod loader. Built to be compatible with existing OptiFine shader packs, Iris is blazingly fast and packed with features. Requires Sodium and Fabric API.',
+    jei: 'Just Enough Items (JEI) is an item and recipe viewer built from the ground up for stability and performance. See what items can be crafted, and what recipes use an item, right from your inventory.',
+    create: 'Create is a mod offering a variety of tools and blocks for building Create-ive contraptions, from small builds to entire factories all completely functional.',
+    optifine: 'A mock entry used to exercise the incompatible-dependency path in the dev fixtures; not a real download.',
+  }
+  const deps: Record<string, ProjectVersion['dependencies']> = {
+    iris: [{ projectId: 'sodium', versionId: '', type: 'required' }, { projectId: 'fabric-api', versionId: '', type: 'required' }],
+    sodium: [{ projectId: 'optifine', versionId: '', type: 'incompatible' }],
+    optifine: [{ projectId: 'sodium', versionId: '', type: 'incompatible' }],
+    jei: [{ projectId: 'fabric-api', versionId: '', type: 'optional' }],
+  }
+  const loadersOf = (id: string) => {
+    const all = [...searchResults.mod, ...searchResults.resourcepack, ...searchResults.shader, ...searchResults.modpack]
+    return all.find((r) => r.id === id)?.loaders ?? (id === 'fabric-api' ? ['fabric', 'quilt'] : [])
+  }
+  const versionsOf = (id: string): ProjectVersion[] => (mockVersionsById[id] ?? ['1.21.1', '1.20.4', '1.20.1', '1.19.2']).map((mc) => ({
+    id: `${id}@${mc}`, projectId: id, name: `${titles[id] ?? id} for ${mc}`, versionNumber: `1.0+${mc}`, gameVersions: [mc], loaders: loadersOf(id), type: 'release' as const,
+    datePublished: new Date().toISOString(), files: [{ url: `https://cdn.mock/${id}-${mc}.jar`, filename: `${id}-${mc}${id === 'faithful' || id === 'dandelion' || id === 'bsl' || id === 'complementary' ? '.zip' : '.jar'}`, sha1: '', sha512: '', size: 1_000_000, primary: true }], dependencies: deps[id] ?? [],
+  }))
+  const contentTypeOf = (id: string): ContentType => searchResults.resourcepack.some((r) => r.id === id) ? 'resourcepack' : searchResults.shader.some((r) => r.id === id) ? 'shader' : 'mod'
+  const projectDetail = (id: string): ProjectDetail => {
+    const all = [...searchResults.mod, ...searchResults.resourcepack, ...searchResults.shader, ...searchResults.modpack]
+    const hit = all.find((r) => r.id === id)
+    const type = hit?.projectType ?? contentTypeOf(id)
+    const versions = versionsOf(id)
+    const gameVersions = [...new Set(versions.flatMap((v) => v.gameVersions))]
+    const loaders = [...new Set(versions.flatMap((v) => v.loaders))]
+    return {
+      id, slug: hit?.slug ?? id, title: titles[id] ?? hit?.title ?? id,
+      description: descriptions[id] ?? hit?.description ?? '', iconUrl: hit?.iconUrl ?? '',
+      downloads: hit?.downloads ?? 0, projectType: type, gameVersions, loaders,
+    }
+  }
+  const installed: Record<string, ContentEntry[]> = {}
+  const planContent = (instanceId: string, projectId: string, projectType: ProjectType): ContentPlan => {
+    const inst = instances.find((x) => x.id === instanceId)
+    if (!inst) throw new Error('instance not found')
+    if (projectType === 'modpack') throw new Error('cannot add a modpack to an instance')
+    const title = titles[projectId] ?? projectId
+    const have = installed[instanceId] ?? []
+    const plan: ContentPlan = { instance: instanceId, projectId, title, type: projectType, items: [], alreadyInstalled: have.some((e) => e.projectId === projectId), warnings: [] }
+    if (plan.alreadyInstalled) return plan
+    if (projectType === 'mod' && inst.loader === 'Vanilla') throw new Error('this instance has no mod loader: create a Fabric or Forge instance to use mods')
+    const ldr = projectType === 'mod' ? inst.loader.toLowerCase() : ''
+    const suffix = ldr ? ` with ${inst.loader}` : ''
+    const pick = (id: string) => versionsOf(id).find((v) => v.gameVersions.includes(inst.version) && (!ldr || v.loaders.includes(ldr)))
+    const root = pick(projectId)
+    if (!root) throw new Error(`${title} has no build for Minecraft ${inst.version}${suffix}`)
+    plan.items.push({ version: root, title, type: projectType, reason: '', requiredBy: '' })
+    const queue = [...root.dependencies.map((d) => ({ d, by: projectId }))]
+    while (queue.length) {
+      const { d, by } = queue.shift()!
+      if (d.type === 'incompatible' && have.some((e) => e.projectId === d.projectId)) throw new Error(`${titles[by] ?? by} is incompatible with ${titles[d.projectId] ?? d.projectId}, which is installed in this instance`)
+      if (d.type === 'optional' && !have.some((e) => e.projectId === d.projectId)) plan.warnings.push(`${title} works with ${titles[d.projectId] ?? d.projectId} (optional, not installed)`)
+      if (d.type !== 'required' || plan.items.some((i) => i.version.projectId === d.projectId) || have.some((e) => e.projectId === d.projectId)) continue
+      const v = pick(d.projectId)
+      if (!v) throw new Error(`${title} needs ${titles[d.projectId] ?? d.projectId}, which has no build for Minecraft ${inst.version}${suffix}`)
+      plan.items.push({ version: v, title: titles[d.projectId] ?? d.projectId, type: contentTypeOf(d.projectId), reason: titles[by] ?? by, requiredBy: by })
+      queue.push(...v.dependencies.map((x) => ({ d: x, by: d.projectId })))
+    }
+    for (const e of have) for (const x of e.incompatible ?? []) if (plan.items.some((i) => i.version.projectId === x)) throw new Error(`${titles[x] ?? x} is incompatible with ${e.title}, which is installed in this instance`)
+    return plan
+  }
+  const applyContent = async (instanceId: string, plan: ContentPlan): Promise<ContentEntry[]> => {
+    const out: ContentEntry[] = []
+    for (let i = 0; i < plan.items.length; i++) {
+      const it: ContentPlanItem = plan.items[i]
+      const f = it.version.files[0]
+      emit('content:progress', { phase: 'content', done: i, total: plan.items.length, bytes: i * f.size, totalBytes: plan.items.length * f.size, current: f.filename } satisfies Progress)
+      await sleep(500)
+      const entry: FileEntry = { name: f.filename, sizeBytes: f.size, modTime: new Date().toISOString(), isDir: false }
+      if (it.type === 'mod') (mods[instanceId] ??= []).unshift(entry)
+      else if (it.type === 'shader') (shaders[instanceId] ??= []).unshift(entry)
+      out.push({ projectId: it.version.projectId, versionId: it.version.id, title: it.title, versionNumber: it.version.versionNumber, type: it.type, file: f.filename, sha1: '', incompatible: it.version.dependencies.filter((d) => d.type === 'incompatible').map((d) => d.projectId), requiredBy: it.requiredBy })
+    }
+    emit('content:progress', { phase: 'content', done: plan.items.length, total: plan.items.length, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
+    ;(installed[instanceId] ??= []).push(...out)
+    const inst = instances.find((x) => x.id === instanceId)
+    if (inst) inst.counts.mods = (mods[instanceId] ?? []).length
+    return out
   }
 
   const backend = {
@@ -124,7 +214,7 @@ export function createMock() {
       const e = fileOf(path); (mods[id] ??= []).unshift(e); return e
     },
     async PickMod(id: string) { await sleep(300); return backend.AddMod(id, '/home/player/sodium-fabric-0.5.8.jar') },
-    async RemoveMod(id: string, name: string) { mods[id] = (mods[id] ?? []).filter((m) => m.name !== name) },
+    async RemoveMod(id: string, name: string) { mods[id] = (mods[id] ?? []).filter((m) => m.name !== name); installed[id] = (installed[id] ?? []).filter((e) => e.file !== name) },
     async ListShaders(id: string) { return (shaders[id] ?? []).map((s) => ({ ...s })) },
     async AddShader(id: string, path: string) { const e = fileOf(path); (shaders[id] ??= []).unshift(e); return e },
     async PickShader(id: string) { await sleep(300); return backend.AddShader(id, '/home/player/BSL_v8.2.zip') },
@@ -142,6 +232,10 @@ export function createMock() {
       return { results: all.slice(offset, offset + limit), total: all.length, offset }
     },
     async ListSearchGameVersions() { return gameVersions.map((v) => ({ ...v })) },
+    async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType) },
+    async AddContent(instanceId: string, projectId: string, projectType: ProjectType) { const plan = planContent(instanceId, projectId, projectType); return plan.alreadyInstalled ? [] : applyContent(instanceId, plan) },
+    async ListInstalledProjects(instanceId: string) { return (installed[instanceId] ?? []).map((e) => e.projectId) },
+    async GetProjectDetail(projectId: string) { await sleep(300); return projectDetail(projectId) },
   }
 
   async function fakeInstall(loader?: Loader) {

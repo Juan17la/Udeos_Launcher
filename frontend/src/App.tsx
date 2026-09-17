@@ -8,6 +8,7 @@ import Dashboard from './screens/Dashboard'
 import CreateInstance from './screens/CreateInstance'
 import InstancePage from './screens/InstancePage'
 import Search from './screens/Search'
+import ProjectDetail from './screens/ProjectDetail'
 
 function Shell() {
   const { ready, screen } = useApp()
@@ -19,7 +20,8 @@ function Shell() {
       {screen.name === 'dashboard' && <Dashboard />}
       {screen.name === 'create' && <CreateInstance />}
       {screen.name === 'instance' && <InstancePage id={screen.id} />}
-      {screen.name === 'search' && <Search />}
+      {screen.name === 'search' && <Search instanceId={screen.instanceId} type={screen.type} />}
+      {screen.name === 'detail' && <ProjectDetail result={screen.result} />}
       <ProgressOverlay />
       <PrivacyDialog />
       <LanguageDialog />
