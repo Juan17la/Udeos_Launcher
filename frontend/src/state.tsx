@@ -95,10 +95,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await refreshInstances()
         go({ name: 'dashboard' })
       }
-      // Dev only (vite in a browser): ?screen=create | instance:<id> jumps straight to a screen.
+      // Dev only (vite in a browser): ?screen=login | create | search | instance:<id> jumps straight to a screen.
       if (!inWails) {
         const want = new URLSearchParams(location.search).get('screen')
-        if (want) {
+        if (want === 'login') {
+          setProfile(null); go({ name: 'login' })
+        } else if (want) {
           setProfile(st.profile); await refreshInstances()
           const [name, id] = want.split(':')
           go(name === 'instance' ? { name: 'instance', id } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' } : { name: 'dashboard' })

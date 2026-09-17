@@ -1,11 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
-import '@fontsource/jetbrains-mono/500.css'
-import '@fontsource/jetbrains-mono/700.css'
-import '@fontsource/jetbrains-mono/800.css'
-import '@fontsource/pixelify-sans/400.css'
-import '@fontsource/pixelify-sans/600.css'
+import '@fontsource/pt-mono/400.css' // the design system's one typeface (single weight; bold is synthesised)
 import './theme/tokens.css'
 
 // Dev only: ?shot keeps the window 'load' event pending for a moment so
