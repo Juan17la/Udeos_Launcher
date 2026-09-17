@@ -3,8 +3,8 @@ import type { Dict } from './en'
 const es: Dict = {
   app: { name: 'Udeos Launcher' },
   nav: {
-    dashboard: 'Inicio', search: 'Buscar', skin: 'Skin', newInstance: 'Nueva instancia',
-    comingSoon: 'Próximamente', privacy: 'Privacidad y términos',
+    dashboard: 'Instancias', search: 'Complementos', skin: 'Skin', newInstance: 'Nueva instancia',
+    comingSoon: 'Próximamente', privacy: 'Privacidad y términos', theme: 'Tema',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
   common: { cancel: 'Cancelar', done: 'Listo', gotIt: 'Entendido', back: 'Volver', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', save: 'Guardar', ok: 'OK', or: 'o', running: 'Jugando…' },

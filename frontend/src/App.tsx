@@ -1,7 +1,6 @@
 import { AppProvider, useApp } from './state'
 import Nav from './components/Nav'
 import PrivacyDialog from './components/PrivacyDialog'
-import LanguageDialog from './components/LanguageDialog'
 import ProgressOverlay from './components/ProgressOverlay'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
@@ -24,7 +23,6 @@ function Shell() {
       {screen.name === 'detail' && <ProjectDetail result={screen.result} />}
       <ProgressOverlay />
       <PrivacyDialog />
-      <LanguageDialog />
     </>
   )
 }
