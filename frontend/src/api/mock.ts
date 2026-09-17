@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, Loader, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, World } from './types'
+import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, Loader, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, SortBy, World } from './types'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -223,12 +223,13 @@ export function createMock() {
     async PickResourcePack() { return { name: 'Picked Pack.zip', sizeBytes: 1000, modTime: new Date().toISOString(), isDir: false } },
     async RemoveResourcePack() {},
     async OpenInstanceFolder() {},
-    async SearchContent(projectType: ProjectType, text: string, gameVersion: string, ldr: string, offset: number, limit: number) {
+    async SearchContent(projectType: ProjectType, text: string, gameVersion: string, ldr: string, sortBy: SortBy, offset: number, limit: number) {
       await sleep(200)
       const all = searchResults[projectType].filter((r) =>
         (!text || r.title.toLowerCase().includes(text.toLowerCase())) &&
         (!gameVersion || (mockVersionsById[r.id] ?? []).includes(gameVersion)) &&
         (!ldr || r.loaders.includes(ldr.toLowerCase())))
+      if (sortBy === 'downloads') all.sort((a, b) => b.downloads - a.downloads)
       return { results: all.slice(offset, offset + limit), total: all.length, offset }
     },
     async ListSearchGameVersions() { return gameVersions.map((v) => ({ ...v })) },

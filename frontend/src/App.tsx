@@ -2,6 +2,7 @@ import { AppProvider, useApp } from './state'
 import Nav from './components/Nav'
 import PrivacyDialog from './components/PrivacyDialog'
 import ProgressOverlay from './components/ProgressOverlay'
+import InstallToasts from './components/InstallToasts'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
 import CreateInstance from './screens/CreateInstance'
@@ -20,8 +21,9 @@ function Shell() {
       {screen.name === 'create' && <CreateInstance />}
       {screen.name === 'instance' && <InstancePage id={screen.id} />}
       {screen.name === 'search' && <Search instanceId={screen.instanceId} type={screen.type} />}
-      {screen.name === 'detail' && <ProjectDetail result={screen.result} />}
+      {screen.name === 'detail' && <ProjectDetail result={screen.result} instanceId={screen.instanceId} />}
       <ProgressOverlay />
+      <InstallToasts />
       <PrivacyDialog />
     </>
   )
