@@ -1,37 +1,34 @@
-import { Plus } from 'lucide-react'
 import PixelIcon from '../ui/PixelIcon'
+import { Plus } from '../ui/icons'
+import Button from '../ui/atoms/Button'
+import SegmentedControl from '../ui/molecules/SegmentedControl'
 import { useApp } from '../state'
 import AccountMenu from './AccountMenu'
 
+/** Top bar on the canvas: brand, the page links as a slider selector (the
+ *  green thumb sits under the current page), account menu and the New
+ *  Instance action. */
 export default function Nav() {
   const { t, theme, screen, go } = useApp()
   const dark = theme === 'dark'
-  const current = (name: string) => (screen.name === name ? 'page' : undefined)
-  const navLink = '[font:inherit] cursor-pointer whitespace-nowrap bg-transparent border-0 p-0 text-[15px] text-inherit hover:text-accent aria-[current="page"]:text-accent disabled:opacity-45 disabled:cursor-not-allowed'
+  // Which pill is lit: Addons also covers a project's Details page; create/instance light none.
+  const current = screen.name === 'detail' ? 'search' : screen.name === 'dashboard' || screen.name === 'search' ? screen.name : ''
   return (
-    <nav className="flex items-center flex-wrap py-[13.2px] px-[17.6px] bg-bg border-b border-divider">
-      <div className="flex items-center gap-2.5 mx-4 font-heading font-extrabold text-xl mr-auto whitespace-nowrap">
+    <nav className="flex items-center flex-wrap gap-4 py-4 px-6">
+      <div className="flex items-center gap-3 font-bold text-xl whitespace-nowrap mr-auto">
         <PixelIcon name={dark ? 'enderman' : 'grass'} size={26} />
         {t.app.name}
       </div>
 
-      <div className="flex items-center justify-center mx-16 flex-1 gap-8 bg-surface rounded-full py-[8.8px] px-7">
-        <button type="button" className={navLink} aria-current={current('dashboard')} onClick={() => go({ name: 'dashboard' })}>{t.nav.dashboard}</button>
-        
-        <button type="button" className={navLink} aria-current={current('search')} onClick={() => go({ name: 'search' })}>{t.nav.search}</button>
-
-        <button type="button" className={navLink} disabled title={t.nav.comingSoon}>{t.nav.skin}</button>
+      <div className="flex items-center justify-center flex-1">
+        <SegmentedControl aria-label={t.app.name}
+          options={[{ value: 'dashboard', label: t.nav.dashboard }, { value: 'search', label: t.nav.search }, { value: 'skin', label: t.nav.skin, disabled: true }]}
+          value={current} onChange={(v) => go(v === 'search' ? { name: 'search' } : { name: 'dashboard' })} />
       </div>
 
-      <div className="flex items-center gap-2.5 mx-4 font-heading font-extrabold text-xl mr-auto whitespace-nowrap">
+      <div className="flex items-center gap-4 ml-auto">
         <AccountMenu />
-        <button
-          type="button"
-          className="inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-[15px] leading-[1.2] rounded-full border border-transparent px-4 py-2 bg-accent-2 text-bg disabled:opacity-45 disabled:cursor-not-allowed"
-          onClick={() => go({ name: 'create' })}
-        >
-          <Plus size={16} /> {t.nav.newInstance}
-        </button>
+        <Button variant="primary" onClick={() => go({ name: 'create' })}><Plus size={16} /> {t.nav.newInstance}</Button>
       </div>
     </nav>
   )
