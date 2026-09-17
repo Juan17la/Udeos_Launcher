@@ -1,4 +1,5 @@
-import Dialog from './Dialog'
+import Dialog from '../ui/molecules/Dialog'
+import Button from '../ui/atoms/Button'
 import { useApp } from '../state'
 
 export default function PrivacyDialog() {
@@ -6,12 +7,7 @@ export default function PrivacyDialog() {
   if (!privacyOpen) return null
   const close = () => setPrivacyOpen(false)
   return (
-    <Dialog title={t.privacy.title} onClose={close}
-      actions={<button
-        type="button"
-        className="inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none"
-        onClick={close}
-      >{t.common.gotIt}</button>}>
+    <Dialog title={t.privacy.title} onClose={close} actions={<Button variant="primary" onClick={close}>{t.common.gotIt}</Button>}>
       {t.privacy.body}
     </Dialog>
   )
