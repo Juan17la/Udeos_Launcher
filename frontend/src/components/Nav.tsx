@@ -1,32 +1,27 @@
+import { Plus } from 'lucide-react'
 import PixelIcon from '../ui/PixelIcon'
-import { Globe, Moon, Plus, Shield, Sun } from '../ui/icons'
 import { useApp } from '../state'
+import AccountMenu from './AccountMenu'
 
 export default function Nav() {
-  const { t, theme, setTheme, language, screen, go, nickname, setPrivacyOpen, setLanguageOpen } = useApp()
+  const { t, theme, screen, go } = useApp()
   const dark = theme === 'dark'
   const current = (name: string) => (screen.name === name ? 'page' : undefined)
+  const navLink = '[font:inherit] cursor-pointer whitespace-nowrap bg-transparent border-0 p-0 text-[15px] text-inherit hover:text-accent aria-[current="page"]:text-accent disabled:opacity-45 disabled:cursor-not-allowed'
   return (
-    <nav className="nav">
-      <div className="nav-brand">
+    <nav className="flex items-center gap-2 flex-wrap py-[13.2px] px-[17.6px] bg-bg border-b border-divider">
+      <div className="flex items-center gap-[10px] font-heading font-extrabold text-xl mr-auto whitespace-nowrap">
         <PixelIcon name={dark ? 'enderman' : 'grass'} size={26} />
         {t.app.name}
       </div>
-      <button type="button" className="nav-link" aria-current={current('dashboard')} onClick={() => go({ name: 'dashboard' })}>{t.nav.dashboard}</button>
-      <button type="button" className="nav-link" aria-current={current('search')} onClick={() => go({ name: 'search' })}>{t.nav.search}</button>
-      <button type="button" className="nav-link" disabled title={t.nav.comingSoon}>{t.nav.skin}</button>
-      <button type="button" className="btn btn-icon btn-primary" title={dark ? t.nav.themeToLight : t.nav.themeToDark} onClick={() => setTheme(dark ? 'light' : 'dark')}>
-        {dark ? <Sun /> : <Moon />}
-      </button>
-      <button type="button" className="btn btn-primary" style={{ fontSize: 15 }} onClick={() => setLanguageOpen(true)}>
-        <Globe /> {language.toUpperCase()}
-      </button>
-      <button type="button" className="btn btn-icon btn-primary" title={t.nav.privacy} onClick={() => setPrivacyOpen(true)}>
-        <Shield />
-      </button>
-      <div className="avatar" title={nickname}>{(nickname[0] || '?').toUpperCase()}</div>
-      <button type="button" className="btn btn-primary" style={{ fontSize: 15 }} onClick={() => go({ name: 'create' })}>
-        <Plus /> {t.nav.newInstance}
+      <div className="flex items-center gap-8 bg-surface rounded-full py-[8.8px] px-[26.4px]">
+        <button type="button" className={navLink} aria-current={current('dashboard')} onClick={() => go({ name: 'dashboard' })}>{t.nav.dashboard}</button>
+        <button type="button" className={navLink} aria-current={current('search')} onClick={() => go({ name: 'search' })}>{t.nav.search}</button>
+        <button type="button" className={navLink} disabled title={t.nav.comingSoon}>{t.nav.skin}</button>
+      </div>
+      <AccountMenu />
+      <button type="button" className="btn btn-accent2" style={{ fontSize: 15 }} onClick={() => go({ name: 'create' })}>
+        <Plus size={16} /> {t.nav.newInstance}
       </button>
     </nav>
   )

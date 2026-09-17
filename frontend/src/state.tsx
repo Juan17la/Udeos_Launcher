@@ -36,7 +36,6 @@ type AppState = {
   nickname: string
   instances: Instance[]; refreshInstances: () => Promise<void>
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
-  languageOpen: boolean; setLanguageOpen: (v: boolean) => void
 }
 
 /** Changes on every install/download progress tick — kept in its own context
@@ -56,7 +55,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [instances, setInstances] = useState<Instance[]>([])
   const [launch, setLaunch] = useState<LaunchState>({ status: 'idle' })
   const [privacyOpen, setPrivacyOpen] = useState(false)
-  const [languageOpen, setLanguageOpen] = useState(false)
 
   const refreshInstances = useCallback(async () => {
     setInstances(await api.ListInstances())
@@ -138,8 +136,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
     screen, go, profile, saveProfile, nickname: profile?.nickname ?? '',
     instances, refreshInstances,
-    privacyOpen, setPrivacyOpen, languageOpen, setLanguageOpen,
-  }), [ready, theme, language, screen, profile, instances, privacyOpen, languageOpen, refreshInstances, saveProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+    privacyOpen, setPrivacyOpen,
+  }), [ready, theme, language, screen, profile, instances, privacyOpen, refreshInstances, saveProfile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const launchValue = useMemo<LaunchContextValue>(() => ({ launch, play, dismissLaunch }), [launch, play, dismissLaunch])
 
