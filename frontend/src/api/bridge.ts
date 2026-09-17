@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, Loader, LoaderOption, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, VersionList, World } from './types'
+import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, Loader, LoaderOption, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, SortBy, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -40,8 +40,9 @@ type Backend = {
   RemoveResourcePack(id: string, name: string): Promise<void>
   /** sub: '' for .minecraft itself, or saves | screenshots | resourcepacks | mods | shaderpacks | logs */
   OpenInstanceFolder(id: string, sub: string): Promise<void>
-  /** loader is '' for any, or fabric|forge|quilt|neoforge. Cached, so it keeps working offline. */
-  SearchContent(projectType: ProjectType, text: string, gameVersion: string, loader: string, offset: number, limit: number): Promise<SearchPage>
+  /** loader is '' for any, or fabric|forge|quilt|neoforge; sortBy 'relevance' is the default order.
+   *  Cached, so it keeps working offline. */
+  SearchContent(projectType: ProjectType, text: string, gameVersion: string, loader: string, sortBy: SortBy, offset: number, limit: number): Promise<SearchPage>
   ListSearchGameVersions(): Promise<SearchGameVersion[]>
   /** What adding the project would install (version that fits, required dependencies), or a rejection
    *  (no build for the instance's version/loader, incompatible with an installed mod) as the error message. */

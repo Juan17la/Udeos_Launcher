@@ -2,37 +2,51 @@
 
 ## What the player sees
 
-Browsing stays a plain, unrestricted search: the version and loader filters
-narrow the catalog like any search box, they never lock to one instance.
-Every mod, resource pack and shader card carries two big buttons, **Add**
-and **Details**; modpack cards only get **Details** (a modpack becomes an
+The rule for this page is **two clicks at most to install**. Every mod,
+resource pack and shader card carries two big buttons, **Add** and
+**Details**; modpack cards only get **Details** (a modpack becomes an
 instance, which is separate work — see the note at the end of this page).
 
-**Add** opens a picker listing every instance, compatible ones first, each
-tagged *Compatible* or with a short reason (*Vanilla — no mods*, *needs
-Fabric/Forge*, *no build for 1.20.1*) — worked out from the project's
-aggregate published versions (`GetProjectDetail`, see below), so nothing is
-fetched per card while scrolling the grid, only once when Add is actually
-clicked. Incompatible instances stay visible but cannot be selected. Picking
-one shows the **plan**: the version that will be downloaded, any dependency
-that comes with it (marked *required by …*), and notes about optional
-companions that are not installed — or, if it turns out it cannot go in
-after all, why. **Add** then downloads the files with a progress bar.
+There are two ways onto the page, and Add behaves differently on each:
+
+- **From the nav (Addons).** Browsing is unrestricted. **Add** opens a
+  picker listing only the instances the project can go into — worked out
+  from the project's aggregate published versions (`GetProjectDetail`, see
+  below), so nothing is fetched per card while scrolling the grid, only
+  once when Add is actually clicked. Clicking an instance installs
+  immediately and closes the picker: no plan review, no confirmation. If no
+  instance fits, the picker says which loader/versions would. If the player
+  has no instances at all, a small error dialog says so and offers **Create
+  instance**.
+- **From an instance's Add from Modrinth button** (on its Mods, Resource
+  Packs and Shaders tabs). The page is locked to that instance: the version
+  and (for mods) loader dropdowns are disabled and set to its values, the
+  Modpacks tab is gone (a Vanilla instance only gets Resource Packs), a
+  header names the instance with a **Back to …** link, and **Add** installs
+  straight away with no dialog at all. Projects already in the instance
+  (`ListInstalledProjects`) show a disabled **Added** button; one being
+  installed shows **Adding…**. **Details** and its Back button keep the lock.
+
+Either way the install itself is reported by a **toast** in the bottom-right
+corner, not a modal: the percentage while downloading, a short *Added …*
+note that clears itself after a few seconds, or — when the backend refuses
+(no build for that version/loader, incompatible with an installed mod) —
+the reason in red, staying until dismissed. Installs are queued
+(`useContent` in `frontend/src/state.tsx`) and run one at a time because
+`content:progress` carries no job id; a queued toast reads *Waiting…*. The
+queue lives above every screen, so navigating away does not lose it.
 
 **Details** opens a full page for the project: its description, every
-Minecraft version and loader it has ever published a build for, and the same
-per-instance compatibility list, with its own **Add** button. The Mods,
-Resource Packs and Shaders tabs of an instance also have a **Browse
-Modrinth** button that opens Search with that instance's version/loader as a
-starting point (not a lock) and that instance preselected in the picker.
+Minecraft version and loader it has ever published a build for, and the
+per-instance compatibility list, with its own **Add** button that follows
+the same rules.
 
-The instance list shown to the picker is exact — a Vanilla instance is
-always refused for mods — but the *aggregate* compatibility hint (every
-version the project has ever published, not the one specific version that
-will actually be picked) can occasionally be optimistic: a project could
-support 1.20.1 on Fabric and 1.20.1 on Forge without one version covering
-both. `PlanContent` is what actually happens when Add is pressed, and it
-remains the one precise, authoritative check.
+The aggregate compatibility hint (every version the project has ever
+published, not the one specific version that will actually be picked) can
+occasionally be optimistic: a project could support 1.20.1 on Fabric and
+1.20.1 on Forge without one version covering both. `AddContent` plans first
+and remains the one precise, authoritative check — which is why a rejection
+can still surface as a toast after a one-click add.
 
 ## The checks
 
@@ -75,22 +89,25 @@ Remove buttons on the instance tabs drop the entry along with the file, and
 an entry whose file disappeared by hand is ignored.
 
 Progress goes out on the `content:progress` event (phase `content`) rather
-than `install:progress`, so the Play overlay and the add dialog never show
-each other's numbers.
+than `install:progress`, so the Play overlay and the install toasts never
+show each other's numbers.
 
 ## Bindings
 
 - `PlanContent(instanceId, projectId, projectType)` → `modinstall.Plan`
   (`items`, `alreadyInstalled`, `warnings`) or an error with the reason.
+  The UI no longer shows a plan step; the binding stays for the CLI and for
+  a future "what would this pull in" view.
 - `AddContent(instanceId, projectId, projectType)` → the `Entry` list that
   was installed; plans again first so a stale plan cannot be applied.
-- `ListInstalledProjects(instanceId)` → project ids installed in an instance.
+- `ListInstalledProjects(instanceId)` → project ids installed in an instance;
+  the instance-locked Addons page marks those cards **Added**.
 - `GetProjectDetail(projectId)` → `modsearch.ProjectDetail`: the project's
   full description and its `game_versions`/`loaders` aggregated across every
   version, straight from Modrinth's `GET /project/{id}` (one call — no need
   to fetch every version to answer "what does this run on"). Used by the
-  Details page and by the Add picker's `frontend/src/lib/compat.ts` to sort
-  and label instances.
+  Details page and by the Add picker's `frontend/src/lib/compat.ts` to keep
+  only the instances that can take the project.
 
 All four live in `app_content_install.go` and go through
 `Launcher.Content`, a `modinstall.Manager` that shares the search provider.
