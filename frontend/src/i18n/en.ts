@@ -1,8 +1,8 @@
 const en = {
   app: { name: 'Udeos Launcher' },
   nav: {
-    dashboard: 'Dashboard', search: 'Search', skin: 'Skin', newInstance: 'New Instance',
-    comingSoon: 'Coming soon', privacy: 'Privacy & Terms',
+    dashboard: 'Instances', search: 'Addons', skin: 'Skin', newInstance: 'New Instance',
+    comingSoon: 'Coming soon', privacy: 'Privacy & Terms', theme: 'Theme',
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
   },
   common: { cancel: 'Cancel', done: 'Done', gotIt: 'Got it', back: 'Back', close: 'Close', play: 'Play', delete: 'Delete', save: 'Save', ok: 'OK', or: 'or', running: 'Running…' },
