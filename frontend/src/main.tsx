@@ -7,7 +7,6 @@ import '@fontsource/jetbrains-mono/800.css'
 import '@fontsource/pixelify-sans/400.css'
 import '@fontsource/pixelify-sans/600.css'
 import './theme/tokens.css'
-import './theme/mc.css'
 
 // Dev only: ?shot keeps the window 'load' event pending for a moment so
 // headless screenshots capture the page after fonts and data settle.

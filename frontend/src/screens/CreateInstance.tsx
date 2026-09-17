@@ -9,6 +9,15 @@ import type { Loader, LoaderOption, VersionList } from '../api/types'
 
 const LOADERS: Loader[] = ['Vanilla', 'Forge', 'Fabric']
 
+const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
+const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
+const btnSecondary = 'bg-mc-btn border-mc-btn-border text-mc-btn-text shadow-[inset_0_-2px_0_var(--mc-btn-bottom)] hover:bg-mc-btn-hover active:bg-mc-btn-active active:shadow-none'
+const inputCls = 'w-full min-h-9 px-3.5 py-1.5 font-inherit text-sm text-text caret-accent bg-surface border border-divider rounded-full hover:border-accent-400 focus-visible:border-accent focus-visible:outline-0 focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_22%,transparent)]'
+const fieldLabel = 'block text-xs mb-1 text-[color-mix(in_srgb,var(--color-text)_70%,transparent)]'
+const segOpt = 'inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-[7px] text-[13px] cursor-pointer border-0 bg-transparent text-inherit font-inherit [&:not(:first-child)]:border-l [&:not(:first-child)]:border-divider disabled:opacity-45 disabled:cursor-not-allowed'
+const segOptActive = 'bg-accent text-bg'
+const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
+
 /** Loader support tables are fetched once per loader and kept for the life of the screen. */
 type LoaderTable = { status: 'loading' } | { status: 'error' } | { status: 'ready'; byVersion: Map<string, LoaderOption> }
 
@@ -77,29 +86,29 @@ export default function CreateInstance() {
   })()
 
   return (
-    <main className="page" style={{ display: 'flex', justifyContent: 'center' }}>
-      <div className="card elev-sm sheen static" style={{ width: 'min(520px, 100%)', padding: 30, gap: 18, alignSelf: 'flex-start' }}>
-        <h2 style={{ marginBottom: 2, fontSize: 32 }}>{t.create.title}</h2>
-        <p className="text-muted" style={{ margin: '0 0 6px', fontSize: 14 }}>{t.create.subtitle}</p>
+    <main className="flex-1 flex justify-center pt-9 px-11 pb-15">
+      <div className="flex flex-col gap-4.5 self-start rounded-lg bg-surface shadow-sheen w-[min(520px,100%)] p-7.5">
+        <h2 className="mb-0.5 text-[32px]">{t.create.title}</h2>
+        <p className={`${textMuted} mb-1.5 text-sm`}>{t.create.subtitle}</p>
 
-        <div className="field">
-          <label htmlFor="create-name">{t.create.name}</label>
-          <input id="create-name" className="input" type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} />
+        <div className="mb-3">
+          <label htmlFor="create-name" className={fieldLabel}>{t.create.name}</label>
+          <input id="create-name" className={inputCls} type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} />
         </div>
 
-        <div className="field">
-          <label id="create-loader-label">{t.create.loader}</label>
-          <div className="seg" role="radiogroup" aria-labelledby="create-loader-label">
+        <div className="mb-3">
+          <label id="create-loader-label" className={fieldLabel}>{t.create.loader}</label>
+          <div className="inline-flex overflow-hidden border border-divider rounded-full" role="radiogroup" aria-labelledby="create-loader-label">
             {LOADERS.map((l) => (
-              <button key={l} type="button" role="radio" className={`seg-opt ${l === loader ? 'is-active' : ''}`} aria-checked={l === loader} onClick={() => setLoader(l)}>{l}</button>
+              <button key={l} type="button" role="radio" className={`${segOpt} ${l === loader ? segOptActive : ''}`} aria-checked={l === loader} onClick={() => setLoader(l)}>{l}</button>
             ))}
           </div>
-          <p className="text-muted" style={{ margin: '8px 0 0', fontSize: 12, color: table?.status === 'error' ? 'var(--mc-danger)' : undefined }}>{loaderNote}</p>
+          <p className={`mt-2 text-xs ${table?.status === 'error' ? 'text-mc-danger' : textMuted}`}>{loaderNote}</p>
         </div>
 
-        <div className="field">
-          <label htmlFor="create-version">{t.create.version}</label>
-          <select id="create-version" className="input" value={version} onChange={(e) => setVersion(e.target.value)} disabled={!versions || (table?.status === 'loading')}>
+        <div className="mb-3">
+          <label htmlFor="create-version" className={fieldLabel}>{t.create.version}</label>
+          <select id="create-version" className={`${inputCls} appearance-auto`} value={version} onChange={(e) => setVersion(e.target.value)} disabled={!versions || (table?.status === 'loading')}>
             <option value="">{versions ? t.create.chooseVersion : versionsError ? t.create.versionsError : t.create.loadingVersions}</option>
             {options.map((v) => (
               <option key={v.id} value={v.id}>
@@ -107,24 +116,25 @@ export default function CreateInstance() {
               </option>
             ))}
           </select>
-          <label className="checkbox" style={{ marginTop: 8, fontSize: 12 }}>
-            <input type="checkbox" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
-            <span className="box"><Check size={10} /></span>
+          <label className="mt-2 text-xs inline-flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" className="peer absolute w-0 h-0 opacity-0 pointer-events-none" checked={showAll} onChange={(e) => setShowAll(e.target.checked)} />
+            <span className="w-4 h-4 flex-none rounded-[5px] border-[1.5px] border-divider inline-flex items-center justify-center text-bg peer-checked:border-accent peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-accent peer-focus-visible:outline-offset-2 [&>svg]:hidden peer-checked:[&>svg]:block">
+              <Check size={10} />
+            </span>
             {t.create.showSnapshots}
           </label>
         </div>
 
-        <div className="field">
-          <label>{t.create.icon}</label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))', gap: 8 }}>
+        <div className="mb-3">
+          <label className={fieldLabel}>{t.create.icon}</label>
+          <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}>
             {ICON_CHOICES.map(([key, label]) => {
               const active = icon === key
               return (
-                <button key={key} type="button" title={label} onClick={() => setIcon(key)} style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8, cursor: 'pointer',
-                  background: active ? 'var(--choice-bg)' : 'var(--color-bg)', color: active ? 'var(--choice-text)' : 'var(--color-text)',
-                  border: `1.5px solid ${active ? 'var(--color-accent)' : 'var(--color-divider)'}`, borderRadius: 'var(--radius-md)',
-                }}>
+                <button
+                  key={key} type="button" title={label} onClick={() => setIcon(key)}
+                  className={`flex items-center justify-center p-2 cursor-pointer rounded-md border-[1.5px] ${active ? 'bg-choice-bg text-choice-text border-accent' : 'bg-bg text-text border-divider'}`}
+                >
                   <PixelIcon name={key} size={32} />
                 </button>
               )
@@ -132,10 +142,10 @@ export default function CreateInstance() {
           </div>
         </div>
 
-        <p className="text-muted" style={{ margin: 0, fontSize: 13 }}>{error ?? t.create.required}</p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 4 }}>
-          <button type="button" className="btn btn-secondary" onClick={() => go({ name: 'dashboard' })}>{t.common.cancel}</button>
-          <button type="button" className="btn btn-primary" disabled={!canSubmit} onClick={submit}>{t.create.submit}</button>
+        <p className={`${textMuted} m-0 text-[13px]`}>{error ?? t.create.required}</p>
+        <div className="flex gap-2.5 justify-end mt-1">
+          <button type="button" className={`${btnBase} ${btnSecondary}`} onClick={() => go({ name: 'dashboard' })}>{t.common.cancel}</button>
+          <button type="button" className={`${btnBase} ${btnPrimary}`} disabled={!canSubmit} onClick={submit}>{t.create.submit}</button>
         </div>
       </div>
     </main>
