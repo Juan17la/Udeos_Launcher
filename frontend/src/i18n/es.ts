@@ -46,7 +46,7 @@ const es: Dict = {
     saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta', view: 'Ver',
     removeWorld: 'Eliminar mundo', confirmDeleteWorldTitle: '¿Eliminar este mundo?', confirmDeleteWorld: '"{name}" y todo lo construido en él se borrará de esta instancia. Guárdalo en tu equipo antes si quieres conservar una copia.',
     worldAdded: 'Mundo "{name}" añadido', fileAdded: '{name} añadido',
-    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', browseModrinth: 'Explorar Modrinth', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
+    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', browseModrinth: 'Añadir desde Modrinth', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
     empty: {
       mods: 'Aún no hay mods. Arrastra un archivo .jar aquí.', resourcepacks: 'Aún no hay paquetes de recursos. Arrastra un .zip aquí o usa Buscar.', shaders: 'Aún no hay shaders. Arrastra un shader pack aquí.',
       worlds: 'Aún no hay mundos. Juega la instancia para crear uno, o arrastra aquí una carpeta o .zip de un mundo.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',
@@ -61,6 +61,9 @@ const es: Dict = {
     previous: 'Anterior', next: 'Siguiente', pageOf: 'Página {page} de {total}',
     error: 'No se pudo conectar con Modrinth y no hay resultados guardados. Revisa tu conexión.',
     add: 'Añadir', details: 'Detalles', createInstance: 'Crear instancia',
+    added: 'Añadido', adding: 'Añadiendo…',
+    sort: { relevance: 'Relevancia', downloads: 'Más descargados', newest: 'Más nuevos', updated: 'Actualizados recientemente' },
+    forInstance: 'Añadiendo a {name}', backToInstance: 'Volver a {name}', lockedTo: 'Versión y cargador fijados a los de {name}.',
   },
   compat: {
     vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
@@ -71,12 +74,12 @@ const es: Dict = {
     noInstances: 'Todavía no tienes instancias.', add: 'Añadir a una instancia',
   },
   content: {
-    pickTitle: 'Añadir {title} a…', pickEmpty: 'Crea una instancia primero.',
+    pickTitle: 'Añadir {title} a…', pickHint: 'Elige una instancia: se instala al momento.',
     noCompatible: 'Ninguna instancia puede usar esto todavía. Crea una instancia {loaders} para {versions} para instalarlo.',
-    planTitle: 'Añadir {title} a {name}', planning: 'Comprobando versiones y dependencias…',
-    willInstall: 'Se descargará:', requiredBy: 'requerido por {name}', alreadyInstalled: '{title} ya está en {name}.',
-    add: 'Añadir', installing: 'Descargando…', done: '{n} archivo(s) añadidos a {name}.', doneOne: '{title} añadido a {name}.',
-    phases: { content: 'Descargando archivos' },
+    noInstancesTitle: 'Aún no hay instancias', noInstancesBody: 'Crea una instancia primero y luego añádele {title}.',
+    planning: 'Comprobando versiones…',
+    installingTo: 'Añadiendo {title} a {name}', queued: 'Esperando…', failed: 'No se pudo añadir {title} a {name}',
+    alreadyInstalled: '{title} ya está en {name}.', done: '{n} archivo(s) añadidos a {name}.', doneOne: '{title} añadido a {name}.',
   },
   launch: {
     preparing: 'Preparando {name}', starting: 'Iniciando el juego…',
