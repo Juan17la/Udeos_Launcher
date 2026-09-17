@@ -1,30 +1,43 @@
 # 6. Frontend and design system
 
-## From mockup to app
+## Design system
 
-The interactive mockup the UI was designed in (kept outside this repository) was built on a
-small design system ("Organic": rounded cards, pill buttons, two accent
-ramps) and then re-skinned for Minecraft: JetBrains Mono everywhere, two
-themes, bevelled "Minecraft button" surfaces and pixel-art block icons drawn
-with CSS. The real frontend keeps exactly those pieces:
+The UI follows the pastel Minecraft design system written down in
+[11. Design system](11-design-system.md): PT Mono everywhere, one 15px
+radius on every element, buttons wider than they are tall, 16px minimum
+spacing, headings straight on the canvas, neumorphic panels, glassmorphic
+overlays and loaders that always show a percentage, a three-colour tag
+system and 150ms transitions. That page is the styling source of truth;
+the interactive mockup the first version was ported from is history.
 
-- **Tokens** — colours, spacing, radii and shadows live as CSS variables.
-  The light theme is grass green with oak brown as second accent; the dark
-  theme is End-stone purple with prismarine teal. Switching theme only flips
-  an attribute on the document root; every component reads the variables.
-- **Component classes** — `.btn` (primary, secondary, danger, ghost, icon),
-  `.card`, `.tag`, `.seg` (segmented control used for tabs and the loader
-  choice), `.input`, `.radio`/`.checkbox`, `.dialog`, `.nav`. Screens are
-  composed from these rather than styled one by one.
-- **Minecraft layer** — the bevel (a light top edge, a dark bottom edge, a
-  vertical gradient) on primary/secondary/danger buttons, the slight lift of
-  cards on hover, the pop-in animation of dialogs.
+How it is built:
+
+- **Tokens** — `frontend/src/theme/tokens.css` registers the palette, the
+  radius, the neumorphic/glass shadows, the font and the transition once in
+  a Tailwind `@theme` block, backed by runtime CSS variables for the values
+  that differ between the light and dark theme. Switching theme only flips
+  an attribute on the document root.
+- **Atoms** — `frontend/src/ui/atoms/`: `Button` (primary, secondary, idle,
+  danger, ghost), `Field` (Label, Input, Select), `Tag` (gray, green, gold),
+  `Selectable` + `Checkbox`, `ProgressBar`, `Loader` (`GlassLoader`,
+  `AutoLoader`, `useSimulatedProgress`), `Status` (`StatusMessage`) and
+  `Surface` (`Panel`, `Glass`). Each owns its class strings; nothing else
+  spells out a button or an input.
+- **Molecules** — `frontend/src/ui/molecules/`: `SegmentedControl`, `Card`,
+  `Dialog`, `Toast`, `DropZone`, composed from atoms.
+- **Components and screens** (`frontend/src/components`, `frontend/src/screens`)
+  compose atoms and molecules and only write layout classes (flex, grid,
+  gap, width). The rule: no `const btn… = '…'` class-string constants in a
+  screen; if a screen needs a look that no atom offers, the atom grows.
+- **Errors** — the backend's messages are long; the UI shows a 1–3 word
+  headline picked by `frontend/src/lib/errors.ts` with the message as detail.
 - **Pixel icons** — each icon is an 8×8 grid of characters mapped to a small
   palette; a single element with a long `box-shadow` paints the whole thing.
   No image files are involved, icons scale to any size and stay crisp, and
   the same data drives the instance icon picker, the navigation brand and
   the faint decorative items floating behind pages.
-- **Fonts** are bundled with the app, so the launcher looks the same offline.
+- **Fonts** are bundled with the app (`@fontsource/pt-mono`), so the launcher
+  looks the same offline.
 
 ## Screens
 
