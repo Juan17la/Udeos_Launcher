@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 import { DICTS, Language } from './i18n'
 import type { Dict } from './i18n/en'
 import { api, inWails, on } from './api/bridge'
-import type { GameEvent, Instance, Profile, Progress } from './api/types'
+import type { GameEvent, Instance, Profile, Progress, ProjectType, SearchResult } from './api/types'
 
 export type Theme = 'light' | 'dark'
 
@@ -12,7 +12,12 @@ export type Screen =
   | { name: 'dashboard' }
   | { name: 'create' }
   | { name: 'instance'; id: string }
-  | { name: 'search' }
+  /** instanceId/type soft-default the version/loader filters and which instance is
+   *  preselected in the Add picker (from an instance's Browse Modrinth button). */
+  | { name: 'search'; instanceId?: string; type?: ProjectType }
+  /** Full-page view of one search result: description, available versions/loaders,
+   *  and which of the player's instances can take it. */
+  | { name: 'detail'; result: SearchResult }
 
 /** What the Play button is doing right now. */
 export type LaunchState =

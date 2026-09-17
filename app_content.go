@@ -10,6 +10,7 @@ import (
 	wailsrt "github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"udeos/launcher/internal/content"
+	"udeos/launcher/internal/modinstall"
 	"udeos/launcher/internal/sysopen"
 )
 
@@ -157,7 +158,10 @@ func (a *App) RemoveMod(id, name string) error {
 	if err != nil {
 		return err
 	}
-	return content.Remove(dir, "mods", name)
+	if err := content.Remove(dir, "mods", name); err != nil {
+		return err
+	}
+	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), "mods", name)
 }
 
 // ListShaders lists shaderpacks/.
@@ -196,7 +200,10 @@ func (a *App) RemoveShader(id, name string) error {
 	if err != nil {
 		return err
 	}
-	return content.Remove(dir, "shaderpacks", name)
+	if err := content.Remove(dir, "shaderpacks", name); err != nil {
+		return err
+	}
+	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), "shaderpacks", name)
 }
 
 // AddResourcePack copies a local .zip/folder into the instance after checking it is a pack.
@@ -227,7 +234,10 @@ func (a *App) RemoveResourcePack(id, name string) error {
 	if err != nil {
 		return err
 	}
-	return content.Remove(dir, "resourcepacks", name)
+	if err := content.Remove(dir, "resourcepacks", name); err != nil {
+		return err
+	}
+	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), "resourcepacks", name)
 }
 
 // openableSubdirs are the game sub-folders the UI may ask to open.

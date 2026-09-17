@@ -44,7 +44,7 @@ const en = {
     saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
     removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
     worldAdded: 'Added world "{name}"', fileAdded: 'Added {name}',
-    dropHere: 'Drag a {kind} file here', browse: 'Browse files', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
+    dropHere: 'Drag a {kind} file here', browse: 'Browse files', browseModrinth: 'Browse Modrinth', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
     empty: {
       mods: 'No mods installed yet. Drag a .jar file here.', resourcepacks: 'No resource packs installed yet. Drag a .zip file here or use Browse.', shaders: 'No shaders installed yet. Drag a shader pack here.',
       worlds: 'No worlds yet. Play the instance to create one, or drag a world folder or .zip here.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',
@@ -58,6 +58,23 @@ const en = {
     downloads: '{n} downloads', empty: 'No results found.',
     previous: 'Previous', next: 'Next', pageOf: 'Page {page} of {total}',
     error: 'Could not reach Modrinth and no cached results are available. Check your connection.',
+    add: 'Add', details: 'Details', createInstance: 'Create instance',
+  },
+  compat: {
+    vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
+  },
+  detail: {
+    back: 'Back to Search', loading: 'Loading…',
+    versionsHeading: 'Available versions', loadersHeading: 'Loaders', instancesHeading: 'Your instances',
+    noInstances: 'You have no instances yet.', add: 'Add to an instance',
+  },
+  content: {
+    pickTitle: 'Add {title} to…', pickEmpty: 'Create an instance first.',
+    noCompatible: 'No instance can use this yet. Create a {loaders} instance for {versions} to install it.',
+    planTitle: 'Add {title} to {name}', planning: 'Checking versions and dependencies…',
+    willInstall: 'This will download:', requiredBy: 'required by {name}', alreadyInstalled: '{title} is already in {name}.',
+    add: 'Add', installing: 'Downloading…', done: 'Added {n} file(s) to {name}.', doneOne: 'Added {title} to {name}.',
+    phases: { content: 'Downloading files' },
   },
   launch: {
     preparing: 'Getting {name} ready', starting: 'Starting the game…',

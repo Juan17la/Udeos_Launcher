@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import PixelIcon from '../ui/PixelIcon'
-import { Camera, Folder, Play, X } from '../ui/icons'
+import { Camera, Folder, Play, Search as SearchIcon, X } from '../ui/icons'
 import { useApp, useLaunch } from '../state'
 import { api, on } from '../api/bridge'
-import type { FileEntry, World } from '../api/types'
+import type { FileEntry, ProjectType, World } from '../api/types'
 import { fmt } from '../i18n/format'
 import { ago, bytes } from '../ui/time'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -87,6 +87,16 @@ function FolderLink({ id, sub }: { id: string; sub: string }) {
     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
       <button type="button" className="btn btn-ghost" style={{ fontSize: 12 }} onClick={() => api.OpenInstanceFolder(id, sub)}><Folder size={12} /> {t.instance.openFolder}</button>
     </div>
+  )
+}
+
+/** Opens the Search page with this instance preselected on the matching content tab. */
+function BrowseModrinth({ id, type }: { id: string; type: ProjectType }) {
+  const { t, go } = useApp()
+  return (
+    <button type="button" className="btn btn-secondary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={() => go({ name: 'search', instanceId: id, type })}>
+      <SearchIcon size={13} /> {t.instance.browseModrinth}
+    </button>
   )
 }
 
@@ -239,6 +249,7 @@ function ResourcePacksTab({ id }: { id: string }) {
         <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds.resourcepacks })}</span>
         <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
         <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
+        <BrowseModrinth id={id} type="resourcepack" />
       </div>
       {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
       {packs && packs.length === 0 && <Empty text={t.instance.empty.resourcepacks} />}
@@ -300,6 +311,7 @@ function FilesTab({ id, kind }: { id: string; kind: 'mods' | 'shaders' }) {
         <span>{fmt(t.instance.dropHere, { kind: t.instance.kinds[kind] })}</span>
         <span className="text-muted" style={{ fontSize: 13 }}>{t.common.or}</span>
         <button type="button" className="btn btn-primary" style={{ fontSize: 13, whiteSpace: 'nowrap' }} onClick={pick}>{t.instance.browse}</button>
+        <BrowseModrinth id={id} type={kind === 'mods' ? 'mod' : 'shader'} />
       </div>
       {error && <p style={{ margin: '0 0 12px', fontSize: 13, color: 'var(--mc-danger)' }}>{error}</p>}
       <Toast text={note} />

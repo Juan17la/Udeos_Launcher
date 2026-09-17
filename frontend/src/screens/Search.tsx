@@ -2,6 +2,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
+import AddInstancePickerDialog from '../components/AddInstancePickerDialog'
 import type { ProjectType, SearchGameVersion, SearchPage, SearchResult } from '../api/types'
 
 const TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack']
@@ -16,13 +17,21 @@ function loadVersions() {
   return versionsPromise
 }
 
-export default function Search() {
-  const { t } = useApp()
-  const [type, setType] = useState<ProjectType>('mod')
+type Props = { instanceId?: string; type?: ProjectType }
+
+/** Browsing is unrestricted: the version/loader filters narrow the catalog
+ *  like any search, they never lock to one instance. Whether a result fits
+ *  a given instance is worked out on demand — once, when Add or Details is
+ *  actually clicked — rather than for every card in the grid, the same
+ *  fetch-only-at-click-time rule the rest of this page already follows. */
+export default function Search({ instanceId, type: initialType }: Props) {
+  const { t, go } = useApp()
+  const [type, setType] = useState<ProjectType>(initialType ?? 'mod')
   const [text, setText] = useState('')
   const [debouncedText, setDebouncedText] = useState('')
   const [gameVersion, setGameVersion] = useState('')
   const [loader, setLoader] = useState('')
+  const [adding, setAdding] = useState<SearchResult | null>(null)
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
   const [page, setPage] = useState<SearchPage | null>(null)
@@ -87,8 +96,16 @@ export default function Search() {
       {page && page.results.length === 0 && <div className="empty-state"><p>{t.search.empty}</p></div>}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: 20 }}>
-        {page?.results.map((r) => <ResultCard key={r.id} result={r} />)}
+        {page?.results.map((r) => (
+          <ResultCard key={r.id} result={r}
+            onAdd={r.projectType === 'modpack' ? undefined : () => setAdding(r)}
+            onDetails={() => go({ name: 'detail', result: r })} />
+        ))}
       </div>
+
+      {adding && (
+        <AddInstancePickerDialog result={adding} instanceId={instanceId} onClose={() => setAdding(null)} />
+      )}
 
       {page && page.total > PAGE_SIZE && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginTop: 24 }}>
@@ -105,7 +122,9 @@ export default function Search() {
   )
 }
 
-const ResultCard = memo(function ResultCard({ result }: { result: SearchResult }) {
+type CardProps = { result: SearchResult; onAdd?: () => void; onDetails: () => void }
+
+const ResultCard = memo(function ResultCard({ result, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
     <div className="card elev-sm sheen" style={{ padding: 20, gap: 10 }}>
@@ -124,6 +143,12 @@ const ResultCard = memo(function ResultCard({ result }: { result: SearchResult }
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
         {result.loaders.map((l) => <span key={l} className="tag tag-accent-2">{l}</span>)}
         <span className="tag tag-accent">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
+      </div>
+      {/* Two big, equal-weight actions: Add opens the instance picker (which
+         does the real compatibility check), Details is a full page. */}
+      <div style={{ display: 'flex', gap: 10, marginTop: 'auto' }}>
+        {onAdd && <button type="button" className="btn btn-primary" style={{ flex: 1, height: 44, fontSize: 15 }} onClick={onAdd}>{t.search.add}</button>}
+        <button type="button" className="btn btn-secondary" style={{ flex: 1, height: 44, fontSize: 15 }} onClick={onDetails}>{t.search.details}</button>
       </div>
     </div>
   )
