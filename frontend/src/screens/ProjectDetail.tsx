@@ -7,6 +7,16 @@ import AddInstancePickerDialog from '../components/AddInstancePickerDialog'
 import { computeCompat } from '../lib/compat'
 import type { ProjectDetail as ProjectDetailData, SearchResult } from '../api/types'
 
+const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
+const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
+const btnGhost = 'text-accent border-transparent px-1.5 bg-transparent hover:bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)] active:bg-[color-mix(in_srgb,var(--color-accent)_18%,transparent)]'
+const cardBase = 'flex flex-col gap-2 rounded-lg bg-surface'
+const tagBase = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap'
+const tagOutline = `${tagBase} border border-accent text-accent`
+const tagNeutral = `${tagBase} bg-neutral-100 text-neutral-800`
+const cardMeta = 'flex items-center gap-1.5 text-[11px] text-[color-mix(in_srgb,var(--color-text)_72%,transparent)]'
+const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
+
 type Props = { result: SearchResult }
 
 /** Full-page view of one search result: its description, every Minecraft
@@ -29,60 +39,60 @@ export default function ProjectDetail({ result }: Props) {
   const compat = detail ? computeCompat(detail, instances, t.compat) : []
 
   return (
-    <main className="page" style={{ padding: '36px 44px 60px', maxWidth: 800 }}>
-      <button type="button" className="btn btn-ghost" style={{ marginBottom: 18, whiteSpace: 'nowrap' }} onClick={() => go({ name: 'search' })}>
+    <main className="flex-1 pt-9 px-11 pb-15 max-w-[800px]">
+      <button type="button" className={`${btnBase} ${btnGhost} mb-4.5 whitespace-nowrap`} onClick={() => go({ name: 'search' })}>
         <ChevronLeft /> {t.detail.back}
       </button>
 
-      <div style={{ display: 'flex', gap: 22, alignItems: 'flex-start', marginBottom: 18 }}>
+      <div className="flex gap-5.5 items-start mb-4.5">
         {result.iconUrl && (
           <img src={result.iconUrl} alt="" width={72} height={72}
-            style={{ borderRadius: 'var(--radius-md)', objectFit: 'cover', flexShrink: 0 }}
+            className="rounded-md object-cover shrink-0"
             onError={(e) => { e.currentTarget.style.display = 'none' }} />
         )}
         <div>
-          <span className="tag tag-outline" style={{ marginBottom: 8 }}>{t.search.types[result.projectType]}</span>
-          <h1 style={{ margin: '8px 0 4px', fontSize: 34 }}>{result.title}</h1>
-          <div className="card-meta text-muted" style={{ fontSize: 13 }}>{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })} · {result.author}</div>
+          <span className={`${tagOutline} mb-2`}>{t.search.types[result.projectType]}</span>
+          <h1 className="mt-2 mb-1 text-[34px]">{result.title}</h1>
+          <div className={`${cardMeta} ${textMuted} text-[13px]`}>{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })} · {result.author}</div>
         </div>
       </div>
 
-      <p style={{ fontSize: 15, maxWidth: '65ch', whiteSpace: 'pre-wrap' }}>{detail ? (detail.description || result.description) : t.detail.loading}</p>
+      <p className="text-[15px] max-w-[65ch] whitespace-pre-wrap">{detail ? (detail.description || result.description) : t.detail.loading}</p>
 
-      <div style={{ display: 'flex', gap: 26, margin: '22px 0', flexWrap: 'wrap' }}>
+      <div className="flex gap-6.5 my-5.5 flex-wrap">
         <div>
-          <h6 style={{ marginBottom: 8 }}>{t.detail.versionsHeading}</h6>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', maxWidth: 360 }}>
-            {(detail?.gameVersions ?? []).map((v) => <span key={v} className="tag tag-neutral">{v}</span>)}
-            {!detail && <span className="text-muted" style={{ fontSize: 13 }}>{t.detail.loading}</span>}
+          <h6 className="mb-2">{t.detail.versionsHeading}</h6>
+          <div className="flex gap-1.5 flex-wrap max-w-[360px]">
+            {(detail?.gameVersions ?? []).map((v) => <span key={v} className={tagNeutral}>{v}</span>)}
+            {!detail && <span className={`${textMuted} text-[13px]`}>{t.detail.loading}</span>}
           </div>
         </div>
         <div>
-          <h6 style={{ marginBottom: 8 }}>{t.detail.loadersHeading}</h6>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {(detail ? detail.loaders : result.loaders).map((l) => <span key={l} className="tag tag-neutral">{l}</span>)}
+          <h6 className="mb-2">{t.detail.loadersHeading}</h6>
+          <div className="flex gap-1.5 flex-wrap">
+            {(detail ? detail.loaders : result.loaders).map((l) => <span key={l} className={tagNeutral}>{l}</span>)}
           </div>
         </div>
       </div>
 
       {!modpack && (
         <>
-          <h4 style={{ margin: '20px 0 12px', fontSize: 22 }}>{t.detail.instancesHeading}</h4>
-          {instances.length === 0 && <p className="text-muted" style={{ margin: 0, fontSize: 14 }}>{t.detail.noInstances}</p>}
+          <h4 className="mt-5 mb-3 text-[22px]">{t.detail.instancesHeading}</h4>
+          {instances.length === 0 && <p className={`${textMuted} m-0 text-sm`}>{t.detail.noInstances}</p>}
           {detail && instances.length > 0 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 }}>
+            <div className="flex flex-col gap-2 mb-2.5">
               {compat.map(({ instance, ok, reason }) => (
-                <div key={instance.id} className="card row-card">
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="row-title">{instance.name}</div>
-                    <div className="card-meta" style={{ marginTop: 2, fontSize: 12 }}>{instance.version} · {instance.loaderLabel}</div>
+                <div key={instance.id} className={`${cardBase} flex-row items-center py-3 px-4`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[15px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis">{instance.name}</div>
+                    <div className={`${cardMeta} mt-0.5 text-xs`}>{instance.version} · {instance.loaderLabel}</div>
                   </div>
-                  <span style={{ fontSize: 13, color: ok ? 'var(--color-accent-2-700)' : 'var(--mc-danger)' }}>{ok ? t.compat.ok : reason}</span>
+                  <span className={`text-[13px] ${ok ? 'text-accent-2-700' : 'text-mc-danger'}`}>{ok ? t.compat.ok : reason}</span>
                 </div>
               ))}
             </div>
           )}
-          <button type="button" className="btn btn-primary" style={{ height: 48, fontSize: 16, marginTop: 8 }} disabled={!detail} onClick={() => setAdding(true)}>
+          <button type="button" className={`${btnBase} ${btnPrimary} h-12 text-base mt-2`} disabled={!detail} onClick={() => setAdding(true)}>
             {t.detail.add}
           </button>
         </>

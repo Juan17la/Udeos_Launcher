@@ -7,7 +7,7 @@ type Props = { name: string; size: number; style?: CSSProperties; className?: st
 export default function PixelIcon({ name, size, style, className, title }: Props) {
   const src = useMemo(() => pixelIconDataURL(name, size), [name, size])
   return (
-    <span className={`pixel ${className ?? ''}`} title={title} style={{ width: size, height: size, ...style }}>
+    <span className={`relative flex-none [image-rendering:pixelated] ${className ?? ''}`} title={title} style={{ width: size, height: size, ...style }}>
       <img src={src} width={size} height={size} alt="" style={{ display: 'block', imageRendering: 'pixelated' }} />
     </span>
   )
