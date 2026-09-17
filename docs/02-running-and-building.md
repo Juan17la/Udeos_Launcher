@@ -70,11 +70,44 @@ frontend is embedded inside it; nothing else needs to ship alongside.
   tool on the build machine).
 - **macOS**: the result is an `.app` bundle. `-platform darwin/universal`
   makes one bundle for Intel and Apple Silicon.
-- **Linux**: the result is a plain executable. Packaging it as an AppImage or
-  a Flatpak is a later feature.
+- **Linux**: the result is a plain executable. `build/linux/nfpm.yaml` describes
+  how [nfpm](https://nfpm.goreleaser.com) wraps it into a `.deb` or `.rpm`
+  (binary, desktop entry, icon, and the GTK/WebKitGTK 4.1 dependency):
+  `VERSION=1.0.0 nfpm package -f build/linux/nfpm.yaml -p deb` from the
+  repository root.
 
 Cross-compiling is only supported from macOS/Linux towards Windows; each
 platform is otherwise built on itself (or in CI on a runner of that OS).
+
+## Releases
+
+Installers are built by GitHub Actions, not by hand. The pipeline is
+`.github/workflows/release.yml` and a companion `ci.yml` runs the Go tests and
+the frontend type-check on every push and pull request.
+
+To publish a version:
+
+1. Set `productVersion` in `wails.json` to the plain number (`1.0.0`). It must
+   stay numeric: the Windows installer script feeds it to NSIS as
+   `X.Y.Z.0`, which rejects `-alpha` suffixes. The frontend `package.json`
+   may carry the full string (`1.0.0-alpha`).
+2. Commit, then tag the commit with a `v` prefix and push the tag:
+   `git tag -a v1.0.0-alpha -m "Udeos Launcher 1.0 Alpha"` followed by
+   `git push origin v1.0.0-alpha`.
+
+The tag starts three build jobs, one per OS, and a fourth that creates the
+GitHub Release with everything attached plus a `SHA256SUMS.txt`. A tag
+containing a hyphen (`-alpha`, `-beta`, `-rc1`) is marked as a pre-release.
+
+| Job | Runner | Produces |
+|-----|--------|----------|
+| Linux | `ubuntu-latest` inside an `ubuntu:22.04` container, so the binary links against an old glibc and runs on Ubuntu 22.04+, Debian 12+ and Fedora | `.deb`, `.rpm` (nfpm) and a portable `.tar.gz` |
+| Windows | `windows-latest` with NSIS installed through Chocolatey | `...-windows-amd64-installer.exe` (`wails build -nsis`) and a portable `.zip` of the bare executable |
+| macOS | `macos-latest` | a universal (Intel + Apple Silicon) `.app` inside a `.dmg`, ad-hoc signed but not notarized |
+
+Running the workflow by hand from the Actions tab (*Run workflow*) builds the
+same files with version `dev` and keeps them as workflow artifacts without
+creating a release; do that first when changing the pipeline.
 
 ## First run as a player
 
