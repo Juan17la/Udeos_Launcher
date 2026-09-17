@@ -17,6 +17,11 @@ permissions:
 
 env:
   WAILS_VERSION: v2.15.0 # keep in sync with go.mod
+  # Pinned, not @latest: nfpm v2.47.0 requires Go >= 1.26.4 and go.mod pins
+  # Go 1.25.0, so `go install ...@latest` fails with "requires go >= 1.26.4"
+  # under GOTOOLCHAIN=local. v2.46.3 is the newest release built against
+  # Go 1.25. Bump this deliberately together with go.mod, not by drifting.
+  NFPM_VERSION: v2.46.3
   NODE_VERSION: "20"
 
 jobs:
@@ -68,7 +73,7 @@ jobs:
       - name: Install Wails and nfpm
         run: |
           go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
-          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@${NFPM_VERSION}
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Build
         run: wails build -clean -tags webkit2_41
