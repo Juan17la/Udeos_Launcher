@@ -3,6 +3,14 @@ import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { ChevronLeft } from '../ui/icons'
+import Button from '../ui/atoms/Button'
+import Tag from '../ui/atoms/Tag'
+import { Input, Select } from '../ui/atoms/Field'
+import StatusMessage from '../ui/atoms/Status'
+import { AutoLoader } from '../ui/atoms/Loader'
+import Card from '../ui/molecules/Card'
+import SegmentedControl from '../ui/molecules/SegmentedControl'
+import { errorHeadline, messageOf } from '../lib/errors'
 import { useAddAction } from '../components/AddInstancePickerDialog'
 import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
@@ -23,19 +31,6 @@ function loadVersions() {
   if (!versionsPromise) versionsPromise = api.ListSearchGameVersions().catch(() => { versionsPromise = null; return [] as SearchGameVersion[] })
   return versionsPromise
 }
-
-const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
-const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
-const btnSecondary = 'bg-mc-btn border-mc-btn-border text-mc-btn-text shadow-[inset_0_-2px_0_var(--mc-btn-bottom)] hover:bg-mc-btn-hover active:bg-mc-btn-active active:shadow-none'
-const inputCls = 'min-h-9 px-3.5 py-1.5 font-inherit text-sm text-text caret-accent bg-surface border border-divider rounded-full hover:border-accent-400 focus-visible:border-accent focus-visible:outline-0 focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-accent)_22%,transparent)]'
-const segOpt = 'inline-flex items-center gap-1.5 whitespace-nowrap px-3 py-[7px] text-[13px] cursor-pointer border-0 bg-transparent text-inherit font-inherit [&:not(:first-child)]:border-l [&:not(:first-child)]:border-divider disabled:opacity-45 disabled:cursor-not-allowed'
-const segOptActive = 'bg-accent text-bg'
-const cardBase = 'flex flex-col gap-2 rounded-lg bg-surface'
-const cardTitle = 'font-heading font-extrabold leading-[1.2]'
-const tagAccent = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap bg-accent-100 text-accent-800'
-const tagAccent2 = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap bg-accent-2-100 text-accent-2-800'
-const btnGhost = 'text-accent border-transparent px-1.5 bg-transparent hover:bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)] active:bg-[color-mix(in_srgb,var(--color-accent)_18%,transparent)]'
-const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
 
 type Props = { instanceId?: string; type?: ProjectType }
 
@@ -103,7 +98,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
     setError(null); setLoading(true)
     api.SearchContent(type, debouncedText, effectiveVersion, effectiveLoader, sortBy, offset, PAGE_SIZE)
       .then((p) => { if (mine === seq.current) setPage(p) })
-      .catch((e) => { if (mine === seq.current) setError(String((e as Error)?.message ?? e)) })
+      .catch((e) => { if (mine === seq.current) setError(messageOf(e)) })
       .finally(() => { if (mine === seq.current) setLoading(false) })
   }, [type, debouncedText, effectiveVersion, effectiveLoader, sortBy])
 
@@ -124,51 +119,49 @@ export default function Search({ instanceId, type: initialType }: Props) {
   }
 
   return (
-    <main className="flex-1 pt-9 px-11 pb-12">
-      <h2 className="mb-1.5 text-[34px]">{t.search.title}</h2>
-      <p className={`${textMuted} mb-6 text-[15px]`}>{t.search.subtitle}</p>
+    <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
+      <div>
+        <h2 className="mb-2">{t.search.title}</h2>
+        <p className="m-0 text-muted">{t.search.subtitle}</p>
+      </div>
 
       {inst && (
-        <div className="flex items-center gap-3 flex-wrap mb-5">
-          <span className={`${cardTitle} text-lg`}>{fmt(t.search.forInstance, { name: inst.name })}</span>
-          <span className={tagAccent}>{inst.version}</span>
-          <span className={tagAccent2}>{inst.loaderLabel}</span>
-          <button type="button" className={`${btnBase} ${btnGhost} text-[13px] whitespace-nowrap`} onClick={() => go({ name: 'instance', id: inst.id })}>
+        <div className="flex items-center gap-4 flex-wrap">
+          <span className="font-bold text-lg">{fmt(t.search.forInstance, { name: inst.name })}</span>
+          <Tag tone="green">{inst.version}</Tag>
+          <Tag tone="gold">{inst.loaderLabel}</Tag>
+          <Button variant="ghost" size="sm" onClick={() => go({ name: 'instance', id: inst.id })}>
             <ChevronLeft /> {fmt(t.search.backToInstance, { name: inst.name })}
-          </button>
+          </Button>
         </div>
       )}
 
-      <div className="inline-flex overflow-hidden border border-divider rounded-full mb-5">
-        {types.map((k) => (
-          <button key={k} type="button" className={`${segOpt} ${type === k ? segOptActive : ''}`} onClick={() => setType(k)}>{t.search.types[k]}</button>
-        ))}
-      </div>
+      <SegmentedControl options={types.map((k) => ({ value: k, label: t.search.types[k] }))} value={type} onChange={setType} />
 
-      <div className="flex gap-3 mb-2 flex-wrap">
-        <input className={`${inputCls} flex-[1_1_220px]`} type="text" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
-        <select className={`${inputCls} appearance-auto flex-[0_1_180px]`} value={effectiveVersion} disabled={!!inst} onChange={(e) => setGameVersion(e.target.value)}>
+      <div className="flex gap-4 flex-wrap">
+        <Input className="flex-[1_1_220px]" type="text" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
+        <Select className="flex-[0_1_180px]" value={effectiveVersion} disabled={!!inst} onChange={(e) => setGameVersion(e.target.value)}>
           <option value="">{t.search.anyVersion}</option>
           {versions?.map((v) => <option key={v.version} value={v.version}>{v.version}</option>)}
           {/* A locked version that Modrinth's release list lacks (a snapshot instance) still needs an <option> to display. */}
           {inst && !versions?.some((v) => v.version === inst.version) && <option value={inst.version}>{inst.version}</option>}
-        </select>
+        </Select>
         {showLoaderFilter && (
-          <select className={`${inputCls} appearance-auto flex-[0_1_160px]`} value={effectiveLoader} disabled={!!inst} onChange={(e) => setLoader(e.target.value)}>
+          <Select className="flex-[0_1_160px]" value={effectiveLoader} disabled={!!inst} onChange={(e) => setLoader(e.target.value)}>
             <option value="">{t.search.anyLoader}</option>
             {LOADERS.map((l) => <option key={l} value={l}>{l[0].toUpperCase() + l.slice(1)}</option>)}
-          </select>
+          </Select>
         )}
-        <select className={`${inputCls} appearance-auto flex-[0_1_200px]`} value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+        <Select className="flex-[0_1_200px]" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
           {SORTS.map((k) => <option key={k} value={k}>{t.search.sort[k]}</option>)}
-        </select>
+        </Select>
       </div>
-      <p className={`${textMuted} mb-6 text-xs min-h-4`}>{inst ? fmt(t.search.lockedTo, { name: inst.name }) : ''}</p>
 
-      {error && <p className="mb-4 text-[13px] text-mc-danger">{error}</p>}
-      {page && page.results.length === 0 && <div className={`${textMuted} text-center px-5 py-10`}><p className="m-0 text-sm">{t.search.empty}</p></div>}
+      {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
+      <AutoLoader active={loading} label={t.common.loading} />
+      {page && page.results.length === 0 && <div className="text-muted text-center px-5 py-10"><p className="m-0 text-sm">{t.search.empty}</p></div>}
 
-      <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
+      <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${loading ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
         {page?.results.map((r) => (
           <ResultCard key={r.id} result={r} state={stateOf(r)}
             onAdd={r.projectType === 'modpack' ? undefined : () => add(r)}
@@ -179,14 +172,12 @@ export default function Search({ instanceId, type: initialType }: Props) {
       {dialog}
 
       {page && page.total > PAGE_SIZE && (
-        <div className="flex items-center justify-center gap-4 mt-6">
-          <button type="button" className={`${btnBase} ${btnSecondary}`} disabled={loading || pageIndex === 0}
-            onClick={() => goToPage(pageIndex - 1)}>{t.search.previous}</button>
-          <span className={`${textMuted} text-[13px]`}>
+        <div className="flex items-center justify-center gap-4">
+          <Button variant="idle" disabled={loading || pageIndex === 0} onClick={() => goToPage(pageIndex - 1)}>{t.search.previous}</Button>
+          <span className="text-[13px] text-muted">
             {fmt(t.search.pageOf, { page: pageIndex + 1, total: Math.ceil(page.total / PAGE_SIZE) })}
           </span>
-          <button type="button" className={`${btnBase} ${btnSecondary}`} disabled={loading || (pageIndex + 1) * PAGE_SIZE >= page.total}
-            onClick={() => goToPage(pageIndex + 1)}>{t.search.next}</button>
+          <Button variant="idle" disabled={loading || (pageIndex + 1) * PAGE_SIZE >= page.total} onClick={() => goToPage(pageIndex + 1)}>{t.search.next}</Button>
         </div>
       )}
     </main>
@@ -199,33 +190,33 @@ type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd?: () =>
 const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
-    <div className={`${cardBase} p-5 gap-2.5 shadow-sheen transition-transform duration-150 ease hover:-translate-y-0.5`}>
-      <div className="flex items-center gap-3">
+    <Card hover>
+      <div className="flex items-center gap-4">
         {result.iconUrl && (
           <img src={result.iconUrl} alt="" loading="lazy" decoding="async" width={44} height={44}
-            className="rounded-sm object-cover shrink-0"
+            className="rounded-md object-cover shrink-0"
             onError={(e) => { e.currentTarget.style.display = 'none' }} />
         )}
-        <div className="flex-1 min-w-0">
-          <div className={`${cardTitle} text-[17px] whitespace-nowrap overflow-hidden text-ellipsis`}>{result.title}</div>
-          <div className={`${textMuted} text-xs`}>{result.author}</div>
+        <div className="flex-1 min-w-0 flex flex-col gap-1">
+          <div className="font-bold text-base leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{result.title}</div>
+          <div className="text-xs text-muted">{result.author}</div>
         </div>
       </div>
-      <p className={`${textMuted} m-0 text-[13px] line-clamp-2`}>{result.description}</p>
-      <div className="flex gap-1.5 flex-wrap">
-        {result.loaders.map((l) => <span key={l} className={tagAccent2}>{l}</span>)}
-        <span className={tagAccent}>{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
+      <p className="m-0 text-[13px] text-muted line-clamp-2">{result.description}</p>
+      <div className="flex gap-2 flex-wrap">
+        {result.loaders.map((l) => <Tag key={l} tone="gold">{l}</Tag>)}
+        <Tag tone="gray">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</Tag>
       </div>
       {/* Two big, equal-weight actions: Add installs (directly, or after a
          one-click instance pick), Details is a full page. */}
-      <div className="flex gap-2.5 mt-auto">
+      <div className="flex gap-4 mt-auto">
         {onAdd && (
-          <button type="button" className={`${btnBase} ${btnPrimary} flex-1 h-11 text-[15px]`} disabled={state !== undefined} onClick={onAdd}>
+          <Button variant={state === undefined ? 'primary' : 'idle'} className="flex-1" disabled={state !== undefined} onClick={onAdd}>
             {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
-          </button>
+          </Button>
         )}
-        <button type="button" className={`${btnBase} ${btnSecondary} flex-1 h-11 text-[15px]`} onClick={onDetails}>{t.search.details}</button>
+        <Button variant="idle" className="flex-1" onClick={onDetails}>{t.search.details}</Button>
       </div>
-    </div>
+    </Card>
   )
 })
