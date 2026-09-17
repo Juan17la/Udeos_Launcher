@@ -7,19 +7,21 @@ const es: Dict = {
     comingSoon: 'Próximamente', privacy: 'Privacidad y términos', theme: 'Tema',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
-  common: { cancel: 'Cancelar', done: 'Listo', gotIt: 'Entendido', back: 'Volver', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', save: 'Guardar', ok: 'OK', or: 'o', running: 'Jugando…' },
+  common: { cancel: 'Cancelar', done: 'Listo', gotIt: 'Entendido', back: 'Volver', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', save: 'Guardar', ok: 'OK', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   privacy: {
     title: 'Privacidad y términos',
     body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben — el launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
   },
-  language: { title: 'Idioma', more: 'Más idiomas llegarán en una próxima versión.', choose: 'Elige tu idioma' },
+  language: { title: 'Idioma', choose: 'Elige tu idioma' },
   login: {
-    introLanguage: 'Elige el idioma del launcher. Puedes cambiarlo después desde la barra superior.',
-    introNickname: 'Escribe un apodo para empezar a jugar. Sin cuenta ni inicio de sesión de Microsoft: todo se queda en tu equipo.',
     continue: 'Continuar', nickname: 'Apodo', placeholder: 'p. ej. ZorroCrafter',
     agree: 'Acepto la', and: 'y los', privacyPolicy: 'Política de privacidad', terms: 'Términos de uso',
     start: 'Empezar a jugar', backToLanguage: 'Volver al idioma',
-    hint: 'De 3 a 16 letras, números o guiones bajos.',
+  },
+  errors: {
+    failed: 'Error', loadFailed: 'No se pudo cargar', connectionLost: 'Sin conexión', incompatible: 'Mod incompatible',
+    noBuild: 'Sin versión', alreadyAdded: 'Ya añadido', launchFailed: 'No se pudo iniciar', gameCrashed: 'El juego se cerró',
+    invalidNickname: 'Apodo no válido',
   },
   dashboard: {
     title: 'Tus instancias', subtitle: 'Elige una para jugar o crea una nueva con otra versión o configuración de mods.',
@@ -31,7 +33,7 @@ const es: Dict = {
   create: {
     title: 'Crear nueva instancia', subtitle: 'Ponle un nombre, elige una versión y un bloque como icono.',
     name: 'Nombre de la instancia', namePlaceholder: 'p. ej. Mundo Survival', version: 'Versión de Minecraft', chooseVersion: 'Elige una versión',
-    showSnapshots: 'Mostrar snapshots y versiones antiguas', loader: 'Cargador de mods', icon: 'Icono de la instancia', required: 'El nombre y la versión son obligatorios.',
+    showSnapshots: 'Mostrar snapshots y versiones antiguas', loader: 'Cargador de mods', icon: 'Icono de la instancia',
     submit: 'Crear instancia', loadingVersions: 'Cargando versiones de Mojang…', versionsError: 'No se pudo cargar la lista de versiones. Revisa tu conexión.',
     latest: 'última',
     loaderVanilla: 'El juego tal como lo publica Mojang. Sin mods.',

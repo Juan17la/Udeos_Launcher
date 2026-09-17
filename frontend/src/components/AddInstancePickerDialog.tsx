@@ -1,19 +1,14 @@
 import { ReactNode, useEffect, useState } from 'react'
-import Dialog from './Dialog'
+import Dialog from '../ui/molecules/Dialog'
+import Button from '../ui/atoms/Button'
+import Tag from '../ui/atoms/Tag'
+import StatusMessage from '../ui/atoms/Status'
+import { AutoLoader } from '../ui/atoms/Loader'
 import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { computeCompat } from '../lib/compat'
 import type { Instance, ProjectDetail, SearchResult } from '../api/types'
-
-const btnBase = 'inline-flex items-center justify-center gap-1.5 cursor-pointer no-underline font-heading font-extrabold tracking-[-0.01em] text-sm leading-[1.2] rounded-full border px-4 py-2 disabled:opacity-45 disabled:cursor-not-allowed disabled:pointer-events-none'
-const btnPrimary = 'bg-mc-primary border-mc-primary-border text-mc-primary-text shadow-[inset_0_-2px_0_var(--mc-primary-bottom)] hover:bg-mc-primary-hover active:bg-mc-primary-active active:shadow-none'
-const btnSecondary = 'bg-mc-btn border-mc-btn-border text-mc-btn-text shadow-[inset_0_-2px_0_var(--mc-btn-bottom)] hover:bg-mc-btn-hover active:bg-mc-btn-active active:shadow-none'
-const tagBase = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap'
-const tagAccent = `${tagBase} bg-accent-100 text-accent-800`
-const tagAccent2 = `${tagBase} bg-accent-2-100 text-accent-2-800`
-const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
-const instanceBtn = 'flex items-center gap-2.5 w-full text-left cursor-pointer rounded-md border border-divider bg-bg px-3.5 py-2.5 hover:border-accent hover:bg-[color-mix(in_srgb,var(--color-accent)_8%,transparent)] focus-visible:outline-2 focus-visible:outline-accent'
 
 type Props = { result: SearchResult; onClose: () => void }
 
@@ -41,29 +36,26 @@ export default function AddInstancePickerDialog({ result, onClose }: Props) {
   }, [result.id])
 
   const pick = (instanceId: string) => { enqueue(instanceId, result); onClose() }
-  const closeBtn = <button type="button" className={`${btnBase} ${btnSecondary}`} onClick={onClose}>{t.common.close}</button>
 
   return (
-    <Dialog title={fmt(t.content.pickTitle, { title: result.title })} onClose={onClose} actions={closeBtn}>
-      {detected === null && <p className={`${textMuted} m-0`}>{t.content.planning}</p>}
+    <Dialog title={fmt(t.content.pickTitle, { title: result.title })} onClose={onClose} actions={<Button variant="idle" onClick={onClose}>{t.common.close}</Button>}>
+      <AutoLoader active={detected === null} label={t.content.planning} />
       {detected !== null && detected.choices.length === 0 && (
-        <p className="m-0 text-[13px] text-mc-danger">
-          {fmt(t.content.noCompatible, { loaders: detected.detail?.loaders.join('/') || result.loaders.join('/') || 'Fabric/Forge', versions: detected.detail?.gameVersions.slice(-3).join(', ') ?? '' })}
-        </p>
+        <StatusMessage kind="error" headline={t.errors.noBuild}
+          detail={fmt(t.content.noCompatible, { loaders: detected.detail?.loaders.join('/') || result.loaders.join('/') || 'Fabric/Forge', versions: detected.detail?.gameVersions.slice(-3).join(', ') ?? '' })} />
       )}
       {detected !== null && detected.choices.length > 0 && (
-        <>
-          <p className={`${textMuted} mt-0 mb-3`}>{t.content.pickHint}</p>
-          <div className="flex flex-col gap-2">
-            {detected.choices.map((instance) => (
-              <button key={instance.id} type="button" className={instanceBtn} onClick={() => pick(instance.id)}>
-                <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-semibold text-text">{instance.name}</span>
-                <span className={tagAccent}>{instance.version}</span>
-                <span className={tagAccent2}>{instance.loaderLabel}</span>
-              </button>
-            ))}
-          </div>
-        </>
+        <div className="flex flex-col gap-4">
+          <p className="m-0 text-muted">{t.content.pickHint}</p>
+          {detected.choices.map((instance) => (
+            <button key={instance.id} type="button" onClick={() => pick(instance.id)}
+              className="flex items-center gap-4 w-full text-left cursor-pointer rounded-md border-0 px-4 py-3 bg-idle text-ink shadow-neu hover:bg-green hover:text-white transition-all duration-150 ease-in-out focus-visible:outline-2 focus-visible:outline-green">
+              <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold">{instance.name}</span>
+              <Tag tone="green">{instance.version}</Tag>
+              <Tag tone="gold">{instance.loaderLabel}</Tag>
+            </button>
+          ))}
+        </div>
       )}
     </Dialog>
   )
@@ -92,10 +84,10 @@ export function useAddAction(instanceId?: string): { add: (result: SearchResult)
       {picking && <AddInstancePickerDialog result={picking} onClose={() => setPicking(null)} />}
       {noInstances && (
         <Dialog title={t.content.noInstancesTitle} onClose={() => setNoInstances(null)} actions={<>
-          <button type="button" className={`${btnBase} ${btnSecondary}`} onClick={() => setNoInstances(null)}>{t.common.close}</button>
-          <button type="button" className={`${btnBase} ${btnPrimary}`} onClick={() => { setNoInstances(null); go({ name: 'create' }) }}>{t.search.createInstance}</button>
+          <Button variant="idle" onClick={() => setNoInstances(null)}>{t.common.close}</Button>
+          <Button variant="primary" onClick={() => { setNoInstances(null); go({ name: 'create' }) }}>{t.search.createInstance}</Button>
         </>}>
-          <p className="m-0">{fmt(t.content.noInstancesBody, { title: noInstances.title })}</p>
+          <StatusMessage kind="error" headline={t.content.noInstancesTitle} detail={fmt(t.content.noInstancesBody, { title: noInstances.title })} />
         </Dialog>
       )}
     </>
