@@ -1,0 +1,43 @@
+# Checks every push and pull request: the Go packages build and their tests
+# pass, and the frontend type-checks and bundles. Installers are built by the
+# Release workflow when a tag is pushed.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Go + frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install GTK and WebKitGTK development packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+      - name: Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npx tsc --noEmit
+          npm run build
+      - name: Backend
+        # The frontend build above produces frontend/dist, which main.go embeds.
+        run: |
+          go vet -tags webkit2_41 ./...
+          go build -tags webkit2_41 ./...
+          go test ./...
