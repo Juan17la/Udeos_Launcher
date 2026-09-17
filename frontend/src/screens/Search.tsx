@@ -1,12 +1,19 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { useApp } from '../state'
+import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
-import AddInstancePickerDialog from '../components/AddInstancePickerDialog'
-import type { ProjectType, SearchGameVersion, SearchPage, SearchResult } from '../api/types'
+import { ChevronLeft } from '../ui/icons'
+import { useAddAction } from '../components/AddInstancePickerDialog'
+import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
 const TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack']
+/** With an instance in context only what can go into it is offered: no
+ *  modpacks, and a Vanilla instance takes resource packs only (its page has
+ *  no Mods/Shaders tab either). */
+const INSTANCE_TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader']
+const VANILLA_TYPES: ProjectType[] = ['resourcepack']
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
+const SORTS: SortBy[] = ['relevance', 'downloads', 'newest', 'updated']
 const PAGE_SIZE = 30
 
 // Fetched once per app run and shared by every mount of this screen: Go
@@ -27,23 +34,33 @@ const cardBase = 'flex flex-col gap-2 rounded-lg bg-surface'
 const cardTitle = 'font-heading font-extrabold leading-[1.2]'
 const tagAccent = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap bg-accent-100 text-accent-800'
 const tagAccent2 = 'inline-flex items-center text-[11px] tracking-[0.02em] px-2.5 py-[3px] rounded-full whitespace-nowrap bg-accent-2-100 text-accent-2-800'
+const btnGhost = 'text-accent border-transparent px-1.5 bg-transparent hover:bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)] active:bg-[color-mix(in_srgb,var(--color-accent)_18%,transparent)]'
 const textMuted = 'text-[color-mix(in_srgb,var(--color-text)_78%,transparent)]'
 
 type Props = { instanceId?: string; type?: ProjectType }
 
-/** Browsing is unrestricted: the version/loader filters narrow the catalog
- *  like any search, they never lock to one instance. Whether a result fits
- *  a given instance is worked out on demand — once, when Add or Details is
- *  actually clicked — rather than for every card in the grid, the same
- *  fetch-only-at-click-time rule the rest of this page already follows. */
+/** Two ways in. From the nav, browsing is unrestricted: version/loader
+ *  narrow the catalog like any search, and Add asks which instance (only
+ *  the compatible ones, one click). From an instance's "Add from Modrinth"
+ *  button the results are locked to that instance's version (and loader,
+ *  for mods), Add installs straight away and what is already in the
+ *  instance shows as Added. Either way nothing is fetched per card: the
+ *  compatibility check happens once, when Add is actually clicked. */
 export default function Search({ instanceId, type: initialType }: Props) {
-  const { t, go } = useApp()
-  const [type, setType] = useState<ProjectType>(initialType ?? 'mod')
+  const { t, go, instances } = useApp()
+  const { jobs } = useContent()
+  // A deleted instance (id no longer listed) falls back to unrestricted browsing.
+  const inst = instanceId ? instances.find((i) => i.id === instanceId) : undefined
+  const types = inst ? (inst.loader === 'Vanilla' ? VANILLA_TYPES : INSTANCE_TYPES) : TYPES
+  const [rawType, setType] = useState<ProjectType>(initialType ?? 'mod')
+  const type = types.includes(rawType) ? rawType : types[0]
   const [text, setText] = useState('')
   const [debouncedText, setDebouncedText] = useState('')
   const [gameVersion, setGameVersion] = useState('')
   const [loader, setLoader] = useState('')
-  const [adding, setAdding] = useState<SearchResult | null>(null)
+  const [sortBy, setSortBy] = useState<SortBy>('relevance')
+  const [installed, setInstalled] = useState<Set<string>>(() => new Set())
+  const { add, dialog } = useAddAction(inst?.id)
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
   const [page, setPage] = useState<SearchPage | null>(null)
@@ -60,6 +77,22 @@ export default function Search({ instanceId, type: initialType }: Props) {
     return () => clearTimeout(id)
   }, [text])
 
+  // Projects already in the instance, so their cards read "Added". Jobs
+  // finishing in this session are folded in below without a refetch.
+  useEffect(() => {
+    if (!inst) { setInstalled(new Set()); return }
+    let live = true
+    api.ListInstalledProjects(inst.id).then((ids) => { if (live) setInstalled(new Set(ids)) }).catch(() => {})
+    return () => { live = false }
+  }, [inst?.id]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const showLoaderFilter = type === 'mod' || type === 'modpack'
+  // The loader filter only ever applies to mods (and modpacks): a Fabric
+  // choice made on the Mods tab must not narrow resource packs or shaders.
+  // With an instance in context both filters are locked to it.
+  const effectiveVersion = inst ? inst.version : gameVersion
+  const effectiveLoader = inst ? (type === 'mod' ? inst.loader.toLowerCase() : '') : (showLoaderFilter ? loader : '')
+
   // One page's worth of cards is ever mounted at a time: a new page REPLACES
   // the results instead of piling on top of the last one, so the DOM stays a
   // fixed size no matter how far the player pages through. Going back to a
@@ -68,75 +101,102 @@ export default function Search({ instanceId, type: initialType }: Props) {
   const load = useCallback((offset: number) => {
     const mine = ++seq.current
     setError(null); setLoading(true)
-    api.SearchContent(type, debouncedText, gameVersion, loader, offset, PAGE_SIZE)
+    api.SearchContent(type, debouncedText, effectiveVersion, effectiveLoader, sortBy, offset, PAGE_SIZE)
       .then((p) => { if (mine === seq.current) setPage(p) })
       .catch((e) => { if (mine === seq.current) setError(String((e as Error)?.message ?? e)) })
       .finally(() => { if (mine === seq.current) setLoading(false) })
-  }, [type, debouncedText, gameVersion, loader])
+  }, [type, debouncedText, effectiveVersion, effectiveLoader, sortBy])
 
   useEffect(() => { setPageIndex(0); setPage(null); load(0) }, [load])
   useEffect(() => () => { seq.current++ }, []) // unmount: drop whatever is still in flight
 
-  const showLoaderFilter = type === 'mod' || type === 'modpack'
+  // Paging replaces the grid, so land the player at the top of the new page.
+  const goToPage = (i: number) => { setPageIndex(i); load(i * PAGE_SIZE); window.scrollTo({ top: 0 }) }
+
+  // Per-card state in instance mode: already there, or on its way.
+  const stateOf = (r: SearchResult): 'added' | 'busy' | undefined => {
+    if (!inst) return undefined
+    if (installed.has(r.id)) return 'added'
+    const job = jobs.find((j) => j.instanceId === inst.id && j.result.id === r.id)
+    if (job?.status === 'done') return 'added'
+    if (job?.status === 'queued' || job?.status === 'installing') return 'busy'
+    return undefined
+  }
 
   return (
     <main className="flex-1 pt-9 px-11 pb-12">
       <h2 className="mb-1.5 text-[34px]">{t.search.title}</h2>
       <p className={`${textMuted} mb-6 text-[15px]`}>{t.search.subtitle}</p>
 
+      {inst && (
+        <div className="flex items-center gap-3 flex-wrap mb-5">
+          <span className={`${cardTitle} text-lg`}>{fmt(t.search.forInstance, { name: inst.name })}</span>
+          <span className={tagAccent}>{inst.version}</span>
+          <span className={tagAccent2}>{inst.loaderLabel}</span>
+          <button type="button" className={`${btnBase} ${btnGhost} text-[13px] whitespace-nowrap`} onClick={() => go({ name: 'instance', id: inst.id })}>
+            <ChevronLeft /> {fmt(t.search.backToInstance, { name: inst.name })}
+          </button>
+        </div>
+      )}
+
       <div className="inline-flex overflow-hidden border border-divider rounded-full mb-5">
-        {TYPES.map((k) => (
+        {types.map((k) => (
           <button key={k} type="button" className={`${segOpt} ${type === k ? segOptActive : ''}`} onClick={() => setType(k)}>{t.search.types[k]}</button>
         ))}
       </div>
 
-      <div className="flex gap-3 mb-6 flex-wrap">
+      <div className="flex gap-3 mb-2 flex-wrap">
         <input className={`${inputCls} flex-[1_1_220px]`} type="text" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
-        <select className={`${inputCls} appearance-auto flex-[0_1_180px]`} value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
+        <select className={`${inputCls} appearance-auto flex-[0_1_180px]`} value={effectiveVersion} disabled={!!inst} onChange={(e) => setGameVersion(e.target.value)}>
           <option value="">{t.search.anyVersion}</option>
           {versions?.map((v) => <option key={v.version} value={v.version}>{v.version}</option>)}
+          {/* A locked version that Modrinth's release list lacks (a snapshot instance) still needs an <option> to display. */}
+          {inst && !versions?.some((v) => v.version === inst.version) && <option value={inst.version}>{inst.version}</option>}
         </select>
         {showLoaderFilter && (
-          <select className={`${inputCls} appearance-auto flex-[0_1_160px]`} value={loader} onChange={(e) => setLoader(e.target.value)}>
+          <select className={`${inputCls} appearance-auto flex-[0_1_160px]`} value={effectiveLoader} disabled={!!inst} onChange={(e) => setLoader(e.target.value)}>
             <option value="">{t.search.anyLoader}</option>
             {LOADERS.map((l) => <option key={l} value={l}>{l[0].toUpperCase() + l.slice(1)}</option>)}
           </select>
         )}
+        <select className={`${inputCls} appearance-auto flex-[0_1_200px]`} value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+          {SORTS.map((k) => <option key={k} value={k}>{t.search.sort[k]}</option>)}
+        </select>
       </div>
+      <p className={`${textMuted} mb-6 text-xs min-h-4`}>{inst ? fmt(t.search.lockedTo, { name: inst.name }) : ''}</p>
 
       {error && <p className="mb-4 text-[13px] text-mc-danger">{error}</p>}
       {page && page.results.length === 0 && <div className={`${textMuted} text-center px-5 py-10`}><p className="m-0 text-sm">{t.search.empty}</p></div>}
 
       <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
         {page?.results.map((r) => (
-          <ResultCard key={r.id} result={r}
-            onAdd={r.projectType === 'modpack' ? undefined : () => setAdding(r)}
-            onDetails={() => go({ name: 'detail', result: r })} />
+          <ResultCard key={r.id} result={r} state={stateOf(r)}
+            onAdd={r.projectType === 'modpack' ? undefined : () => add(r)}
+            onDetails={() => go({ name: 'detail', result: r, instanceId: inst?.id })} />
         ))}
       </div>
 
-      {adding && (
-        <AddInstancePickerDialog result={adding} instanceId={instanceId} onClose={() => setAdding(null)} />
-      )}
+      {dialog}
 
       {page && page.total > PAGE_SIZE && (
         <div className="flex items-center justify-center gap-4 mt-6">
           <button type="button" className={`${btnBase} ${btnSecondary}`} disabled={loading || pageIndex === 0}
-            onClick={() => { const i = pageIndex - 1; setPageIndex(i); load(i * PAGE_SIZE) }}>{t.search.previous}</button>
+            onClick={() => goToPage(pageIndex - 1)}>{t.search.previous}</button>
           <span className={`${textMuted} text-[13px]`}>
             {fmt(t.search.pageOf, { page: pageIndex + 1, total: Math.ceil(page.total / PAGE_SIZE) })}
           </span>
           <button type="button" className={`${btnBase} ${btnSecondary}`} disabled={loading || (pageIndex + 1) * PAGE_SIZE >= page.total}
-            onClick={() => { const i = pageIndex + 1; setPageIndex(i); load(i * PAGE_SIZE) }}>{t.search.next}</button>
+            onClick={() => goToPage(pageIndex + 1)}>{t.search.next}</button>
         </div>
       )}
     </main>
   )
 }
 
-type CardProps = { result: SearchResult; onAdd?: () => void; onDetails: () => void }
+/** state is only set with an instance in context: 'added' = already in it, 'busy' = installing now. */
+type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd?: () => void; onDetails: () => void }
 
-const ResultCard = memo(function ResultCard({ result, onAdd, onDetails }: CardProps) {
+const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
     <div className={`${cardBase} p-5 gap-2.5 shadow-sheen transition-transform duration-150 ease hover:-translate-y-0.5`}>
@@ -156,10 +216,14 @@ const ResultCard = memo(function ResultCard({ result, onAdd, onDetails }: CardPr
         {result.loaders.map((l) => <span key={l} className={tagAccent2}>{l}</span>)}
         <span className={tagAccent}>{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
       </div>
-      {/* Two big, equal-weight actions: Add opens the instance picker (which
-         does the real compatibility check), Details is a full page. */}
+      {/* Two big, equal-weight actions: Add installs (directly, or after a
+         one-click instance pick), Details is a full page. */}
       <div className="flex gap-2.5 mt-auto">
-        {onAdd && <button type="button" className={`${btnBase} ${btnPrimary} flex-1 h-11 text-[15px]`} onClick={onAdd}>{t.search.add}</button>}
+        {onAdd && (
+          <button type="button" className={`${btnBase} ${btnPrimary} flex-1 h-11 text-[15px]`} disabled={state !== undefined} onClick={onAdd}>
+            {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
+          </button>
+        )}
         <button type="button" className={`${btnBase} ${btnSecondary} flex-1 h-11 text-[15px]`} onClick={onDetails}>{t.search.details}</button>
       </div>
     </div>

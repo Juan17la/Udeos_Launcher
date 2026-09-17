@@ -29,6 +29,7 @@ type Query struct {
 	GameVersion string // "" = any
 	Loader      string // "fabric" | "forge" | "quilt" | "neoforge"; "" = any
 	Text        string // free-text query; "" = browse, most relevant/downloaded first
+	Index       string // sort order: "" = relevance, else "downloads" | "newest" | "updated"
 	Offset      int
 	Limit       int
 }

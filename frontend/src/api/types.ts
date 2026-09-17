@@ -47,6 +47,8 @@ export type World = { folder: string; name: string; lastPlayed: string; sizeByte
 export type FileEntry = { name: string; sizeBytes: number; modTime: string; isDir: boolean }
 
 export type ProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack'
+/** Search sort order; 'relevance' is Modrinth's default. There is no ascending order. */
+export type SortBy = 'relevance' | 'downloads' | 'newest' | 'updated'
 /** Metadata shown while browsing. The full project (description, gallery,
  *  version and file list) is only fetched once the player adds it. */
 export type SearchResult = {
