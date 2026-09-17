@@ -29,11 +29,29 @@ CDN install and the offline launch work, and where data lives. Start with
 │       ├── screens/   Login, Dashboard, Create Instance, Instance, Search
 │       ├── components/, ui/, theme/, i18n/
 │       └── state.tsx  app-wide React context
-├── build/             app icon and packaging assets used by `wails build`
+├── build/             app icon and Linux packaging files (`wails build` adds the rest)
+├── .github/workflows/ CI checks and the release pipeline that builds the installers
 ├── docs/              project documentation
 ├── wails.json         Wails project configuration
 └── go.mod, go.sum     Go module (`udeos/launcher`)
 ```
+
+## Download
+
+Installers for every release are on the
+[Releases page](https://github.com/Juan17la/minecraft_launcher/releases):
+
+| OS | File |
+|----|------|
+| Windows 10/11 | `udeos-launcher-<version>-windows-amd64-installer.exe` (or the portable `.zip`) |
+| macOS (Intel and Apple Silicon) | `udeos-launcher-<version>-macos-universal.dmg` |
+| Debian / Ubuntu | `udeos-launcher-<version>-linux-amd64.deb` |
+| Fedora | `udeos-launcher-<version>-linux-x86_64.rpm` |
+| Other Linux | `udeos-launcher-<version>-linux-amd64.tar.gz` |
+
+Builds are not code-signed yet, so Windows SmartScreen and macOS Gatekeeper
+ask for confirmation the first time. No Java install is needed: the launcher
+downloads Mojang's runtime on first play.
 
 ## Development
 
