@@ -22,7 +22,7 @@ import (
 
 // fake serves one modpack whose only file is a jar, plus the hash lookup for it.
 type fake struct {
-	packURL, jarSHA string
+	packURL, iconURL, jarSHA string
 }
 
 func (f *fake) Name() string { return "Fake" }
@@ -50,6 +50,9 @@ func (f *fake) VersionsByHashes(_ context.Context, sha1s []string) (map[string]m
 	return out, nil
 }
 func (f *fake) Projects(_ context.Context, ids []string) ([]modsearch.ProjectInfo, error) {
+	if len(ids) == 1 && ids[0] == "pack" {
+		return []modsearch.ProjectInfo{{ID: "pack", Title: "Fast Pack", IconURL: f.iconURL}}, nil
+	}
 	return []modsearch.ProjectInfo{{ID: "sodium", Title: "Sodium", IconURL: "http://x/sodium.png"}}, nil
 }
 func (f *fake) ProjectDetail(context.Context, string) (modsearch.ProjectDetail, error) {
@@ -64,6 +67,8 @@ func TestCreateAndAddTo(t *testing.T) {
 		switch r.URL.Path {
 		case "/sodium.jar":
 			w.Write(jar)
+		case "/icon.png":
+			w.Write([]byte("png bytes"))
 		case "/pack.mrpack":
 			var buf bytes.Buffer
 			zw := zip.NewWriter(&buf)
@@ -83,14 +88,17 @@ func TestCreateAndAddTo(t *testing.T) {
 
 	dirs := paths.FromRoot(t.TempDir())
 	store, _ := instance.Open(dirs)
-	m := New(dirs, &fake{packURL: srv.URL + "/pack.mrpack", jarSHA: jarSHA}, store, nil)
+	m := New(dirs, &fake{packURL: srv.URL + "/pack.mrpack", iconURL: srv.URL + "/icon.png", jarSHA: jarSHA}, store, nil)
 
 	inst, entries, err := m.Create(context.Background(), "pack", "", "grass", "", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if inst.Name != "Fast Pack" || inst.Version != "1.20.1" || inst.Loader != "Fabric" || inst.LoaderVersion != "0.16.9" {
+	if inst.Name != "Fast Pack" || inst.Version != "1.20.1" || inst.Loader != "Fabric" || inst.LoaderVersion != "0.16.9" || inst.Icon != IconKey {
 		t.Errorf("instance: %+v", inst)
+	}
+	if got, _ := os.ReadFile(filepath.Join(dirs.InstanceDir(inst.ID), "icon")); string(got) != "png bytes" {
+		t.Error("pack icon not saved into the instance")
 	}
 	game := dirs.GameDir(inst.ID)
 	if got, _ := os.ReadFile(filepath.Join(game, "mods", "sodium.jar")); !bytes.Equal(got, jar) {

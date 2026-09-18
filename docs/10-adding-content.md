@@ -96,8 +96,11 @@ configs and the like copied into the game directory as they are.
   loader filter is loose for modpacks, so the versions are filtered again
   client-side), downloads the `.mrpack` into the content cache, creates the
   instance with the loader and version the index declares (nothing
-  game-side downloads until Play, as with any instance) and fills it. A
-  pack that fails to install leaves no half instance behind.
+  game-side downloads until Play, as with any instance) and fills it. The
+  pack's icon is downloaded to `instances/<id>/icon` and the instance's
+  `icon` is set to `modpack`, which the UI renders from `/media/<id>/icon`
+  (`components/InstanceIcon.tsx`; a pack with no icon keeps the grass
+  block). A pack that fails to install leaves no half instance behind.
 - **`AddTo(instance, projectID)`** pours the pack's build for the
   instance's version and loader into it. Files the instance already has —
   its configs, its mods — are never overwritten.
