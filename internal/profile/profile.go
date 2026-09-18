@@ -9,18 +9,23 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 )
 
-// Profile is everything the launcher remembers about the player and their preferences.
+// Profile is everything the launcher remembers about the player and their
+// preferences. Nickname is the active player; Nicknames every one saved
+// (the active included), so the player can keep a few and switch between
+// them. Preferences are shared by all of them.
 type Profile struct {
-	Nickname    string `json:"nickname"`
-	UUID        string `json:"uuid"`
-	Language    string `json:"language"` // "en" | "es"
-	Theme       string `json:"theme"`    // "light" | "dark"
-	Agreed      bool   `json:"agreed"`   // accepted Privacy Policy & Terms of Use
-	MaxMemoryMB int    `json:"maxMemoryMB"`
-	JavaPath    string `json:"javaPath,omitempty"` // optional override; empty = managed runtime
+	Nickname    string   `json:"nickname"`
+	UUID        string   `json:"uuid"`
+	Nicknames   []string `json:"nicknames"`
+	Language    string   `json:"language"` // "en" | "es"
+	Theme       string   `json:"theme"`    // "light" | "dark"
+	Agreed      bool     `json:"agreed"`   // accepted Privacy Policy & Terms of Use
+	MaxMemoryMB int      `json:"maxMemoryMB"`
+	JavaPath    string   `json:"javaPath,omitempty"` // optional override; empty = managed runtime
 }
 
 // DefaultMaxMemoryMB is the JVM heap given to the game unless the player changes it.
@@ -84,4 +89,12 @@ func (p *Profile) normalize() {
 	if p.MaxMemoryMB < 512 {
 		p.MaxMemoryMB = DefaultMaxMemoryMB
 	}
+	// The active nickname always leads the list; the rest keep their order, no duplicates, only valid names.
+	names := []string{p.Nickname}
+	for _, n := range p.Nicknames {
+		if n = strings.TrimSpace(n); n != p.Nickname && ValidNickname(n) && !slices.Contains(names, n) {
+			names = append(names, n)
+		}
+	}
+	p.Nicknames = names
 }
