@@ -18,6 +18,9 @@ func TestProfileIDAndLabel(t *testing.T) {
 	if id, _ := ProfileID(Forge, "1.20.1", "1.20.1-47.4.10"); id != "forge-1.20.1-47.4.10" {
 		t.Error(id)
 	}
+	if id, _ := ProfileID(NeoForge, "1.21.1", "21.1.172"); id != "neoforge-1.21.1-21.1.172" {
+		t.Error(id)
+	}
 	if _, err := ProfileID("OptiFine", "1.20.1", "x"); err == nil {
 		t.Error("expected error for unknown loader")
 	}
@@ -32,6 +35,14 @@ func TestProfileIDAndLabel(t *testing.T) {
 	}
 	if Label(Fabric, "1.21.1", "0.16.9") != "0.16.9" {
 		t.Error("fabric label")
+	}
+}
+
+func TestNeoForgeMinecraft(t *testing.T) {
+	for build, want := range map[string]string{"21.1.172": "1.21.1", "21.0.167": "1.21", "20.4.251": "1.20.4", "21.11.45": "1.21.11", "21.1.180-beta": "", "0.25w14craftmine.3-beta": "", "26.3.0.6-beta": ""} {
+		if got := neoForgeMinecraft(build); got != want {
+			t.Errorf("neoForgeMinecraft(%s) = %q, want %q", build, got, want)
+		}
 	}
 }
 

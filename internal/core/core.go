@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -92,7 +93,7 @@ func (l *Launcher) Prepare(ctx context.Context, inst instance.Instance) (*mojang
 	if err != nil {
 		return nil, "", err
 	}
-	java, err := l.javaFor(ctx, v)
+	java, err := l.javaFor(ctx, v, inst)
 	if err != nil {
 		return nil, "", err
 	}
@@ -112,9 +113,13 @@ func (l *Launcher) Prepare(ctx context.Context, inst instance.Instance) (*mojang
 	return v, java, nil
 }
 
-// javaFor returns the player's own Java or the Mojang runtime the version declares.
-func (l *Launcher) javaFor(ctx context.Context, v *mojang.Version) (string, error) {
+// javaFor returns the instance's own Java, else the player's, else the Mojang
+// runtime the version declares.
+func (l *Launcher) javaFor(ctx context.Context, v *mojang.Version, inst instance.Instance) (string, error) {
 	l.Installer.Report(download.Progress{Phase: install.PhaseJava})
+	if inst.Launch.JavaPath != "" {
+		return inst.Launch.JavaPath, nil
+	}
 	p, _ := l.Profile()
 	if p.JavaPath != "" {
 		return p.JavaPath, nil
@@ -169,9 +174,13 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 		return err
 	}
 
+	mem := inst.Launch.MaxMemoryMB
+	if mem == 0 {
+		mem = p.MaxMemoryMB
+	}
 	params := launch.Params{
 		Version: v, Dirs: l.Dirs, GameDir: l.Dirs.GameDir(id),
-		Nickname: p.Nickname, UUID: p.UUID, JavaPath: java, MaxMemoryMB: p.MaxMemoryMB,
+		Nickname: p.Nickname, UUID: p.UUID, JavaPath: java, MaxMemoryMB: mem, JvmArgs: strings.Fields(inst.Launch.JvmArgs),
 		Env: rules.Current(), LauncherVersion: l.Version,
 	}
 	if v.AssetIndex.ID == "legacy" || v.AssetIndex.ID == "pre-1.6" {

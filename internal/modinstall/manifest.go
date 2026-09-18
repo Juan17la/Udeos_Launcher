@@ -26,6 +26,8 @@ type Entry struct {
 	SHA1          string   `json:"sha1"`
 	Incompatible  []string `json:"incompatible,omitempty"` // project ids this version declares incompatible
 	RequiredBy    string   `json:"requiredBy,omitempty"`   // project id it was pulled in for; "" = the player asked for it
+	Description   string   `json:"description,omitempty"`  // the provider's one-liner, for the content list's card view
+	IconURL       string   `json:"iconUrl,omitempty"`
 }
 
 // manifestMu serialises writes to content.json files; adds are rare and short.
