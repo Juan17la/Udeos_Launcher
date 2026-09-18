@@ -1,15 +1,21 @@
-# 8. Mod loaders: Fabric and Forge
+# 8. Mod loaders: Fabric, Forge and NeoForge
 
 ## What the player sees
 
-On the create form the player picks **Vanilla**, **Forge** or **Fabric**,
+On the create form the player picks **Vanilla**, **Forge**, **NeoForge** or **Fabric**,
 then a Minecraft version. Nothing else: no loader version to choose, no
 installer to download, no "run the installer once" step. The version list is
 filtered to what the chosen loader actually supports, and a note under the
 selector says which loader build will be installed (the newest stable
-Fabric loader, or Forge's *recommended* build for that version, falling back
-to *latest*). The instance card shows it as a tag: `Forge 47.4.10`,
-`Fabric 0.16.9`.
+Fabric loader, Forge's *recommended* build for that version falling back
+to *latest*, or NeoForge's newest stable build). The instance card shows it
+as a tag: `Forge 47.4.10`, `NeoForge 21.1.172`, `Fabric 0.16.9`.
+
+NeoForge matters for anything past 1.20.1: most mods that used to ship a
+Forge build (Create, JEI, …) publish NeoForge builds for 1.21+ instead, so a
+Forge 1.21.1 instance finds "no build" where a NeoForge one installs fine.
+The refusal now says so — *"Create has no build for Minecraft 1.21.1 with
+Forge (its 1.21.1 builds are for neoforge)"*.
 
 The first **Play** downloads the game as usual, then the loader, then starts
 the modded game. Modded instances get a **Mods** tab where `.jar` files can
@@ -18,15 +24,18 @@ same controls for shader packs.
 
 ## How a loader becomes "just another version"
 
-Both loaders are expressed the same way the official launcher expresses them:
+All three loaders are expressed the same way the official launcher expresses them:
 a small **version JSON that `inheritsFrom` a vanilla version**. It names a
 different `mainClass`, adds a few libraries and a few arguments, and leaves
 assets, the client jar, Java and everything else to the parent.
 
 `internal/loader` writes that JSON to `versions/<profile id>/<profile id>.json`
 with an id the launcher chooses itself (`fabric-loader-<loader>-<mc>`,
-`forge-<mc>-<build>`), so it knows where to look without having to read the
-loader's metadata again. `install.LoadVersion` then resolves the chain:
+`forge-<mc>-<build>`, `neoforge-<mc>-<build>`), so it knows where to look
+without having to read the loader's metadata again. The id is deliberately
+not the one the Forge/NeoForge installer writes for itself: the installer
+extracts its version JSON *before* running the processors, so an interrupted
+install would otherwise look complete on the next Play. `install.LoadVersion` then resolves the chain:
 child JSON → parent JSON → `mojang.Merge`, which produces one flat version
 with the child's main class and arguments, the child's libraries first on
 the classpath (replacing same-named parent ones) and the parent's assets,
@@ -93,12 +102,25 @@ it exits successfully the launcher checks the patched jar named by the
 `PATCHED` data entry really exists, deletes the `versions/<forge id>/` copy
 the installer wrote and saves the JSON under its own id.
 
+## NeoForge
+
+NeoForge forked Forge's installer, so it takes the Forge path with two
+differences: the version listing comes from
+`maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge`
+(the build number carries the game version — `21.1.172` is 1.21.1, `21.0.x`
+is 1.21; betas and the 1.20.1-era `net/neoforged/forge` artifacts are left
+out), and the installer jar is
+`maven.neoforged.net/releases/net/neoforged/neoforge/<build>/neoforge-<build>-installer.jar`
+into `cache/neoforge/`. Same `--installClient` run, same `PATCHED` check,
+same profile handling.
+
 ## Mods and shader packs
 
 `content.AddMod` refuses anything that is not a `.jar` and looks inside for
 the loader's own marker: `fabric.mod.json` (or `quilt.mod.json`) for Fabric,
-`META-INF/mods.toml`, `META-INF/neoforge.mods.toml` or `mcmod.info` for
-Forge. A Fabric mod dropped on a Forge instance is therefore refused with a
+`META-INF/mods.toml` or `mcmod.info` for Forge, `META-INF/neoforge.mods.toml`
+(or `mods.toml`, up to 1.20.4) for NeoForge. A Fabric mod dropped on a Forge
+instance is therefore refused with a
 clear message instead of crashing the game at startup; jars built for both
 loaders pass either check. `content.AddShaderPack` accepts a `.zip` or
 folder that contains a `shaders/` directory (at the root or inside one
@@ -107,7 +129,7 @@ Forge) in the mods folder to actually load.
 
 ## Trying it from the terminal
 
-    go run ./cmd/udeoscli loaders Forge          # game version → build
+    go run ./cmd/udeoscli loaders Forge          # game version → build (or Fabric, NeoForge)
     go run ./cmd/udeoscli create "Modded" 1.20.1 Forge
     go run ./cmd/udeoscli install <instance id>  # game + Java + loader
     go run ./cmd/udeoscli play <instance id>

@@ -10,7 +10,7 @@ import (
 // InstanceView is an instance plus what is inside it, for the dashboard cards.
 type InstanceView struct {
 	instance.Instance
-	LoaderLabel string          `json:"loaderLabel"` // "Vanilla", "Fabric 0.16.9", "Forge 47.4.10"
+	LoaderLabel string          `json:"loaderLabel"` // "Vanilla", "Fabric 0.16.9", "Forge 47.4.10", "NeoForge 21.1.172"
 	Counts      instance.Counts `json:"counts"`
 	Installed   bool            `json:"installed"`
 	Running     bool            `json:"running"`
@@ -49,8 +49,8 @@ func (a *App) GetInstance(id string) (InstanceView, error) {
 	return a.view(inst), nil
 }
 
-// CreateInstance makes a new instance folder. loader is Vanilla, Fabric or
-// Forge; loaderVersion is the build from ListLoaderVersions (empty for Vanilla).
+// CreateInstance makes a new instance folder. loader is Vanilla, Fabric, Forge
+// or NeoForge; loaderVersion is the build from ListLoaderVersions (empty for Vanilla).
 // Nothing is downloaded until the first Play.
 func (a *App) CreateInstance(name, version, ldr, loaderVersion, icon string) (InstanceView, error) {
 	if !loader.Valid(ldr) {
@@ -61,6 +61,20 @@ func (a *App) CreateInstance(name, version, ldr, loaderVersion, icon string) (In
 		return InstanceView{}, err
 	}
 	return a.view(inst), nil
+}
+
+// SetInstanceLaunch stores the instance's JVM settings: heap size (0 = the
+// profile default), Java executable ("" = managed runtime) and extra flags.
+func (a *App) SetInstanceLaunch(id string, l instance.Launch) (InstanceView, error) {
+	if err := a.launcher.Instances.SetLaunch(id, l); err != nil {
+		return InstanceView{}, err
+	}
+	return a.GetInstance(id)
+}
+
+// PickJava opens a file dialog for a Java executable; "" when cancelled.
+func (a *App) PickJava() (string, error) {
+	return a.pick("Choose a Java executable", "*", "Java")
 }
 
 // DeleteInstance removes the instance and all its files.
@@ -82,7 +96,7 @@ type VersionList struct {
 	Versions       []VersionOption `json:"versions"`
 }
 
-// ListLoaderVersions returns, for Fabric or Forge, every Minecraft version
+// ListLoaderVersions returns, for Fabric, Forge or NeoForge, every Minecraft version
 // the loader supports and the loader build that will be installed for it.
 // The create form uses it to filter the version list once a loader is picked.
 func (a *App) ListLoaderVersions(ldr string) ([]loader.Option, error) {

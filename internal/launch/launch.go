@@ -26,6 +26,7 @@ type Params struct {
 	UUID            string
 	JavaPath        string
 	MaxMemoryMB     int
+	JvmArgs         []string // the player's extra flags, after the launcher's defaults so theirs win
 	Env             rules.Env
 	LauncherVersion string
 	LegacyAssets    string // ${game_assets} for pre-1.7.3 versions
@@ -117,6 +118,7 @@ func Arguments(p Params) []string {
 		mem = 2048
 	}
 	args := []string{"-Xmx" + strconv.Itoa(mem) + "M", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseG1GC", "-XX:G1NewSizePercent=20", "-XX:G1ReservePercent=20", "-XX:MaxGCPauseMillis=50", "-XX:G1HeapRegionSize=32M"}
+	args = append(args, p.JvmArgs...)
 
 	if v.Arguments != nil && len(v.Arguments.JVM) > 0 {
 		for _, a := range v.Arguments.JVM {

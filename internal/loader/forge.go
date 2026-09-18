@@ -102,13 +102,19 @@ type installProfile struct {
 	} `json:"data,omitempty"`
 }
 
+// forgeInstaller is the installer jar for a Forge build.
+func forgeInstaller(version string) download.Task {
+	name := "forge-" + version + "-installer.jar"
+	return download.Task{URL: ForgeMavenURL + "net/minecraftforge/forge/" + version + "/" + name, Path: filepath.Join("forge", name)}
+}
+
 // installForge downloads the installer for the build and either unpacks it
 // (legacy) or runs it headless against the launcher's data folder, whose
-// versions/ and libraries/ layout is the one the installer expects.
-func (m *Manager) installForge(ctx context.Context, id, mc, version, java string) error {
-	jar := filepath.Join(m.Dirs.Root, "cache", "forge", "forge-"+version+"-installer.jar")
-	url := fmt.Sprintf("%snet/minecraftforge/forge/%s/forge-%s-installer.jar", ForgeMavenURL, version, version)
-	if err := m.Pool.Run(ctx, Phase, []download.Task{{URL: url, Path: jar}}); err != nil {
+// versions/ and libraries/ layout is the one the installer expects. NeoForge
+// forked the installer, so it takes the same path with its own jar.
+func (m *Manager) installForge(ctx context.Context, id, mc, java string, installer download.Task) error {
+	jar := filepath.Join(m.Dirs.Root, "cache", installer.Path)
+	if err := m.Pool.Run(ctx, Phase, []download.Task{{URL: installer.URL, Path: jar}}); err != nil {
 		return fmt.Errorf("installer: %w", err)
 	}
 	profile, err := readJSONEntry[installProfile](jar, "install_profile.json")
