@@ -108,23 +108,23 @@ block plus the runtime light/dark variables it references).
 | Rule | Token / utility | Owner |
 | --- | --- | --- |
 | PT Mono | `--font-mono` → `body`, headings; `@fontsource/pt-mono/400.css` in `main.tsx` | tokens.css |
-| 15px radius | `--radius-sm/md/lg: 15px` → `rounded-md` everywhere; `rounded-full` is banned | every atom |
-| Padding X > Y | `Button` sizes `8px 16px` / `10px 20px` / `12px 24px`; `Selectable` `8px 16px`; fields `16px 10px` | `ui/atoms/Button.tsx`, `Selectable.tsx`, `Field.tsx` |
-| ≥16px spacing | screens use `gap-4`/`gap-6`, `p-4`+ ; `Panel` defaults to `gap-4 p-4` | screens, `Surface.tsx` |
+| 15px radius | `--radius-sm/md/lg: 15px` → `rounded-md` everywhere; `rounded-full` is banned | every block in `ui/` |
+| Padding X > Y | `Button` sizes `8px 16px` / `10px 20px` / `12px 24px`; icon cells `8px 10px`; fields `16px 10px` | `ui/Button.tsx`, `ui/Field.tsx`, `IconChoice` in `screens/CreateInstance.tsx` |
+| ≥16px spacing | screens use `gap-4`/`gap-6`, `p-4`+ on every `Panel` | screens |
 | Unframed headings | `Login` and `CreateInstance` render `h1`/`h2` above their `Panel` | screens |
 | Canvas / text | `--color-bg`, `--color-text`, `--color-muted` per theme | tokens.css |
 | Primary button | `--color-primary` (`#3C8527`) / `-hover` per theme, white text | `Button variant="primary"` |
 | Secondary button | `--color-gold`, `--color-gold-hover` | `Button variant="secondary"` |
-| Idle button | `--color-idle`, `--color-idle-hover` | `Button variant="idle"`, unselected `Selectable` |
-| Selected state | `--color-green` + white text | `Selectable`, `Checkbox`, current nav link |
+| Idle button | `--color-idle`, `--color-idle-hover` | `Button variant="idle"`, unselected toggle |
+| Selected state | `--color-green` + white text | `Checkbox`, `IconChoice`, current nav link |
 | Locked filter | native `disabled` on `Select`/`Input`: idle fill, value kept, same radius/padding | `Field.tsx`, `screens/Search.tsx` |
-| Loaders | `GlassLoader` (glass + `NN%` + bar) for real progress; `AutoLoader` (glass pill + `Spinner`) for fetches; `useSimulatedProgress` only for unmeasurable phases inside a real install; `Button loading` ring on Play | `ui/atoms/Loader.tsx`, `ui/atoms/Button.tsx`, `components/Notifications.tsx` |
-| Success | `StatusMessage kind="success"` / `Toast tone="success"`: glass, green check, `pulse-green` keyframe | `ui/atoms/Status.tsx`, `ui/molecules/Toast.tsx` |
-| Error ≤3 words | `StatusMessage kind="error"` / `Toast tone="error"`: `--color-error` border + `--shadow-error-glow`; headline from `t.errors.*` via `lib/errors.ts`, reason as detail | `ui/atoms/Status.tsx`, `lib/errors.ts`, i18n `errors` |
-| Tags | `Tag tone="gray" \| "green" \| "gold"` (`--color-tag-gray`, `--color-green-soft`, `--color-gold-soft`) | `ui/atoms/Tag.tsx` |
-| Neumorphic panels | `--shadow-neu`, `--shadow-neu-inset`, `--color-panel` / `--color-panel-2` → `Panel` (`tone`), `Card` | `ui/atoms/Surface.tsx`, `ui/molecules/Card.tsx` |
-| Glass overlays | `--color-glass`, `--color-glass-border`, `backdrop-blur-[16px]` → `Glass`, `Dialog`, `Toast`, account popover, loaders | `ui/atoms/Surface.tsx`, `ui/molecules/Dialog.tsx` |
-| 150ms ease-in-out | `--default-transition-duration: 150ms`, `--default-transition-timing-function: ease-in-out`; atoms use `transition-all duration-150 ease-in-out` | tokens.css, atoms |
+| Loaders | `Toast` with `percent` (glass + `NN%` + bar) for real progress; `AutoLoader` (glass pill + spinner) for fetches; `useSimulatedProgress` only for unmeasurable phases inside a real install; `Button loading` ring on Play | `ui/Toast.tsx`, `ui/Loader.tsx`, `ui/Button.tsx`, `components/Notifications.tsx` |
+| Success | `StatusMessage kind="success"` / `Toast tone="success"`: glass, green check, `pulse-green` keyframe | `ui/StatusMessage.tsx`, `ui/Toast.tsx` |
+| Error ≤3 words | `StatusMessage kind="error"` / `Toast tone="error"`: `--color-error` border + `--shadow-error-glow`; headline from `t.errors.*` via `utils/errors.ts`, reason as detail | `ui/StatusMessage.tsx`, `utils/errors.ts`, i18n `errors` |
+| Tags | `Tag tone="gray" \| "green" \| "gold"` (`--color-tag-gray`, `--color-green-soft`, `--color-gold-soft`) | `ui/Tag.tsx` |
+| Neumorphic panels | `--shadow-neu`, `--shadow-neu-inset`, `--color-panel` / `--color-panel-2` → `Panel`, `ListRow` | `ui/Panel.tsx`, `ui/ListRow.tsx` |
+| Glass overlays | `--color-glass`, `--color-glass-border`, `backdrop-blur-[16px]` → `Glass`, `Dialog`, `Toast`, account popover, loaders | `ui/Panel.tsx`, `ui/Dialog.tsx` |
+| 150ms ease-in-out | `--default-transition-duration: 150ms`, `--default-transition-timing-function: ease-in-out`; blocks use `transition-all duration-150 ease-in-out` | tokens.css, `ui/` |
 | No microcopy | login intro, nickname hint, "more languages" and the create-form "required" line were removed; validation shows as an error only when triggered | i18n, `screens/Login.tsx` |
 
 Tag semantics in this app: gray = download counts, project type, version
