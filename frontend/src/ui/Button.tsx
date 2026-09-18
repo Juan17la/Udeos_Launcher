@@ -2,12 +2,11 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 /** Button variants from the design system (docs/11-design-system.md):
  *  primary   — the minecraft.net button green (darker on hover in light, lighter in dark)
- *  secondary — Minecraft gold → deeper gold
  *  idle      — the light Minecraft button: pastel light gray, for neutral
  *              actions and anything unselected
  *  danger    — pastel red
  *  ghost     — no fill, for inline links-as-buttons */
-export type ButtonVariant = 'primary' | 'secondary' | 'idle' | 'danger' | 'ghost'
+export type ButtonVariant = 'primary' | 'idle' | 'danger' | 'ghost'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -31,20 +30,19 @@ const SIZE: Record<ButtonSize, string> = {
 const SQUARE: Record<ButtonSize, string> = { sm: 'px-2.5 py-2 min-w-9 h-9', md: 'px-3 py-2.5 min-w-10 h-10', lg: 'px-3.5 py-3 min-w-12 h-12' }
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-primary-text hover:bg-primary-hover hover:text-primary-hover-text shadow-neu active:shadow-neu-inset',
-  secondary: 'bg-gold text-ink hover:bg-gold-hover shadow-neu active:shadow-neu-inset',
+  primary: 'bg-green text-white hover:bg-primary-hover shadow-neu active:shadow-neu-inset',
   idle: 'bg-idle text-ink hover:bg-idle-hover shadow-neu active:shadow-neu-inset',
   danger: 'bg-error/80 text-white hover:bg-error/90 shadow-neu active:shadow-neu-inset',
   ghost: 'bg-transparent text-text hover:bg-idle/40 active:bg-idle/60',
 }
 
-export const buttonBase = 'relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:shadow-none'
+const base = 'relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:shadow-none'
 const idleDisabled = 'disabled:opacity-60 disabled:cursor-not-allowed'
 
 export default function Button({ variant = 'idle', size = 'md', block, square, loading, className = '', type = 'button', children, disabled, ...rest }: Props) {
   return (
     <button type={type} disabled={disabled || loading} aria-busy={loading || undefined}
-      className={`${buttonBase} ${loading ? 'cursor-progress' : idleDisabled} ${VARIANT[variant]} ${square ? SQUARE[size] : SIZE[size]} ${block ? 'w-full' : ''} ${className}`} {...rest}>
+      className={`${base} ${loading ? 'cursor-progress' : idleDisabled} ${VARIANT[variant]} ${square ? SQUARE[size] : SIZE[size]} ${block ? 'w-full' : ''} ${className}`} {...rest}>
       {loading && (
         <>
           {/* A conic sweep spinning behind the face; the face covers all but a 3px rim. */}
