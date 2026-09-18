@@ -81,7 +81,8 @@ each time it opens:
   `saves/<name>` — `<name> (2)` if that folder already exists — and entries
   that would escape the folder (`../`) are refused. Deleting a world removes
   the folder.
-- **Screenshots** are the PNG files in `screenshots/`. Thumbnails are served
+- **Screenshots** are the PNG files in `screenshots/`. Thumbnails (and the
+  icon of an instance made from a modpack, `instances/<id>/icon`) are served
   to the window through an internal URL (`/media/…`) that the Go side
   answers as an asset-server middleware (before the frontend is consulted —
   as a not-found fallback it never ran under `wails dev`, where Vite answers
