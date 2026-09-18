@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, Globe, Moon, Shield, Sun, User } from '../ui/icons'
 import Button from '../ui/Button'
-import { Glass } from '../ui/Panel'
 import { useApp } from '../state'
 import { LANGUAGES } from '../i18n'
 
@@ -33,7 +32,7 @@ export default function AccountMenu() {
         <span className="whitespace-nowrap overflow-hidden text-ellipsis">{nickname || '?'}</span>
       </Button>
       {open && (
-        <Glass role="menu" className="absolute top-[calc(100%+8px)] right-0 z-9001 w-64 flex flex-col gap-2 p-4 animate-[dialog-fade_0.15s_ease-in-out]">
+        <div role="menu" className="glass absolute top-[calc(100%+8px)] right-0 z-9001 w-64 flex flex-col gap-2 p-4 animate-[dialog-fade_0.15s_ease-in-out]">
           <Button variant="ghost" block className="justify-start" onClick={() => setTheme(dark ? 'light' : 'dark')}>
             {dark ? <Sun size={16} /> : <Moon size={16} />}
             {dark ? t.nav.themeToLight : t.nav.themeToDark}
@@ -58,7 +57,7 @@ export default function AccountMenu() {
           <Button variant="ghost" block className="justify-start" onClick={() => { setPrivacyOpen(true); setOpen(false) }}>
             <Shield size={16} /> {t.nav.privacy}
           </Button>
-        </Glass>
+        </div>
       )}
     </div>
   )

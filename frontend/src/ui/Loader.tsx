@@ -1,5 +1,3 @@
-import { Glass } from './Panel'
-
 /** Loader for plain fetches (search results, version lists, listings): a
  *  glass pill with a green spinner ring that appears the moment `active` is
  *  true and leaves the moment it is false. `overlay` centres it over the
@@ -7,10 +5,10 @@ import { Glass } from './Panel'
 export default function AutoLoader({ active, label, overlay }: { active: boolean; label?: string; overlay?: boolean }) {
   if (!active) return null
   const pill = (
-    <Glass className="inline-flex items-center gap-4 px-5 py-3 animate-[dialog-fade_0.15s_ease-in-out]" role="status" aria-live="polite" aria-busy="true">
+    <div className="glass inline-flex items-center gap-4 px-5 py-3 animate-[dialog-fade_0.15s_ease-in-out]" role="status" aria-live="polite" aria-busy="true">
       <span aria-hidden className="inline-block shrink-0 w-[22px] h-[22px] rounded-md border-[3px] border-idle/60 border-t-green animate-spin" />
       {label && <span className="text-sm font-bold whitespace-nowrap">{label}</span>}
-    </Glass>
+    </div>
   )
   if (overlay) return <div className="fixed inset-0 z-9000 grid place-items-center p-4 bg-black/30 backdrop-blur-[4px]">{pill}</div>
   return <div className="flex items-center justify-center py-4">{pill}</div>
