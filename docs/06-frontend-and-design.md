@@ -18,24 +18,31 @@ How it is built:
   that differ between the light and dark theme. Switching theme only flips
   an attribute on the document root.
 - **Building blocks** — `frontend/src/ui/`, one flat folder, and only for
-  things used in more than one place: `Button` (primary, secondary, idle,
-  danger, ghost), `Field` (Label, Input, Select, Checkbox), `Tag` (gray,
-  green, gold), `Panel` and `Glass` (the two surfaces — look only, the caller
-  writes its layout), `ListRow` (title + meta + actions), `Empty`, `Dialog`
-  (+ `ConfirmDialog`), `Toast`, `Loader` (`AutoLoader`), `StatusMessage`,
+  things used in more than one place: `Button` (primary, idle, danger,
+  ghost), `Field` (Label, Input, Select, Checkbox), `Dialog` (a native
+  `<dialog>`: top layer, focus trap and Escape come from the browser;
+  + `ConfirmDialog`), `Loader` (`AutoLoader`), `StatusMessage` (inline
+  feedback and the toasts alike, with a native `<progress>` bar),
   `SegmentedControl`, `DropZone`. Each owns its class strings; nothing else
-  spells out a button or an input.
+  spells out a button or an input. The three surfaces that carry no
+  behaviour — `panel` (+ `panel-hover`), `glass` and `tag` (plus a fill:
+  `bg-tag-gray`, `bg-green-soft`, `bg-gold-soft`) — are `@utility` classes in
+  `theme/tokens.css`, so a card is one `<div className="panel …">`.
 - **Components and screens** (`frontend/src/components`, `frontend/src/screens`)
   compose the blocks and only write layout classes (flex, grid, gap, width).
   Something used by one page stays in that page as a local function
   (`InstanceCard` in Dashboard, `ResultCard` in Search, `IconChoice` in
-  Create Instance) instead of becoming a shared component.
+  Create Instance) instead of becoming a shared component, and reads the
+  app/launch state itself rather than taking it as props. `PlayButton`
+  (Dashboard cards, the last-played panel, the instance page) is the one
+  shared piece of card behaviour.
 - **Hooks and utils** — `hooks/useFileList` is the one implementation of what
   every instance tab does (list, drop/browse, remove, note, error) and
   `utils/instanceContent.ts` the table that tells it which backend calls a
   kind uses; `hooks/useAddAction` is the shared Add-to-instance flow.
   `utils/` holds logic with no React in it: `validation.ts` (`TextRule`, the
-  nickname and instance-name rules), `format.ts` (ago, hours, bytes),
+  nickname and instance-name rules), `format.ts` (ago via
+  `Intl.RelativeTimeFormat`, hours, bytes),
   `errors.ts`, `compat.ts`, `search.ts`.
 - **Errors** — the backend's messages are long; the UI shows a 1–3 word
   headline picked by `frontend/src/utils/errors.ts` with the message as detail.

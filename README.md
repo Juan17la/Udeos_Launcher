@@ -27,7 +27,7 @@ CDN install and the offline launch work, and where data lives. Start with
 │   └── src/
 │       ├── api/       typed bridge to the Go bindings (+ browser mock)
 │       ├── screens/   Login, Dashboard, Create Instance, instance/, Search, Project Detail
-│       ├── ui/        reusable building blocks (Button, Panel, ListRow, Dialog, …)
+│       ├── ui/        reusable building blocks (Button, Field, Dialog, StatusMessage, …)
 │       ├── hooks/, utils/, components/, theme/, i18n/
 │       └── state/     app context + launch and content-queue hooks
 ├── build/             app icon and Linux packaging files (`wails build` adds the rest)
