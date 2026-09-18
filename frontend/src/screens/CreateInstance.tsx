@@ -14,7 +14,7 @@ import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import type { Loader, LoaderOption, VersionList } from '../api/types'
 
-const LOADERS: Loader[] = ['Vanilla', 'Forge', 'NeoForge', 'Fabric']
+const LOADERS: Loader[] = ['Vanilla', 'Forge', 'NeoForge', 'Fabric', 'Quilt']
 
 /** Loader support tables are fetched once per loader and kept for the life of the screen. */
 type LoaderTable = { status: 'loading' } | { status: 'error' } | { status: 'ready'; byVersion: Map<string, LoaderOption> }

@@ -9,6 +9,12 @@ import type { Instance, ProjectDetail, ProjectType } from '../api/types'
  *  remains the one precise, authoritative check before anything downloads. */
 export type InstanceCompat = { instance: Instance; ok: boolean; reason: string }
 
+/** The provider loader tags an instance accepts: Quilt runs Fabric mods too. */
+export function loaderNames(loader: string): string[] {
+  const l = loader.toLowerCase()
+  return l === 'quilt' ? ['quilt', 'fabric'] : [l]
+}
+
 export function computeCompat(detail: ProjectDetail, instances: Instance[], t: { vanilla: string; needsLoader: string; noBuild: string }): InstanceCompat[] {
   const type: ProjectType = detail.projectType
   const results = instances.map((instance) => {
@@ -18,7 +24,7 @@ export function computeCompat(detail: ProjectDetail, instances: Instance[], t: {
     if (!detail.gameVersions.includes(instance.version)) {
       return { instance, ok: false, reason: fmt(t.noBuild, { version: instance.version }) }
     }
-    if (type === 'mod' && !detail.loaders.includes(instance.loader.toLowerCase())) {
+    if (type === 'mod' && !loaderNames(instance.loader).some((l) => detail.loaders.includes(l))) {
       return { instance, ok: false, reason: fmt(t.needsLoader, { loaders: detail.loaders.join('/') }) }
     }
     return { instance, ok: true, reason: '' }

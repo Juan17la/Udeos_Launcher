@@ -13,7 +13,7 @@ export type ProfileState = { exists: boolean; profile: Profile }
 
 export type Counts = { mods: number; resourcePacks: number; worlds: number; screenshots: number }
 
-export type Loader = 'Vanilla' | 'Fabric' | 'Forge' | 'NeoForge'
+export type Loader = 'Vanilla' | 'Fabric' | 'Quilt' | 'Forge' | 'NeoForge'
 
 /** The instance's own JVM settings; 0 / '' mean the profile default (memory), the managed runtime (java), nothing extra (args). */
 export type LaunchSettings = { maxMemoryMB?: number; javaPath?: string; jvmArgs?: string }
@@ -45,7 +45,8 @@ export type LoaderOption = { minecraft: string; version: string; label: string }
 export type Progress = { phase: string; done: number; total: number; bytes: number; totalBytes: number; current: string }
 export type GameEvent = { instanceId: string; running: boolean; exitCode: number; logPath: string; error?: string }
 
-export type AppInfo = { version: string; os: string; arch: string; dataDir: string }
+/** totalMemoryMB is 0 when the machine's RAM could not be read. */
+export type AppInfo = { version: string; os: string; arch: string; dataDir: string; totalMemoryMB: number }
 
 export type World = { folder: string; name: string; lastPlayed: string; sizeBytes: number }
 export type FileEntry = { name: string; sizeBytes: number; modTime: string; isDir: boolean }
@@ -102,10 +103,21 @@ export type ProjectDetail = {
   id: string
   slug: string
   title: string
+  /** The one-liner. */
   description: string
+  /** The project's full page: Markdown, often with HTML mixed in (see utils/markdown). */
+  body: string
   iconUrl: string
   downloads: number
   projectType: ProjectType
   gameVersions: string[]
   loaders: string[]
+  categories: string[]
+  clientSide: 'required' | 'optional' | 'unsupported' | 'unknown' | ''
+  serverSide: 'required' | 'optional' | 'unsupported' | 'unknown' | ''
+  license: string
+  sourceUrl: string
+  issuesUrl: string
+  wikiUrl: string
+  gallery: { url: string; title: string; description: string }[]
 }

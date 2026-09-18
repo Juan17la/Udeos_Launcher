@@ -37,7 +37,7 @@ export default function InstancePage({ id }: { id: string }) {
       <div className="col-span-2"><BackButton /></div>
       {/* The side panel is the viewport's height, not the list's: a long
          mods list scrolls past it while it stays put. */}
-      <div className="panel flex flex-col items-center justify-between gap-4 text-center sticky top-6 p-6 h-[calc(100vh-9.5rem)] min-h-fit">
+      <div className="panel flex flex-col items-center justify-between gap-4 text-center sticky top-24 p-6 h-[calc(100vh-9.5rem)] min-h-fit">
         <div className="flex flex-col items-center justify-center gap-4 flex-1">
           <PixelIcon name={inst.icon} size={96} />
           <div className="max-w-full flex flex-col gap-3">

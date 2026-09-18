@@ -55,7 +55,9 @@ const es: Dict = {
     worldMeta: 'Jugado {when} • {size}', savedTo: 'Guardado en {path}',
     settings: {
       title: 'Ajustes de lanzamiento', subtitle: 'Cómo se inicia el juego en esta instancia. Deja un campo vacío para usar el valor por defecto.',
-      memory: 'Memoria (MB)', memoryHint: 'Memoria máxima para el juego (-Xmx). Por defecto {mb} MB. Los modpacks suelen necesitar 4096–8192.',
+      memory: 'Memoria', memoryHint: 'Memoria máxima para el juego (-Xmx). Por defecto {mb} MB. Los modpacks suelen necesitar 4096–8192.',
+      memoryValue: '{mb} MB de {total} MB', memoryDefault: 'Usar el valor por defecto ({mb} MB)',
+      memoryTooLow: 'Con menos de 1 GB el juego puede ni siquiera arrancar.', memoryTooHigh: 'Deja menos de 2 GB para el sistema: habrá tirones, bloqueos o cierres.',
       java: 'Ejecutable de Java', javaHint: 'Vacío: se descarga y usa el Java que Mojang recomienda para esta versión.', javaPlaceholder: 'Runtime gestionado', pickJava: 'Elegir…',
       jvmArgs: 'Argumentos extra de la JVM', jvmArgsHint: 'Se añaden después de los del launcher, así que los tuyos mandan. Separados por espacios.', jvmArgsPlaceholder: 'p. ej. -XX:+UseZGC -Dfml.earlyWindowControl=false',
       save: 'Guardar', saved: 'Ajustes guardados',
@@ -76,8 +78,11 @@ const es: Dict = {
     vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
   },
   detail: {
-    versionsHeading: 'Versiones disponibles', loadersHeading: 'Cargadores', instancesHeading: 'Tus instancias',
-    noInstances: 'Todavía no tienes instancias.', add: 'Añadir a una instancia',
+    versionsHeading: 'Versiones disponibles', loadersHeading: 'Loaders', instancesHeading: 'Instalar en',
+    noInstances: 'Aún no tienes instancias.', add: 'Añadir', showMore: '+{n} más', showLess: 'Mostrar menos',
+    noCompatible: 'Ninguna de tus instancias puede usarlo. Crea una instancia {loaders} para {versions}.',
+    client: 'Cliente', server: 'Servidor', side: { required: 'necesario', optional: 'opcional', unsupported: 'no compatible', unknown: 'desconocido' },
+    license: 'Licencia', source: 'Código fuente', issues: 'Incidencias', wiki: 'Wiki', gallery: 'Galería', about: 'Acerca de',
   },
   content: {
     pickTitle: 'Añadir {title} a…', pickHint: 'Elige una instancia: se instala al momento.',
