@@ -8,6 +8,7 @@
 //	go run ./cmd/udeoscli install <instance id>
 //	go run ./cmd/udeoscli play <instance id>
 //	go run ./cmd/udeoscli add <instance id> <project id or slug> [mod|resourcepack|shader]
+//	go run ./cmd/udeoscli modpack <project id or slug> [minecraft version] [loader]
 package main
 
 import (
@@ -26,7 +27,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Quilt|Forge|NeoForge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id> | add <instance id> <project> [type]")
+		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Quilt|Forge|NeoForge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id> | add <instance id> <project> [type] | modpack <project> [version] [loader]")
 		os.Exit(2)
 	}
 	dirs, err := paths.Default()
@@ -128,6 +129,17 @@ func main() {
 		for _, e := range entries {
 			fmt.Println("\nadded", e.File)
 		}
+	case "modpack":
+		mc, ldr := "", ""
+		if len(os.Args) > 3 {
+			mc = os.Args[3]
+		}
+		if len(os.Args) > 4 {
+			ldr = os.Args[4]
+		}
+		inst, entries, err := l.Modpacks.Create(ctx, arg(2), "", "grass", mc, ldr)
+		check(err)
+		fmt.Printf("\ncreated %s: %s %s %s %s, %d files recorded\n", inst.ID, inst.Name, inst.Version, inst.Loader, inst.LoaderVersion, len(entries))
 	case "play":
 		check(l.Launch(ctx, arg(2)))
 		fmt.Println("\ngame started, waiting for it to exit...")

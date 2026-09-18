@@ -82,7 +82,10 @@ each time it opens:
   that would escape the folder (`../`) are refused. Deleting a world removes
   the folder.
 - **Screenshots** are the PNG files in `screenshots/`. Thumbnails are served
-  to the window through an internal URL (`/media/…`) that the Go side maps to
+  to the window through an internal URL (`/media/…`) that the Go side
+  answers as an asset-server middleware (before the frontend is consulted —
+  as a not-found fallback it never ran under `wails dev`, where Vite answers
+  unknown paths with `index.html`) and maps to
   the file, so images are not copied or encoded. Clicking a thumbnail shows
   it full size; "Save to Device" copies the file.
 - **Open folder** buttons (side card, Worlds and Screenshots tabs, and the

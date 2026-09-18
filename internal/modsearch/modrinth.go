@@ -272,6 +272,23 @@ func (m *Modrinth) VersionByID(ctx context.Context, id string) (Version, error) 
 	return raw.toVersion(), nil
 }
 
+// VersionsByHashes resolves files to versions (POST /version_files).
+func (m *Modrinth) VersionsByHashes(ctx context.Context, sha1s []string) (map[string]Version, error) {
+	out := map[string]Version{}
+	if len(sha1s) == 0 {
+		return out, nil
+	}
+	var raw map[string]modrinthVersion
+	body := map[string]any{"hashes": sha1s, "algorithm": "sha1"}
+	if err := m.Client.PostJSON(ctx, ModrinthBaseURL+"/version_files", body, &raw); err != nil {
+		return nil, err
+	}
+	for h, v := range raw {
+		out[h] = v.toVersion()
+	}
+	return out, nil
+}
+
 // Projects fetches several projects in one request (GET /projects?ids=[...]).
 func (m *Modrinth) Projects(ctx context.Context, ids []string) ([]ProjectInfo, error) {
 	if len(ids) == 0 {
