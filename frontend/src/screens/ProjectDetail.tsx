@@ -7,6 +7,7 @@ import AutoLoader from '../ui/Loader'
 import BackButton from '../components/BackButton'
 import Markdown from '../utils/markdown'
 import { computeCompat } from '../utils/compat'
+import { useAddAction } from '../hooks/useAddAction'
 import type { ProjectDetail as ProjectDetailData, SearchResult } from '../api/types'
 
 /** instanceId is the instance Search was locked to; it stays in the screen
@@ -18,12 +19,14 @@ const VERSIONS_SHOWN = 12
 
 /** Full-page view of one project. Left: what it runs on (every Minecraft
  *  version and loader it ever published for) and which of the player's
- *  instances can take it, each with its own Add. Right: everything the
- *  project page offers — icon, categories, client/server side, license,
- *  links, gallery and the full description. */
-export default function ProjectDetail({ result }: Props) {
+ *  instances can take it, each with its own Add; a modpack can also become
+ *  a new instance. Right: everything the project page offers — icon,
+ *  categories, client/server side, license, links, gallery and the full
+ *  description. */
+export default function ProjectDetail({ result, instanceId }: Props) {
   const { t, instances } = useApp()
   const { enqueue } = useContent()
+  const { add, dialog } = useAddAction(instanceId)
   const [detail, setDetail] = useState<ProjectDetailData | null>(null)
   const [allVersions, setAllVersions] = useState(false)
 
@@ -63,24 +66,23 @@ export default function ProjectDetail({ result }: Props) {
               </div>
             </section>
 
-            {!modpack && (
-              <section className="panel flex flex-col gap-4 p-5">
-                <h6 className="m-0">{t.detail.instancesHeading}</h6>
-                {instances.length === 0 && <p className="m-0 text-xs text-muted">{t.detail.noInstances}</p>}
-                {instances.length > 0 && compatible.length === 0 && (
-                  <p className="m-0 text-xs text-muted">{fmt(t.detail.noCompatible, { loaders: detail.loaders.join('/') || 'Fabric/Forge', versions: detail.gameVersions.slice(-3).join(', ') })}</p>
-                )}
-                {compatible.map(({ instance }) => (
-                  <div key={instance.id} className="flex items-center gap-3 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
-                    <div className="flex-1 min-w-0 flex flex-col gap-1">
-                      <div className="text-sm font-bold truncate">{instance.name}</div>
-                      <div className="text-[11px] text-muted truncate">{instance.version} · {instance.loaderLabel}</div>
-                    </div>
-                    <Button variant="primary" size="sm" onClick={() => enqueue(instance.id, result)}>{t.detail.add}</Button>
+            <section className="panel flex flex-col gap-4 p-5">
+              <h6 className="m-0">{t.detail.instancesHeading}</h6>
+              {modpack && <Button variant="primary" onClick={() => add(result)}>{t.detail.createFromModpack}</Button>}
+              {instances.length === 0 && !modpack && <p className="m-0 text-xs text-muted">{t.detail.noInstances}</p>}
+              {instances.length > 0 && compatible.length === 0 && (
+                <p className="m-0 text-xs text-muted">{fmt(t.detail.noCompatible, { loaders: detail.loaders.join('/') || 'Fabric/Forge', versions: detail.gameVersions.slice(-3).join(', ') })}</p>
+              )}
+              {compatible.map(({ instance }) => (
+                <div key={instance.id} className="flex items-center gap-3 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <div className="text-sm font-bold truncate">{instance.name}</div>
+                    <div className="text-[11px] text-muted truncate">{instance.version} · {instance.loaderLabel}</div>
                   </div>
-                ))}
-              </section>
-            )}
+                  <Button variant="primary" size="sm" onClick={() => enqueue(instance.id, result)}>{t.detail.add}</Button>
+                </div>
+              ))}
+            </section>
           </aside>
 
           <article className="min-w-0 flex flex-col gap-6">
@@ -129,6 +131,7 @@ export default function ProjectDetail({ result }: Props) {
           </article>
         </div>
       )}
+      {dialog}
     </main>
   )
 }

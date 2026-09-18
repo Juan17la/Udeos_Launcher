@@ -55,7 +55,7 @@ function LaunchToast() {
 function JobToast({ job }: { job: ContentJob }) {
   const { t, instances } = useApp()
   const { dismiss } = useContent()
-  const name = instances.find((i) => i.id === job.instanceId)?.name ?? ''
+  const name = job.create ? job.create.name || job.result.title : instances.find((i) => i.id === job.instanceId)?.name ?? ''
   const title = job.result.title
   const p = job.progress
   const pct = p && p.total > 0 ? Math.round((p.done / p.total) * 100) : 0
@@ -64,11 +64,11 @@ function JobToast({ job }: { job: ContentJob }) {
     return <StatusMessage className={slide} kind="error" headline={errorHeadline(job.message, t.errors)} detail={job.message} onDismiss={() => dismiss(job.id)} />
   }
   if (job.status === 'done') {
-    const text = job.count === 0 ? fmt(t.content.alreadyInstalled, { title, name }) : job.count === 1 ? fmt(t.content.doneOne, { title, name }) : fmt(t.content.done, { n: job.count, name })
+    const text = job.create ? fmt(t.content.created, { name }) : job.count === 0 ? fmt(t.content.alreadyInstalled, { title, name }) : job.count === 1 ? fmt(t.content.doneOne, { title, name }) : fmt(t.content.done, { n: job.count, name })
     return <StatusMessage className={slide} kind="success" headline={text} onDismiss={() => dismiss(job.id)} />
   }
   return (
-    <StatusMessage className={slide} headline={fmt(t.content.installingTo, { title, name })}
+    <StatusMessage className={slide} headline={fmt(job.create ? t.content.creating : t.content.installingTo, { title, name })}
       aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
       percent={job.status === 'installing' ? pct : 0} />
   )

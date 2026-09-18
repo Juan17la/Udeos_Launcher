@@ -54,11 +54,11 @@ const en = {
     worldMeta: 'Played {when} • {size}', savedTo: 'Saved to {path}',
     settings: {
       title: 'Launch settings', subtitle: 'How the game is started for this instance. Leave a field empty to use the default.',
-      memory: 'Memory', memoryHint: 'Maximum heap for the game (-Xmx). Default {mb} MB. Modpacks usually want 4096–8192.',
+      memory: 'Memory', memoryHint: 'Default {mb} MB. Modpacks usually want 4–8 GB.',
       memoryValue: '{mb} MB of {total} MB', memoryDefault: 'Use default ({mb} MB)',
-      memoryTooLow: 'Below 1 GB the game may not even start.', memoryTooHigh: 'Leaves less than 2 GB for the system — expect stutter, freezes or crashes.',
-      java: 'Java executable', javaHint: 'Empty: the Java runtime Mojang recommends for this version is downloaded and used.', javaPlaceholder: 'Managed runtime', pickJava: 'Choose…',
-      jvmArgs: 'Extra JVM arguments', jvmArgsHint: 'Added after the launcher\'s defaults, so yours win. Space separated.', jvmArgsPlaceholder: 'e.g. -XX:+UseZGC -Dfml.earlyWindowControl=false',
+      memoryTooLow: 'Below 1 GB the game may not start.', memoryTooHigh: 'Less than 2 GB left for the system: expect freezes.',
+      java: 'Java executable', javaHint: 'Empty: the Java Mojang recommends is used.', javaPlaceholder: 'Managed runtime', pickJava: 'Choose…',
+      jvmArgs: 'Extra JVM arguments', jvmArgsHint: 'Space separated. Yours override the launcher\'s.', jvmArgsPlaceholder: 'e.g. -XX:+UseZGC -Dfml.earlyWindowControl=false',
       save: 'Save', saved: 'Settings saved',
     },
   },
@@ -82,6 +82,7 @@ const en = {
     noCompatible: 'None of your instances can use this. Create a {loaders} instance for {versions}.',
     client: 'Client', server: 'Server', side: { required: 'required', optional: 'optional', unsupported: 'unsupported', unknown: 'unknown' },
     license: 'License', source: 'Source code', issues: 'Issues', wiki: 'Wiki', gallery: 'Gallery', about: 'About',
+    createFromModpack: 'New instance from this modpack',
   },
   content: {
     pickTitle: 'Add {title} to…', pickHint: 'Choose an instance — it installs right away.',
@@ -89,6 +90,8 @@ const en = {
     noInstancesTitle: 'No instances yet', noInstancesBody: 'Create an instance first, then add {title} to it.',
     planning: 'Checking versions…',
     installingTo: 'Adding {title} to {name}', queued: 'Waiting…',
+    newInstance: 'New instance', orAddTo: 'Or pour its mods into an instance you already have:',
+    creating: 'Creating {name}', created: 'Created {name}. It is in your instances.',
     alreadyInstalled: '{title} is already in {name}.', done: 'Added {n} file(s) to {name}.', doneOne: 'Added {title} to {name}.',
   },
   launch: {

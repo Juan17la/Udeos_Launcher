@@ -51,8 +51,12 @@ type Backend = {
   /** What adding the project would install (version that fits, required dependencies), or a rejection
    *  (no build for the instance's version/loader, incompatible with an installed mod) as the error message. */
   PlanContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentPlan>
-  /** Plans again and downloads; progress arrives on 'content:progress'. */
+  /** Plans again and downloads; progress arrives on 'content:progress'. A modpack pours its
+   *  build for the instance's version/loader into it (files already there are kept). */
   AddContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentEntry[]>
+  /** New instance from a modpack: its build for gameVersion/loader ('' = newest), the loader it
+   *  declares, every file and its overrides. name '' = the pack's name. Progress on 'content:progress'. */
+  CreateInstanceFromModpack(projectId: string, name: string, icon: string, gameVersion: string, loader: string): Promise<Instance>
   /** Modrinth project ids already installed in the instance. */
   ListInstalledProjects(instanceId: string): Promise<string[]>
   /** What was installed from Modrinth (title, version, icon, description per file); hand-added files are not listed. */
