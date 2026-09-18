@@ -29,7 +29,10 @@ java command:
    instance's *extra JVM arguments* come right after, so a flag set there
    overrides a default. These three live in `Instance.Launch`
    (`instances.json`) and are edited on the instance page's **Settings**
-   tab (`SetInstanceLaunch`).
+   tab (`SetInstanceLaunch`). Memory is a slider from 512 MB to the
+   machine's RAM (`GetAppInfo().totalMemoryMB`, read by `internal/sysinfo`:
+   `/proc/meminfo`, `sysctl hw.memsize`, `GlobalMemoryStatusEx`); it turns
+   red below 1 GB and when less than 2 GB would be left for the system.
 3. **JVM arguments** from the version JSON, filtered by the rules: on macOS
    this adds the flag that makes the window open on the main thread, on
    Windows some OS-version hints. Placeholders are replaced: the natives
