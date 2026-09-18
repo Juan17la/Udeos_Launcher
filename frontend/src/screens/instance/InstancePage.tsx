@@ -6,18 +6,20 @@ import { ConfirmDialog } from '../../ui/Dialog'
 import SegmentedControl from '../../ui/SegmentedControl'
 import { useApp } from '../../state'
 import PlayButton from '../../components/PlayButton'
+import BackButton from '../../components/BackButton'
 import { api } from '../../api/bridge'
 import FilesTab from './FilesTab'
 import WorldsTab from './WorldsTab'
 import ScreenshotsTab from './ScreenshotsTab'
+import SettingsTab from './SettingsTab'
 
-type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots'
+type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots' | 'settings'
 
 export default function InstancePage({ id }: { id: string }) {
   const { t, instances, refreshInstances, go } = useApp()
   const inst = instances.find((i) => i.id === id)
   const vanilla = !inst || inst.loader === 'Vanilla'
-  const tabs: Tab[] = vanilla ? ['resourcepacks', 'worlds', 'screenshots'] : ['mods', 'resourcepacks', 'shaders', 'worlds', 'screenshots']
+  const tabs: Tab[] = vanilla ? ['resourcepacks', 'worlds', 'screenshots', 'settings'] : ['mods', 'resourcepacks', 'shaders', 'worlds', 'screenshots', 'settings']
   const [tab, setTab] = useState<Tab>(tabs[0])
   const [confirmDelete, setConfirmDelete] = useState(false)
 
@@ -31,8 +33,11 @@ export default function InstancePage({ id }: { id: string }) {
   }
 
   return (
-    <main className="flex-1 grid items-start gap-8 pt-8 px-10 pb-12" style={{ gridTemplateColumns: '0.4fr minmax(0,0.6fr)' }}>
-      <div className="panel flex flex-col items-center justify-between gap-4 text-center sticky top-6 p-6 h-full">
+    <main className="flex-1 grid items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12" style={{ gridTemplateColumns: '0.4fr minmax(0,0.6fr)' }}>
+      <div className="col-span-2"><BackButton /></div>
+      {/* The side panel is the viewport's height, not the list's: a long
+         mods list scrolls past it while it stays put. */}
+      <div className="panel flex flex-col items-center justify-between gap-4 text-center sticky top-6 p-6 h-[calc(100vh-9.5rem)] min-h-fit">
         <div className="flex flex-col items-center justify-center gap-4 flex-1">
           <PixelIcon name={inst.icon} size={96} />
           <div className="max-w-full flex flex-col gap-3">
@@ -59,6 +64,7 @@ export default function InstancePage({ id }: { id: string }) {
         <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.instance.tabs[k] }))} value={tab} onChange={setTab} />
         {tab === 'worlds' && <WorldsTab id={inst.id} />}
         {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
+        {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
         {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
       </div>
 

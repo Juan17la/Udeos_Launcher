@@ -2,7 +2,6 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
-import { ChevronLeft } from '../ui/icons'
 import Button from '../ui/Button'
 import { Input, Select } from '../ui/Field'
 import StatusMessage from '../ui/StatusMessage'
@@ -11,6 +10,7 @@ import SegmentedControl from '../ui/SegmentedControl'
 import { errorHeadline, messageOf } from '../utils/errors'
 import { allowedTypes, loadSearchVersions } from '../utils/search'
 import { useAddAction } from '../hooks/useAddAction'
+import BackButton from '../components/BackButton'
 import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
@@ -105,7 +105,8 @@ export default function Search({ instanceId, type: initialType }: Props) {
 
   return (
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
-      <div>
+      <div className="flex flex-col gap-4">
+        <BackButton />
         <h2 className="mb-2">{t.search.title}</h2>
         <p className="m-0 text-muted">{t.search.subtitle}</p>
       </div>
@@ -115,9 +116,6 @@ export default function Search({ instanceId, type: initialType }: Props) {
           <span className="font-bold text-lg">{fmt(t.search.forInstance, { name: inst.name })}</span>
           <span className="tag bg-green-soft">{inst.version}</span>
           <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
-          <Button variant="ghost" size="sm" onClick={() => go({ name: 'instance', id: inst.id })}>
-            <ChevronLeft /> {fmt(t.search.backToInstance, { name: inst.name })}
-          </Button>
         </div>
       )}
 

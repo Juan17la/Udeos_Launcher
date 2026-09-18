@@ -9,17 +9,18 @@ import SegmentedControl from '../ui/SegmentedControl'
 import { errorHeadline, messageOf } from '../utils/errors'
 import { INSTANCE_NAME } from '../utils/validation'
 import { useApp } from '../state'
+import BackButton from '../components/BackButton'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import type { Loader, LoaderOption, VersionList } from '../api/types'
 
-const LOADERS: Loader[] = ['Vanilla', 'Forge', 'Fabric']
+const LOADERS: Loader[] = ['Vanilla', 'Forge', 'NeoForge', 'Fabric']
 
 /** Loader support tables are fetched once per loader and kept for the life of the screen. */
 type LoaderTable = { status: 'loading' } | { status: 'error' } | { status: 'ready'; byVersion: Map<string, LoaderOption> }
 
 export default function CreateInstance() {
-  const { t, go, refreshInstances } = useApp()
+  const { t, go, back, refreshInstances } = useApp()
   const [name, setName] = useState('')
   const [version, setVersion] = useState('')
   const [loader, setLoader] = useState<Loader>('Vanilla')
@@ -86,7 +87,8 @@ export default function CreateInstance() {
   return (
     <main className="flex-1 flex flex-col items-center gap-6 pt-8 px-10 pb-12">
       {/* Heading on the canvas, the form in the panel. */}
-      <div className="w-[min(560px,100%)]">
+      <div className="w-[min(560px,100%)] flex flex-col gap-4">
+        <BackButton />
         <h2 className="mb-2">{t.create.title}</h2>
         <p className="m-0 text-muted">{t.create.subtitle}</p>
       </div>
@@ -136,7 +138,7 @@ export default function CreateInstance() {
         {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
         <AutoLoader active={busy} />
         <div className="flex gap-4 justify-end">
-          <Button variant="idle" onClick={() => go({ name: 'dashboard' })}>{t.common.cancel}</Button>
+          <Button variant="idle" onClick={back}>{t.common.cancel}</Button>
           <Button variant="primary" disabled={!canSubmit} onClick={submit}>{t.create.submit}</Button>
         </div>
       </div>
@@ -149,7 +151,7 @@ function IconChoice({ selected, title, onClick, children }: { selected: boolean;
   return (
     <button
       type="button" aria-pressed={selected} title={title} onClick={onClick}
-      className={`inline-flex items-center justify-center px-2.5 py-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-green text-white shadow-neu-inset' : 'bg-idle text-ink hover:bg-idle-hover shadow-neu'}`}
+      className={`inline-flex items-center justify-center px-2.5 py-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-green text-white' : 'bg-idle text-ink hover:bg-idle-hover'} shadow-neu`}
     >
       {children}
     </button>
