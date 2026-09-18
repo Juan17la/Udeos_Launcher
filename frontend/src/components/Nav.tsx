@@ -15,7 +15,7 @@ export default function Nav() {
   return (
     <nav className="sticky top-0 z-50 bg-bg flex items-center flex-wrap gap-4 py-4 px-6">
       <div className="flex items-center gap-3 font-bold text-xl whitespace-nowrap mr-auto">
-        <Logo size={26} />
+        <Logo size={36} />
         {t.app.name}
       </div>
 
