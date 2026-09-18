@@ -3,12 +3,12 @@ import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { ChevronLeft } from '../ui/icons'
-import Button from '../ui/atoms/Button'
-import Tag from '../ui/atoms/Tag'
-import { AutoLoader } from '../ui/atoms/Loader'
-import Card from '../ui/molecules/Card'
-import { useAddAction } from '../components/AddInstancePickerDialog'
-import { computeCompat } from '../lib/compat'
+import Button from '../ui/Button'
+import Tag from '../ui/Tag'
+import AutoLoader from '../ui/Loader'
+import ListRow from '../ui/ListRow'
+import { useAddAction } from '../hooks/useAddAction'
+import { computeCompat } from '../utils/compat'
 import type { ProjectDetail as ProjectDetailData, SearchResult } from '../api/types'
 
 /** instanceId is the instance Search was locked to, so Back returns there
@@ -17,8 +17,7 @@ type Props = { result: SearchResult; instanceId?: string }
 
 /** Full-page view of one search result: its description, every Minecraft
  *  version/loader it has ever published a build for, and which of the
- *  player's instances can take it — the "detect versions, show compatible
- *  instances" view the Search cards no longer try to cram in. */
+ *  player's instances can take it. */
 export default function ProjectDetail({ result, instanceId }: Props) {
   const { t, instances, go } = useApp()
   const [detail, setDetail] = useState<ProjectDetailData | null>(null)
@@ -79,14 +78,10 @@ export default function ProjectDetail({ result, instanceId }: Props) {
         <div className="flex flex-col gap-4">
           <h4 className="m-0">{t.detail.instancesHeading}</h4>
           {instances.length === 0 && <p className="m-0 text-sm text-muted">{t.detail.noInstances}</p>}
-          {detail && instances.length > 0 && compat.map(({ instance, ok, reason }) => (
-            <Card key={instance.id} row className="gap-4">
-              <div className="flex-1 min-w-0 flex flex-col gap-1">
-                <div className="text-[15px] font-bold whitespace-nowrap overflow-hidden text-ellipsis">{instance.name}</div>
-                <div className="text-xs text-muted">{instance.version} · {instance.loaderLabel}</div>
-              </div>
+          {compat.map(({ instance, ok, reason }) => (
+            <ListRow key={instance.id} title={instance.name} meta={`${instance.version} · ${instance.loaderLabel}`}>
               <Tag tone={ok ? 'green' : 'gray'}>{ok ? t.compat.ok : reason}</Tag>
-            </Card>
+            </ListRow>
           ))}
           <div>
             <Button variant="primary" size="lg" disabled={!detail} onClick={() => add(result)}>{t.detail.add}</Button>
