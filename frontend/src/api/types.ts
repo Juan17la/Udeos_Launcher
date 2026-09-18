@@ -13,21 +13,25 @@ export type ProfileState = { exists: boolean; profile: Profile }
 
 export type Counts = { mods: number; resourcePacks: number; worlds: number; screenshots: number }
 
-export type Loader = 'Vanilla' | 'Fabric' | 'Forge'
+export type Loader = 'Vanilla' | 'Fabric' | 'Forge' | 'NeoForge'
+
+/** The instance's own JVM settings; 0 / '' mean the profile default (memory), the managed runtime (java), nothing extra (args). */
+export type LaunchSettings = { maxMemoryMB?: number; javaPath?: string; jvmArgs?: string }
 
 export type Instance = {
   id: string
   name: string
   version: string
   loader: Loader
-  /** Loader build to install, e.g. "0.16.9" (Fabric) or "1.20.1-47.4.10" (Forge). Absent for Vanilla. */
+  /** Loader build to install, e.g. "0.16.9" (Fabric), "1.20.1-47.4.10" (Forge) or "21.1.172" (NeoForge). Absent for Vanilla. */
   loaderVersion?: string
-  /** What the tag shows: "Vanilla", "Fabric 0.16.9", "Forge 47.4.10". */
+  /** What the tag shows: "Vanilla", "Fabric 0.16.9", "Forge 47.4.10", "NeoForge 21.1.172". */
   loaderLabel: string
   icon: string
   createdAt: string
   lastPlayed?: string
   playTimeSec: number
+  launch: LaunchSettings
   counts: Counts
   installed: boolean
   running: boolean
@@ -91,7 +95,7 @@ export type ContentPlan = {
   warnings: string[]
 }
 /** A file installed from Modrinth, as recorded in the instance's content.json. */
-export type ContentEntry = { projectId: string; versionId: string; title: string; versionNumber: string; type: ContentType; file: string; sha1: string; incompatible?: string[]; requiredBy?: string }
+export type ContentEntry = { projectId: string; versionId: string; title: string; versionNumber: string; type: ContentType; file: string; sha1: string; incompatible?: string[]; requiredBy?: string; description?: string; iconUrl?: string }
 /** Whole-project view for the Details page: full description and the Minecraft
  *  versions/loaders aggregated across every version (one call, no per-version fetch). */
 export type ProjectDetail = {

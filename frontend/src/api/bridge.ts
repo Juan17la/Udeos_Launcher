@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, Loader, LoaderOption, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, SortBy, VersionList, World } from './types'
+import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, SortBy, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -14,6 +14,10 @@ type Backend = {
   /** loaderVersion comes from ListLoaderVersions (empty for Vanilla). Nothing is downloaded until Play. */
   CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string): Promise<Instance>
   DeleteInstance(id: string): Promise<void>
+  /** Stores the instance's JVM settings and returns the updated instance. */
+  SetInstanceLaunch(id: string, launch: LaunchSettings): Promise<Instance>
+  /** File dialog for a Java executable; '' when cancelled. */
+  PickJava(): Promise<string>
   ListVersions(): Promise<VersionList>
   ListLoaderVersions(loader: Loader): Promise<LoaderOption[]>
   InstallInstance(id: string): Promise<void>
@@ -51,6 +55,8 @@ type Backend = {
   AddContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentEntry[]>
   /** Modrinth project ids already installed in the instance. */
   ListInstalledProjects(instanceId: string): Promise<string[]>
+  /** What was installed from Modrinth (title, version, icon, description per file); hand-added files are not listed. */
+  ListContent(instanceId: string): Promise<ContentEntry[]>
   /** The whole project (full description, aggregated versions/loaders) for the Details page. */
   GetProjectDetail(projectId: string): Promise<ProjectDetail>
 }

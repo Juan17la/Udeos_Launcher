@@ -3,7 +3,7 @@
 //
 //	go run ./cmd/udeoscli versions
 //	go run ./cmd/udeoscli profile Steve
-//	go run ./cmd/udeoscli create "My World" 1.21.1 [Fabric|Forge]
+//	go run ./cmd/udeoscli create "My World" 1.21.1 [Fabric|Forge|NeoForge]
 //	go run ./cmd/udeoscli loaders Forge
 //	go run ./cmd/udeoscli install <instance id>
 //	go run ./cmd/udeoscli play <instance id>
@@ -26,7 +26,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Forge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id> | add <instance id> <project> [type]")
+		fmt.Fprintln(os.Stderr, "usage: udeoscli versions | loaders <Fabric|Forge|NeoForge> | profile <name> | create <name> <version> [loader] | list | install <instance id> | play <instance id> | add <instance id> <project> [type]")
 		os.Exit(2)
 	}
 	dirs, err := paths.Default()

@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, Loader, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, SortBy, World } from './types'
+import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, SortBy, World } from './types'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -13,18 +13,20 @@ export function createMock() {
   const stored = localStorage.getItem('mock:profile')
   if (stored) profile = JSON.parse(stored)
   const instances: Instance[] = [
-    { id: 'i1', name: 'Skyline Adventures', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'grass', createdAt: new Date().toISOString(), lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), playTimeSec: 61200, counts: { mods: 0, resourcePacks: 1, worlds: 2, screenshots: 3 }, installed: true, running: false },
-    { id: 'i2', name: 'New World', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'crafting_table', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
-    { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'furnace', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
-    { id: 'i4', name: 'Fabric Fun', version: '1.20.1', loader: 'Fabric', loaderVersion: '0.16.9', loaderLabel: 'Fabric 0.16.9', icon: 'diamond', createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
+    { id: 'i1', name: 'Skyline Adventures', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'grass', createdAt: new Date().toISOString(), lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), playTimeSec: 61200, launch: {}, counts: { mods: 0, resourcePacks: 1, worlds: 2, screenshots: 3 }, installed: true, running: false },
+    { id: 'i2', name: 'New World', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'crafting_table', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
+    { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'furnace', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
+    { id: 'i4', name: 'Fabric Fun', version: '1.20.1', loader: 'Fabric', loaderVersion: '0.16.9', loaderLabel: 'Fabric 0.16.9', icon: 'diamond', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
   ]
   const loaderOptions: Record<string, Array<[string, string]>> = {
     Fabric: [['24w33a', '0.16.9'], ['1.21.1', '0.16.9'], ['1.20.4', '0.16.9'], ['1.19.2', '0.16.9']],
     Forge: [['1.21.1', '1.21.1-52.1.0'], ['1.20.4', '1.20.4-49.2.0'], ['1.19.2', '1.19.2-43.5.0'], ['1.12.2', '1.12.2-14.23.5.2859']],
+    NeoForge: [['1.21.1', '21.1.172'], ['1.20.4', '20.4.251']],
   }
   const mods: Record<string, FileEntry[]> = { i3: [
     { name: 'jei-1.20.1-forge-15.3.0.4.jar', sizeBytes: 1_200_000, modTime: new Date().toISOString(), isDir: false },
     { name: 'journeymap-1.20.1-5.9.18-forge.jar', sizeBytes: 4_800_000, modTime: new Date().toISOString(), isDir: false },
+    ...Array.from({ length: 14 }, (_, i) => ({ name: `filler-mod-${i + 1}.jar`, sizeBytes: 300_000 * (i + 1), modTime: new Date().toISOString(), isDir: false })),
   ] }
   const shaders: Record<string, FileEntry[]> = {}
   const fileOf = (path: string): FileEntry => ({ name: path.split('/').pop()!, sizeBytes: 1000, modTime: new Date().toISOString(), isDir: false })
@@ -110,7 +112,9 @@ export function createMock() {
       downloads: hit?.downloads ?? 0, projectType: type, gameVersions, loaders,
     }
   }
-  const installed: Record<string, ContentEntry[]> = {}
+  const installed: Record<string, ContentEntry[]> = { i3: [
+    { projectId: 'jei', versionId: 'jei@1.20.1', title: 'Just Enough Items', versionNumber: '15.3.0.4', type: 'mod', file: 'jei-1.20.1-forge-15.3.0.4.jar', sha1: '', description: 'View items and recipes.', iconUrl: '' },
+  ] }
   const planContent = (instanceId: string, projectId: string, projectType: ProjectType): ContentPlan => {
     const inst = instances.find((x) => x.id === instanceId)
     if (!inst) throw new Error('instance not found')
@@ -119,7 +123,7 @@ export function createMock() {
     const have = installed[instanceId] ?? []
     const plan: ContentPlan = { instance: instanceId, projectId, title, type: projectType, items: [], alreadyInstalled: have.some((e) => e.projectId === projectId), warnings: [] }
     if (plan.alreadyInstalled) return plan
-    if (projectType === 'mod' && inst.loader === 'Vanilla') throw new Error('this instance has no mod loader: create a Fabric or Forge instance to use mods')
+    if (projectType === 'mod' && inst.loader === 'Vanilla') throw new Error('this instance has no mod loader: create a Fabric, Forge or NeoForge instance to use mods')
     const ldr = projectType === 'mod' ? inst.loader.toLowerCase() : ''
     const suffix = ldr ? ` with ${inst.loader}` : ''
     const pick = (id: string) => versionsOf(id).find((v) => v.gameVersions.includes(inst.version) && (!ldr || v.loaders.includes(ldr)))
@@ -150,7 +154,7 @@ export function createMock() {
       const entry: FileEntry = { name: f.filename, sizeBytes: f.size, modTime: new Date().toISOString(), isDir: false }
       if (it.type === 'mod') (mods[instanceId] ??= []).unshift(entry)
       else if (it.type === 'shader') (shaders[instanceId] ??= []).unshift(entry)
-      out.push({ projectId: it.version.projectId, versionId: it.version.id, title: it.title, versionNumber: it.version.versionNumber, type: it.type, file: f.filename, sha1: '', incompatible: it.version.dependencies.filter((d) => d.type === 'incompatible').map((d) => d.projectId), requiredBy: it.requiredBy })
+      out.push({ projectId: it.version.projectId, versionId: it.version.id, title: it.title, versionNumber: it.version.versionNumber, type: it.type, file: f.filename, sha1: '', incompatible: it.version.dependencies.filter((d) => d.type === 'incompatible').map((d) => d.projectId), requiredBy: it.requiredBy, description: descriptions[it.version.projectId] ?? '', iconUrl: '' })
     }
     emit('content:progress', { phase: 'content', done: plan.items.length, total: plan.items.length, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
     ;(installed[instanceId] ??= []).push(...out)
@@ -169,10 +173,15 @@ export function createMock() {
     async GetInstance(id: string) { const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); return { ...i } },
     async CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string) {
       const label = loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`
-      const inst: Instance = { id: 'i' + Date.now(), name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: label, icon, createdAt: new Date().toISOString(), playTimeSec: 0, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false }
+      const inst: Instance = { id: 'i' + Date.now(), name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: label, icon, createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false }
       instances.push(inst); return inst
     },
     async DeleteInstance(id: string) { const i = instances.findIndex((x) => x.id === id); if (i >= 0) instances.splice(i, 1) },
+    async SetInstanceLaunch(id: string, launch: LaunchSettings) {
+      if (launch.maxMemoryMB && launch.maxMemoryMB < 512) throw new Error('memory must be at least 512 MB')
+      const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); i.launch = { ...launch }; return { ...i }
+    },
+    async PickJava() { await sleep(300); return '/usr/lib/jvm/java-21/bin/java' },
     async ListVersions() {
       return { latestRelease: '1.21.1', latestSnapshot: '24w33a', versions: [
         { id: '24w33a', type: 'snapshot' as const, releaseTime: '' }, { id: '1.21.1', type: 'release' as const, releaseTime: '' },
@@ -236,6 +245,7 @@ export function createMock() {
     async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType) },
     async AddContent(instanceId: string, projectId: string, projectType: ProjectType) { const plan = planContent(instanceId, projectId, projectType); return plan.alreadyInstalled ? [] : applyContent(instanceId, plan) },
     async ListInstalledProjects(instanceId: string) { return (installed[instanceId] ?? []).map((e) => e.projectId) },
+    async ListContent(instanceId: string) { return (installed[instanceId] ?? []).map((e) => ({ ...e })) },
     async GetProjectDetail(projectId: string) { await sleep(300); return projectDetail(projectId) },
   }
 
