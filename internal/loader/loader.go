@@ -1,4 +1,4 @@
-// Package loader installs Fabric, Forge and NeoForge on top of a vanilla version so an
+// Package loader installs Fabric, Quilt, Forge and NeoForge on top of a vanilla version so an
 // instance can be "1.20.1 + Forge" the same way it is "1.20.1": the player
 // picks the loader, the launcher picks a loader build, downloads and installs
 // it, and writes a version profile that the install and launch packages
@@ -26,6 +26,7 @@ const (
 	Fabric   = "Fabric"
 	Forge    = "Forge"
 	NeoForge = "NeoForge"
+	Quilt    = "Quilt"
 )
 
 // Phase reported through Progress while a loader is being installed.
@@ -64,11 +65,12 @@ func (m *Manager) progress(current string) {
 
 // Valid reports whether name is a loader the launcher knows.
 func Valid(name string) bool {
-	return name == Vanilla || name == Fabric || name == Forge || name == NeoForge
+	return name == Vanilla || name == Fabric || name == Forge || name == NeoForge || name == Quilt
 }
 
 // ProfileID names the version profile written for a loader build, e.g.
-// fabric-loader-0.16.9-1.21.1, forge-1.20.1-47.4.10 or neoforge-1.21.1-21.1.172.
+// fabric-loader-0.16.9-1.21.1, quilt-loader-0.29.1-1.21.1, forge-1.20.1-47.4.10
+// or neoforge-1.21.1-21.1.172.
 // The id must differ from the one the loader's installer writes for itself
 // (1.20.1-forge-47.4.10, neoforge-21.1.172): the installer extracts that json
 // before it runs the processors, so an interrupted install would otherwise
@@ -77,6 +79,8 @@ func ProfileID(kind, mc, version string) (string, error) {
 	switch kind {
 	case Fabric:
 		return "fabric-loader-" + version + "-" + mc, nil
+	case Quilt:
+		return "quilt-loader-" + version + "-" + mc, nil
 	case Forge:
 		return "forge-" + version, nil
 	case NeoForge:
@@ -97,8 +101,15 @@ func Label(kind, mc, version string) string {
 // Options lists the Minecraft versions the loader supports. The result is
 // cached at cache/loaders/<kind>.json so the create form works offline.
 func (m *Manager) Options(ctx context.Context, kind string) ([]Option, error) {
-	fetch := map[string]func(context.Context) ([]Option, error){Fabric: m.fabricOptions, Forge: m.forgeOptions, NeoForge: m.neoForgeOptions}[kind]
-	if fetch == nil {
+	var fetch func(context.Context) ([]Option, error)
+	switch kind {
+	case Fabric, Quilt:
+		fetch = func(ctx context.Context) ([]Option, error) { return m.fabricOptions(ctx, kind) }
+	case Forge:
+		fetch = m.forgeOptions
+	case NeoForge:
+		fetch = m.neoForgeOptions
+	default:
 		return nil, ErrUnknown
 	}
 	path := filepath.Join(m.Dirs.Root, "cache", "loaders", strings.ToLower(kind)+".json")
@@ -138,8 +149,8 @@ func (m *Manager) Install(ctx context.Context, kind, mc, version, java string) (
 	}
 	m.progress("")
 	switch kind {
-	case Fabric:
-		err = m.installFabric(ctx, id, mc, version)
+	case Fabric, Quilt:
+		err = m.installFabric(ctx, kind, id, mc, version)
 	case Forge:
 		err = m.installForge(ctx, id, mc, java, forgeInstaller(version))
 	case NeoForge:
