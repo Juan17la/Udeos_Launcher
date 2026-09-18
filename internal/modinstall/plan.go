@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync"
 
 	"udeos/launcher/internal/download"
 	"udeos/launcher/internal/instance"
@@ -29,6 +30,8 @@ type Manager struct {
 	Provider modsearch.Provider
 	Pool     *download.Pool
 	Report   func(download.Progress)
+
+	completed sync.Map // instance id → true once Installed has filled in missing metadata (or tried)
 }
 
 // New wires a manager whose download progress goes to report.
@@ -342,8 +345,44 @@ func (m *Manager) installedEntries(inst instance.Instance) ([]Entry, error) {
 	return kept, nil
 }
 
-// Installed is the manifest minus files the player has since deleted by hand.
-func (m *Manager) Installed(inst instance.Instance) ([]Entry, error) { return m.installedEntries(inst) }
+// Installed is the manifest minus files the player has since deleted by
+// hand. Entries recorded without a title, description or icon (installs
+// older than those fields, modpack files) are completed from the provider
+// once per run and saved, so the content tabs show the same card the Addons
+// result had. Offline, the entries come back as they are.
+func (m *Manager) Installed(ctx context.Context, inst instance.Instance) ([]Entry, error) {
+	entries, err := m.installedEntries(inst)
+	if err != nil {
+		return nil, err
+	}
+	if _, done := m.completed.Load(inst.ID); done {
+		return entries, nil
+	}
+	var ids []string
+	for _, e := range entries {
+		if e.ProjectID != "" && e.IconURL == "" && e.Description == "" {
+			ids = append(ids, e.ProjectID)
+		}
+	}
+	if len(ids) == 0 {
+		m.completed.Store(inst.ID, true)
+		return entries, nil
+	}
+	names, err := m.projectNames(ctx, ids)
+	if err != nil {
+		return entries, nil
+	}
+	m.completed.Store(inst.ID, true)
+	for i := range entries {
+		if n, ok := names[entries[i].ProjectID]; ok {
+			entries[i].Description, entries[i].IconURL = n.Description, n.IconURL
+			if entries[i].Title == "" {
+				entries[i].Title = n.Title
+			}
+		}
+	}
+	return entries, Append(m.Dirs.ContentFile(inst.ID), entries)
+}
 
 // InstalledProjects lists the provider project ids present in the instance.
 func (m *Manager) InstalledProjects(inst instance.Instance) ([]string, error) {
