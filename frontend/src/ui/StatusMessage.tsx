@@ -1,24 +1,18 @@
 import type { ReactNode } from 'react'
-import { Check, X } from '../icons'
-import { glass } from './Loader'
+import { Check, X } from './icons'
+import { Glass } from './Panel'
 
 /** Feedback panel. Success: glass with a green check and one soft green
  *  pulse. Error: glass with a pastel-red glow, a headline of at most three
- *  words (see lib/errors.ts) and the full reason as small detail. */
-type Props = {
-  kind: 'success' | 'error'
-  headline: ReactNode
-  detail?: ReactNode
-  onDismiss?: () => void
-  className?: string
-}
+ *  words (see utils/errors.ts) and the full reason as small detail. */
+type Props = { kind: 'success' | 'error'; headline: ReactNode; detail?: ReactNode; onDismiss?: () => void }
 
-export default function StatusMessage({ kind, headline, detail, onDismiss, className = '' }: Props) {
+export default function StatusMessage({ kind, headline, detail, onDismiss }: Props) {
   const error = kind === 'error'
   return (
-    <div
+    <Glass
       role={error ? 'alert' : 'status'}
-      className={`${glass} flex items-start gap-3 px-4 py-3 ${error ? 'border-error shadow-error-glow animate-[dialog-fade_0.15s_ease-in-out]' : 'animate-[dialog-fade_0.15s_ease-in-out,pulse-green_0.9s_ease-out]'} ${className}`}
+      className={`flex items-start gap-3 px-4 py-3 ${error ? 'border-error shadow-error-glow animate-[dialog-fade_0.15s_ease-in-out]' : 'animate-[dialog-fade_0.15s_ease-in-out,pulse-green_0.9s_ease-out]'}`}
     >
       <span className={`flex-none inline-flex items-center justify-center w-7 h-7 rounded-md ${error ? 'bg-error text-ink' : 'bg-green text-white'}`}>
         {error ? <X size={14} /> : <Check size={14} />}
@@ -32,6 +26,6 @@ export default function StatusMessage({ kind, headline, detail, onDismiss, class
           <X size={12} />
         </button>
       )}
-    </div>
+    </Glass>
   )
 }
