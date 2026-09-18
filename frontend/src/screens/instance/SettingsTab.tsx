@@ -57,10 +57,12 @@ export default function SettingsTab({ inst }: { inst: Instance }) {
           <input id="launch-memory" type="range" min={512} max={maxMB} step={256} value={mb} onChange={(e) => setMemory(Number(e.target.value))}
             className={`w-full h-2 cursor-pointer ${danger ? 'accent-error' : 'accent-green'}`} />
           <div className="flex justify-between text-[11px] text-muted"><span>512 MB</span><span>{maxMB} MB</span></div>
-          <p className={`m-0 mt-2 text-xs ${danger ? 'text-error-soft' : 'text-muted'}`}>
-            {tooLow ? t.instance.settings.memoryTooLow : tooHigh ? t.instance.settings.memoryTooHigh : fmt(t.instance.settings.memoryHint, { mb: defaultMB })}
-          </p>
-          {memory !== 0 && <Button variant="ghost" size="sm" className="-ml-4 mt-1" onClick={() => setMemory(0)}>{fmt(t.instance.settings.memoryDefault, { mb: defaultMB })}</Button>}
+          <div className="flex items-center justify-between gap-4 mt-4">
+            <p className={`m-0 text-sm ${danger ? 'text-error-soft' : 'text-muted'}`}>
+              {tooLow ? t.instance.settings.memoryTooLow : tooHigh ? t.instance.settings.memoryTooHigh : fmt(t.instance.settings.memoryHint, { mb: defaultMB })}
+            </p>
+            {memory !== 0 && <Button variant="primary" size="sm" onClick={() => setMemory(0)}>{fmt(t.instance.settings.memoryDefault, { mb: defaultMB })}</Button>}
+          </div>
         </div>
         <div>
           <Label htmlFor="launch-java">{t.instance.settings.java}</Label>
@@ -68,12 +70,12 @@ export default function SettingsTab({ inst }: { inst: Instance }) {
             <Input id="launch-java" type="text" placeholder={t.instance.settings.javaPlaceholder} value={java} onChange={(e) => setJava(e.target.value)} />
             <Button variant="idle" onClick={pickJava}>{t.instance.settings.pickJava}</Button>
           </div>
-          <p className="m-0 mt-2 text-xs text-muted">{t.instance.settings.javaHint}</p>
+          <p className="m-0 mt-4 text-sm text-muted">{t.instance.settings.javaHint}</p>
         </div>
         <div>
           <Label htmlFor="launch-args">{t.instance.settings.jvmArgs}</Label>
           <Input id="launch-args" type="text" placeholder={t.instance.settings.jvmArgsPlaceholder} value={jvmArgs} onChange={(e) => setJvmArgs(e.target.value)} spellCheck={false} />
-          <p className="m-0 mt-2 text-xs text-muted">{t.instance.settings.jvmArgsHint}</p>
+          <p className="m-0 mt-4 text-sm text-muted">{t.instance.settings.jvmArgsHint}</p>
         </div>
         <div className="flex justify-end">
           <Button variant="primary" loading={busy} onClick={save}>{t.instance.settings.save}</Button>

@@ -55,11 +55,11 @@ const es: Dict = {
     worldMeta: 'Jugado {when} • {size}', savedTo: 'Guardado en {path}',
     settings: {
       title: 'Ajustes de lanzamiento', subtitle: 'Cómo se inicia el juego en esta instancia. Deja un campo vacío para usar el valor por defecto.',
-      memory: 'Memoria', memoryHint: 'Memoria máxima para el juego (-Xmx). Por defecto {mb} MB. Los modpacks suelen necesitar 4096–8192.',
+      memory: 'Memoria', memoryHint: 'Por defecto {mb} MB. Los modpacks suelen necesitar 4–8 GB.',
       memoryValue: '{mb} MB de {total} MB', memoryDefault: 'Usar el valor por defecto ({mb} MB)',
-      memoryTooLow: 'Con menos de 1 GB el juego puede ni siquiera arrancar.', memoryTooHigh: 'Deja menos de 2 GB para el sistema: habrá tirones, bloqueos o cierres.',
-      java: 'Ejecutable de Java', javaHint: 'Vacío: se descarga y usa el Java que Mojang recomienda para esta versión.', javaPlaceholder: 'Runtime gestionado', pickJava: 'Elegir…',
-      jvmArgs: 'Argumentos extra de la JVM', jvmArgsHint: 'Se añaden después de los del launcher, así que los tuyos mandan. Separados por espacios.', jvmArgsPlaceholder: 'p. ej. -XX:+UseZGC -Dfml.earlyWindowControl=false',
+      memoryTooLow: 'Con menos de 1 GB el juego puede no arrancar.', memoryTooHigh: 'Quedan menos de 2 GB para el sistema: habrá bloqueos.',
+      java: 'Ejecutable de Java', javaHint: 'Vacío: se usa el Java que Mojang recomienda.', javaPlaceholder: 'Runtime gestionado', pickJava: 'Elegir…',
+      jvmArgs: 'Argumentos extra de la JVM', jvmArgsHint: 'Separados por espacios. Los tuyos mandan sobre los del launcher.', jvmArgsPlaceholder: 'p. ej. -XX:+UseZGC -Dfml.earlyWindowControl=false',
       save: 'Guardar', saved: 'Ajustes guardados',
     },
   },
@@ -83,6 +83,7 @@ const es: Dict = {
     noCompatible: 'Ninguna de tus instancias puede usarlo. Crea una instancia {loaders} para {versions}.',
     client: 'Cliente', server: 'Servidor', side: { required: 'necesario', optional: 'opcional', unsupported: 'no compatible', unknown: 'desconocido' },
     license: 'Licencia', source: 'Código fuente', issues: 'Incidencias', wiki: 'Wiki', gallery: 'Galería', about: 'Acerca de',
+    createFromModpack: 'Nueva instancia con este modpack',
   },
   content: {
     pickTitle: 'Añadir {title} a…', pickHint: 'Elige una instancia: se instala al momento.',
@@ -90,6 +91,8 @@ const es: Dict = {
     noInstancesTitle: 'Aún no hay instancias', noInstancesBody: 'Crea una instancia primero y luego añádele {title}.',
     planning: 'Comprobando versiones…',
     installingTo: 'Añadiendo {title} a {name}', queued: 'Esperando…',
+    newInstance: 'Nueva instancia', orAddTo: 'O vuelca sus mods en una instancia que ya tengas:',
+    creating: 'Creando {name}', created: '{name} creada. Ya está en tus instancias.',
     alreadyInstalled: '{title} ya está en {name}.', done: '{n} archivo(s) añadidos a {name}.', doneOne: '{title} añadido a {name}.',
   },
   launch: {
