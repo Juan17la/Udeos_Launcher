@@ -60,10 +60,12 @@ why the button asks for confirmation.
 
 ## The player
 
-`profile.json` holds the nickname, the derived UUID, language, theme, the
-consent flag, the maximum memory for the game and an optional custom Java
-path. It is the only place personal data exists, and it never leaves the
-machine.
+`profile.json` holds the active nickname, its derived UUID, every saved
+nickname (`nicknames`, the active one first — the account menu switches
+between them, adds and removes; preferences are shared), language, theme,
+the consent flag, the maximum memory for the game and an optional custom
+Java path. It is the only place personal data exists, and it never leaves
+the machine.
 
 ## Reading worlds and screenshots
 

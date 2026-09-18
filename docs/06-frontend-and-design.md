@@ -46,11 +46,13 @@ How it is built:
   `errors.ts`, `compat.ts`, `search.ts`.
 - **Errors** — the backend's messages are long; the UI shows a 1–3 word
   headline picked by `frontend/src/utils/errors.ts` with the message as detail.
-- **Pixel icons** — each icon is an 8×8 grid of characters mapped to a small
-  palette; a single element with a long `box-shadow` paints the whole thing.
-  No image files are involved, icons scale to any size and stay crisp, and
-  the same data drives the instance icon picker, the navigation brand and
-  the faint decorative items floating behind pages.
+- **Pixel icons** — Minecraft block and item textures (16×16 PNG) in
+  `frontend/src/assets/icons/`, loaded by file name (`iconURL`) and drawn
+  with `image-rendering: pixelated` so they stay crisp at any size. The
+  same files drive the instance icon picker (`ICON_CHOICES`, also in the
+  instance's *Edit name and icon* dialog), the stand-in brand mark and the
+  faint decorative items floating behind pages (`THEME_DECOR`). Keys from
+  the earlier hand-drawn set are aliased so saved instances keep an icon.
 - **Fonts** are bundled with the app (`@fontsource/pt-mono`), so the launcher
   looks the same offline.
 

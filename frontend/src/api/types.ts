@@ -1,8 +1,11 @@
 // Mirrors of the Go structs returned by the App bindings (see launcher/app_*.go).
 
 export type Profile = {
+  /** The active player. */
   nickname: string
   uuid: string
+  /** Every saved nickname, the active one first; preferences are shared by all. */
+  nicknames: string[]
   language: 'en' | 'es'
   theme: 'light' | 'dark'
   agreed: boolean
