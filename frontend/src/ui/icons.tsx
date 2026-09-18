@@ -47,3 +47,6 @@ export const ChevronDown = ({ size = 14 }: P) => (
 export const User = ({ size = 16 }: P) => (
   <svg {...base(size, 2.75)}><circle cx="12" cy="8" r="4" /><path d="M4 20.5c0-3.6 3.6-6 8-6s8 2.4 8 6" /></svg>
 )
+export const Pencil = ({ size = 14 }: P) => (
+  <svg {...base(size, 2.75)}><path d="M17 3.5l3.5 3.5L8 19.5H4.5V16z" /></svg>
+)

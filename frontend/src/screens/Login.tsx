@@ -24,7 +24,7 @@ export default function Login() {
     if (!valid || !agreed || busy) return
     setBusy(true); setError(null)
     try {
-      await saveProfile({ nickname: NICKNAME.normalize(nickname), uuid: '', language, theme, agreed: true, maxMemoryMB: 2048 })
+      await saveProfile({ nickname: NICKNAME.normalize(nickname), uuid: '', nicknames: [], language, theme, agreed: true, maxMemoryMB: 2048 })
     } catch (e) {
       setError(messageOf(e))
     } finally { setBusy(false) }
