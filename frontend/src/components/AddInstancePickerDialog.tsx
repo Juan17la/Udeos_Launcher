@@ -47,7 +47,7 @@ export default function AddInstancePickerDialog({ result, filters, onClose }: Pr
   const pick = (instanceId: string) => { enqueue(instanceId, result); onClose() }
   const create = () => {
     if (!INSTANCE_NAME.test(name)) return
-    enqueueCreate(result, { name: INSTANCE_NAME.normalize(name), icon: 'grass', gameVersion: filters?.gameVersion ?? '', loader: filters?.loader ?? '' })
+    enqueueCreate(result, { name: INSTANCE_NAME.normalize(name), icon: 'grass_block_side', gameVersion: filters?.gameVersion ?? '', loader: filters?.loader ?? '' })
     onClose()
   }
   const none = detected !== null && detected.choices.length === 0

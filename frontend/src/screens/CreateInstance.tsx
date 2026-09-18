@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import PixelIcon from '../ui/PixelIcon'
-import { ICON_CHOICES } from '../ui/pixels'
+import IconPicker from '../components/IconPicker'
 import Button from '../ui/Button'
 import { Checkbox, Input, Label, Select } from '../ui/Field'
 import AutoLoader from '../ui/Loader'
@@ -24,7 +23,7 @@ export default function CreateInstance() {
   const [name, setName] = useState('')
   const [version, setVersion] = useState('')
   const [loader, setLoader] = useState<Loader>('Vanilla')
-  const [icon, setIcon] = useState('grass')
+  const [icon, setIcon] = useState('grass_block_side')
   const [showAll, setShowAll] = useState(false)
   const [versions, setVersions] = useState<VersionList | null>(null)
   const [versionsError, setVersionsError] = useState(false)
@@ -126,13 +125,7 @@ export default function CreateInstance() {
 
         <div className="flex flex-col gap-4">
           <Label className="mb-0">{t.create.icon}</Label>
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}>
-            {ICON_CHOICES.map(([key, label]) => (
-              <IconChoice key={key} selected={icon === key} title={label} onClick={() => setIcon(key)}>
-                <PixelIcon name={key} size={32} />
-              </IconChoice>
-            ))}
-          </div>
+          <IconPicker value={icon} onChange={setIcon} />
         </div>
 
         {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
@@ -143,17 +136,5 @@ export default function CreateInstance() {
         </div>
       </div>
     </main>
-  )
-}
-
-/** One cell of the icon picker: Minecraft green when selected, the light gray button when not. */
-function IconChoice({ selected, title, onClick, children }: { selected: boolean; title: string; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button" aria-pressed={selected} title={title} onClick={onClick}
-      className={`inline-flex items-center justify-center px-2.5 py-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-green text-white' : 'bg-idle text-ink hover:bg-idle-hover'} shadow-neu`}
-    >
-      {children}
-    </button>
   )
 }

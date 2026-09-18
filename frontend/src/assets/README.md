@@ -1,10 +1,11 @@
 # Assets
 
-Brand and decoration art goes here (logo, background items, Minecraft-style
-touches such as the enderman mark). `index.ts` holds the slots; each one is
-empty until a file is dropped in this folder and wired there, and the UI
-falls back to the pixel-art icons in `../ui/pixels.ts` meanwhile.
+`icons/` holds the Minecraft block and item textures (16×16 PNG) the launcher
+draws with: instance icons (the ones in `ICON_CHOICES`), the background
+decorations (`THEME_DECOR`) and the stand-in logo. `index.ts` loads every
+`icons/*.png` by file name (`iconURL('diamond_sword')`), so adding an icon is
+dropping the file in and, to let players pick it, listing it in
+`ICON_CHOICES`.
 
-Guidelines from `docs/11-design-system.md`: pixel art rendered with
-`image-rendering: pixelated`, transparent PNG (or SVG), one variant per
-theme where the colours differ.
+The real brand mark (an enderman, say) is still a placeholder: drop the file
+here, import it and set `ASSETS.logo` per theme.

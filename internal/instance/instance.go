@@ -148,6 +148,26 @@ func (s *Store) Delete(id string) error {
 	return s.saveLocked()
 }
 
+// SetInfo renames the instance and changes its icon ("" keeps the current one).
+func (s *Store) SetInfo(id, name, icon string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return errors.New("name is required")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.items {
+		if s.items[i].ID == id {
+			s.items[i].Name = name
+			if icon != "" {
+				s.items[i].Icon = icon
+			}
+			return s.saveLocked()
+		}
+	}
+	return ErrNotFound
+}
+
 // SetLaunch stores the instance's JVM settings.
 func (s *Store) SetLaunch(id string, l Launch) error {
 	if l.MaxMemoryMB != 0 && l.MaxMemoryMB < 512 {
