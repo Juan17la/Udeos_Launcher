@@ -58,13 +58,21 @@ content). `main.go` only configures the window.
 - **api/** — the typed bridge to the Go bindings and events. When the page is
   opened in a normal browser (during UI work) an in-memory mock takes the
   place of the backend so screens can be developed without a desktop build.
-- **state.tsx** — one React context with the profile, the instance list, the
-  current screen and the "launch state" (idle, preparing, error, exited).
-  Screens read from it and call a handful of actions.
-- **screens/** — Login, Dashboard, Create Instance, Instance page.
-- **components/** — the navigation bar, dialogs, the download-progress overlay.
-- **theme/** — the design tokens and component classes ported from the mockup.
-- **ui/** — the pixel-art icon renderer, decorative background items, icons.
+- **state/** — the app context (profile, instance list, current screen) plus
+  two hooks it composes: `useLaunchController` (the Play/launch state and the
+  game events) and `useContentQueue` (the serial install queue behind the
+  Addons toasts). Screens read from the context and call a handful of actions.
+- **screens/** — Login, Dashboard, Create Instance, Search, Project Detail and
+  `instance/` (the instance page and its tabs).
+- **components/** — the navigation bar, the account menu, dialogs, the
+  notification stack.
+- **ui/** — the reusable building blocks (Button, Field, Tag, Panel, ListRow,
+  Dialog, Toast, …), the pixel-art icon renderer and the SVG icons.
+- **hooks/** — `useFileList` (what every instance tab does) and `useAddAction`
+  (the shared Add-to-instance flow).
+- **utils/** — plain logic with no React in it: validation rules, formatting,
+  error headlines, compatibility, the content-kind table, search rules.
+- **theme/** — the design tokens.
 - **i18n/** — English and Spanish strings.
 
 ## Why there is also a command-line tool

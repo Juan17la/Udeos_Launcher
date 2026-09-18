@@ -34,7 +34,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-primary text-primary-text hover:bg-primary-hover hover:text-primary-hover-text shadow-neu active:shadow-neu-inset',
   secondary: 'bg-gold text-ink hover:bg-gold-hover shadow-neu active:shadow-neu-inset',
   idle: 'bg-idle text-ink hover:bg-idle-hover shadow-neu active:shadow-neu-inset',
-  danger: 'bg-error text-ink hover:bg-[#ff7c86] shadow-neu active:shadow-neu-inset',
+  danger: 'bg-error/80 text-white hover:bg-error/90 shadow-neu active:shadow-neu-inset',
   ghost: 'bg-transparent text-text hover:bg-idle/40 active:bg-idle/60',
 }
 

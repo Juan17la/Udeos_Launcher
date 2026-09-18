@@ -15,6 +15,7 @@ export function ago(iso: string | undefined, t: Dict): string {
   return fmt(t.dashboard.daysAgo, { n: d })
 }
 
+/** Play time in hours: one decimal under an hour, whole hours after. */
 export function hours(sec: number): string {
   return (sec / 3600).toFixed(sec < 3600 ? 1 : 0)
 }

@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import PixelIcon from '../ui/PixelIcon'
 import { ICON_CHOICES } from '../ui/pixels'
-import Button from '../ui/atoms/Button'
-import { Input, Label, Select } from '../ui/atoms/Field'
-import { Checkbox, Selectable } from '../ui/atoms/Selectable'
-import { Panel } from '../ui/atoms/Surface'
-import { AutoLoader } from '../ui/atoms/Loader'
-import StatusMessage from '../ui/atoms/Status'
-import SegmentedControl from '../ui/molecules/SegmentedControl'
-import { errorHeadline, messageOf } from '../lib/errors'
+import Button from '../ui/Button'
+import { Checkbox, Input, Label, Select } from '../ui/Field'
+import { Panel } from '../ui/Panel'
+import AutoLoader from '../ui/Loader'
+import StatusMessage from '../ui/StatusMessage'
+import SegmentedControl from '../ui/SegmentedControl'
+import { errorHeadline, messageOf } from '../utils/errors'
+import { INSTANCE_NAME } from '../utils/validation'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
@@ -62,12 +62,12 @@ export default function CreateInstance() {
 
   const loaderOption = table?.status === 'ready' && version ? table.byVersion.get(version) : undefined
   const loaderReady = loader === 'Vanilla' || table?.status === 'ready'
-  const canSubmit = name.trim().length > 0 && version !== '' && loaderReady && !busy
+  const canSubmit = INSTANCE_NAME.test(name) && version !== '' && loaderReady && !busy
   const submit = async () => {
     if (!canSubmit) return
     setBusy(true); setError(null)
     try {
-      const inst = await api.CreateInstance(name.trim(), version, loader, loaderOption?.version ?? '', icon)
+      const inst = await api.CreateInstance(INSTANCE_NAME.normalize(name), version, loader, loaderOption?.version ?? '', icon)
       await refreshInstances()
       go({ name: 'instance', id: inst.id })
     } catch (e) {
@@ -92,10 +92,10 @@ export default function CreateInstance() {
         <p className="m-0 text-muted">{t.create.subtitle}</p>
       </div>
 
-      <Panel className="w-[min(560px,100%)] p-6 gap-6">
+      <Panel className="w-[min(560px,100%)] flex flex-col gap-6 p-6">
         <div>
           <Label htmlFor="create-name">{t.create.name}</Label>
-          <Input id="create-name" type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={40} autoFocus onChange={(e) => setName(e.target.value)} />
+          <Input id="create-name" type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={INSTANCE_NAME.maxLength} autoFocus onChange={(e) => setName(e.target.value)} />
         </div>
 
         <div className="flex flex-col gap-4">
@@ -127,9 +127,9 @@ export default function CreateInstance() {
           <Label className="mb-0">{t.create.icon}</Label>
           <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(56px, 1fr))' }}>
             {ICON_CHOICES.map(([key, label]) => (
-              <Selectable key={key} square selected={icon === key} title={label} onClick={() => setIcon(key)}>
+              <IconChoice key={key} selected={icon === key} title={label} onClick={() => setIcon(key)}>
                 <PixelIcon name={key} size={32} />
-              </Selectable>
+              </IconChoice>
             ))}
           </div>
         </div>
@@ -142,5 +142,17 @@ export default function CreateInstance() {
         </div>
       </Panel>
     </main>
+  )
+}
+
+/** One cell of the icon picker: Minecraft green when selected, the light gray button when not. */
+function IconChoice({ selected, title, onClick, children }: { selected: boolean; title: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button" aria-pressed={selected} title={title} onClick={onClick}
+      className={`inline-flex items-center justify-center px-2.5 py-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-green text-white shadow-neu-inset' : 'bg-idle text-ink hover:bg-idle-hover shadow-neu'}`}
+    >
+      {children}
+    </button>
   )
 }
