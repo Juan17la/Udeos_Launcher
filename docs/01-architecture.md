@@ -39,7 +39,7 @@ Reading them in this order follows the flow of a "Play" click:
 - **install** — turns a version id into a complete set of files: version JSON,
   libraries, natives, assets, client jar.
 - **jre** — downloads the Java runtime Mojang provides for that version.
-- **loader** — installs Fabric or Forge on top of a vanilla version and
+- **loader** — installs Fabric, Forge or NeoForge on top of a vanilla version and
   writes the version profile that makes it look like any other version.
 - **launch** — builds the exact java command line (classpath, JVM flags, game
   arguments with the player's nickname and UUID substituted in).

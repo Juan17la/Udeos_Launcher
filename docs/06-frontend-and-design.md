@@ -63,27 +63,41 @@ How it is built:
 - **Dashboard**: a card per instance (icon, name, version, loader, counts of
   packs and worlds, Play and Manage) and a "Last played" panel on the right
   with a big Play button. Mods counts only appear for non-vanilla instances.
-- **Create instance**: name, the loader choice (Vanilla, Forge, Fabric),
+- **Create instance**: name, the loader choice (Vanilla, Forge, NeoForge, Fabric),
   version from Mojang's list (releases by default, a checkbox reveals
   snapshots and old versions; with a loader picked only the versions it
   supports are offered and a note names the build that will be installed)
   and the icon grid.
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
-  Open folder, Delete with confirmation) and the tabs. A vanilla instance
-  shows Resource Packs, Worlds and Screenshots; Mods and Shaders appear only
-  for modded instances. Worlds, Resource Packs, Mods and Shaders share the
-  same drop zone pattern (drag a file onto the window, or Browse) and a
-  Remove button per row; worlds also have Save to Device and ask for
-  confirmation before deleting. Screenshots open
-  in a preview dialog when clicked. Every tab has an "Open folder" link.
+  Open folder, Delete with confirmation) and the tabs. The card is the
+  viewport's height (`h-[calc(100vh-9.5rem)]`), never the list's, so a long
+  mods list scrolls past it; the dashboard's Last played panel works the
+  same way. A vanilla instance shows Resource Packs, Worlds, Screenshots and
+  Settings; Mods and Shaders appear only for modded instances. Worlds,
+  Resource Packs, Mods and Shaders share the same drop zone pattern (drag a
+  file onto the window, or Browse) and a Remove button per item; worlds also
+  have Save to Device and ask for confirmation before deleting. The file
+  tabs have two views, remembered in `localStorage`: **Cards** (default —
+  the Modrinth icon, title, version and description from `ListContent`;
+  hand-added files show their name and "Added by hand") and **Compact**
+  rows. Screenshots open in a preview dialog when clicked. **Settings** is
+  the instance's launch settings: memory, Java executable (with a file
+  picker) and extra JVM arguments. Every file tab has an "Open folder" link.
 
-The navigation bar carries Dashboard, the disabled Search and Skin entries
-(coming later), theme toggle, language, Privacy & Terms, the avatar initial
-and New Instance.
+Every page but the dashboard starts with a **Back to …** button above its
+title (`components/BackButton`). It is dynamic: the app state keeps the
+screens the player came through (`previous`/`back` in `state/`), so Back
+from a project's Details returns to Addons with its instance lock intact,
+and from there to the instance page. Login and the dashboard are roots —
+nothing behind them, and Back never returns to the login screen.
+
+The navigation bar carries Instances, Addons, the account menu (theme,
+language, Privacy & Terms) and New Instance.
 
 ## State and data flow
 
-`state/` holds one app context (profile, instance list, current screen)
+`state/` holds one app context (profile, instance list, current screen and
+the history behind it)
 and two hooks it composes: `useLaunchController` owns the *launch state*,
 `useContentQueue` the install queue behind the Addons toasts. Each is its
 own context so progress ticks re-render only what shows them. The "game closed unexpectedly" dialog offers
