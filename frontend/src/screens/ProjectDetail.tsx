@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
-import { ChevronLeft } from '../ui/icons'
 import Button from '../ui/Button'
 import AutoLoader from '../ui/Loader'
 import { useAddAction } from '../hooks/useAddAction'
+import BackButton from '../components/BackButton'
 import { computeCompat } from '../utils/compat'
 import type { ProjectDetail as ProjectDetailData, SearchResult } from '../api/types'
 
@@ -17,7 +17,7 @@ type Props = { result: SearchResult; instanceId?: string }
  *  version/loader it has ever published a build for, and which of the
  *  player's instances can take it. */
 export default function ProjectDetail({ result, instanceId }: Props) {
-  const { t, instances, go } = useApp()
+  const { t, instances } = useApp()
   const [detail, setDetail] = useState<ProjectDetailData | null>(null)
   const { add, dialog } = useAddAction(instanceId)
 
@@ -33,11 +33,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
 
   return (
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12 max-w-[820px]">
-      <div>
-        <Button variant="ghost" size="sm" onClick={() => go({ name: 'search', instanceId, type: result.projectType })}>
-          <ChevronLeft /> {t.detail.back}
-        </Button>
-      </div>
+      <BackButton />
 
       <div className="flex gap-6 items-start">
         {result.iconUrl && (
