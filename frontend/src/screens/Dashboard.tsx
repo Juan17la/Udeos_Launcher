@@ -1,4 +1,4 @@
-import PixelIcon from '../ui/PixelIcon'
+import InstanceIcon from '../components/InstanceIcon'
 import Decor, { DASHBOARD_DECOR } from '../ui/Decor'
 import Button from '../ui/Button'
 import PlayButton from '../components/PlayButton'
@@ -35,7 +35,7 @@ export default function Dashboard() {
       {last && (
         <div className="panel relative z-1 flex flex-col items-center gap-4 text-center p-6 sticky top-24 h-[calc(100vh-9.5rem)] min-h-fit">
           <span className="text-[11px] tracking-[0.12em] uppercase text-muted">{t.dashboard.lastPlayed}</span>
-          <PixelIcon name={last.icon} size={120} />
+          <InstanceIcon inst={last} size={120} />
           <h3 className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{last.name}</h3>
           <div className="flex gap-2 justify-center">
             <span className="tag bg-green-soft">{last.version}</span>
@@ -59,7 +59,7 @@ function InstanceCard({ inst }: { inst: Instance }) {
   return (
     <div className="panel panel-hover flex flex-col gap-4 p-5">
       <div className="flex items-center gap-4">
-        <PixelIcon name={inst.icon} size={44} />
+        <InstanceIcon inst={inst} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-2">
           <div className="font-bold text-lg leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{inst.name}</div>
           <div className="flex gap-2">
