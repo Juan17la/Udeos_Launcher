@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"net/http"
+	"strings"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -23,8 +24,19 @@ func main() {
 		MinWidth:  960,
 		MinHeight: 640,
 		AssetServer: &assetserver.Options{
-			Assets:  assets,
-			Handler: http.HandlerFunc(app.mediaHandler), // anything not in the embedded frontend
+			Assets: assets,
+			// /media/ is answered before the frontend is consulted: as a
+			// not-found fallback (Handler) it never ran under `wails dev`,
+			// where Vite answers unknown paths with index.html.
+			Middleware: func(next http.Handler) http.Handler {
+				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					if strings.HasPrefix(r.URL.Path, "/media/") {
+						app.mediaHandler(w, r)
+						return
+					}
+					next.ServeHTTP(w, r)
+				})
+			},
 		},
 		OnStartup: app.startup,
 		Bind: []interface{}{
