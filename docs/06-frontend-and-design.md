@@ -17,20 +17,28 @@ How it is built:
   a Tailwind `@theme` block, backed by runtime CSS variables for the values
   that differ between the light and dark theme. Switching theme only flips
   an attribute on the document root.
-- **Atoms** — `frontend/src/ui/atoms/`: `Button` (primary, secondary, idle,
-  danger, ghost), `Field` (Label, Input, Select), `Tag` (gray, green, gold),
-  `Selectable` + `Checkbox`, `ProgressBar`, `Loader` (`GlassLoader`,
-  `AutoLoader`, `useSimulatedProgress`), `Status` (`StatusMessage`) and
-  `Surface` (`Panel`, `Glass`). Each owns its class strings; nothing else
+- **Building blocks** — `frontend/src/ui/`, one flat folder, and only for
+  things used in more than one place: `Button` (primary, secondary, idle,
+  danger, ghost), `Field` (Label, Input, Select, Checkbox), `Tag` (gray,
+  green, gold), `Panel` and `Glass` (the two surfaces — look only, the caller
+  writes its layout), `ListRow` (title + meta + actions), `Empty`, `Dialog`
+  (+ `ConfirmDialog`), `Toast`, `Loader` (`AutoLoader`), `StatusMessage`,
+  `SegmentedControl`, `DropZone`. Each owns its class strings; nothing else
   spells out a button or an input.
-- **Molecules** — `frontend/src/ui/molecules/`: `SegmentedControl`, `Card`,
-  `Dialog`, `Toast`, `DropZone`, composed from atoms.
 - **Components and screens** (`frontend/src/components`, `frontend/src/screens`)
-  compose atoms and molecules and only write layout classes (flex, grid,
-  gap, width). The rule: no `const btn… = '…'` class-string constants in a
-  screen; if a screen needs a look that no atom offers, the atom grows.
+  compose the blocks and only write layout classes (flex, grid, gap, width).
+  Something used by one page stays in that page as a local function
+  (`InstanceCard` in Dashboard, `ResultCard` in Search, `IconChoice` in
+  Create Instance) instead of becoming a shared component.
+- **Hooks and utils** — `hooks/useFileList` is the one implementation of what
+  every instance tab does (list, drop/browse, remove, note, error) and
+  `utils/instanceContent.ts` the table that tells it which backend calls a
+  kind uses; `hooks/useAddAction` is the shared Add-to-instance flow.
+  `utils/` holds logic with no React in it: `validation.ts` (`TextRule`, the
+  nickname and instance-name rules), `format.ts` (ago, hours, bytes),
+  `errors.ts`, `compat.ts`, `search.ts`.
 - **Errors** — the backend's messages are long; the UI shows a 1–3 word
-  headline picked by `frontend/src/lib/errors.ts` with the message as detail.
+  headline picked by `frontend/src/utils/errors.ts` with the message as detail.
 - **Pixel icons** — each icon is an 8×8 grid of characters mapped to a small
   palette; a single element with a long `box-shadow` paints the whole thing.
   No image files are involved, icons scale to any size and stay crisp, and
@@ -44,7 +52,7 @@ How it is built:
 - **Login** (first run only): language, then nickname plus the consent
   checkbox. Both links open the Privacy & Terms dialog. The nickname is
   validated with the same rule Minecraft uses (3–16 letters, digits or
-  underscores).
+  underscores — `NICKNAME` in `utils/validation.ts`).
 - **Dashboard**: a card per instance (icon, name, version, loader, counts of
   packs and worlds, Play and Manage) and a "Last played" panel on the right
   with a big Play button. Mods counts only appear for non-vanilla instances.
@@ -68,8 +76,10 @@ and New Instance.
 
 ## State and data flow
 
-A single React context holds the profile, the instance list, the current
-screen and the *launch state*. The "game closed unexpectedly" dialog offers
+`state/` holds one app context (profile, instance list, current screen)
+and two hooks it composes: `useLaunchController` owns the *launch state*,
+`useContentQueue` the install queue behind the Addons toasts. Each is its
+own context so progress ticks re-render only what shows them. The "game closed unexpectedly" dialog offers
 "Open logs folder", which opens `.minecraft/logs/` where both the launcher's
 and the game's logs live. Screens never call the backend for the
 instance list themselves; they call `play`, `saveProfile` or `refreshInstances`
