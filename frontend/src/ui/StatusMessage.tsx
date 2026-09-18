@@ -20,10 +20,10 @@ type Props = {
 export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, onDismiss, className = 'animate-[dialog-fade_0.15s_ease-in-out]' }: Props) {
   return (
     <div role={kind === 'error' ? 'alert' : 'status'}
-      className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'border-error shadow-error-glow' : ''} ${kind === 'success' ? 'animate-[pulse-green_0.9s_ease-out]' : ''}`}>
+      className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'border-error shadow-error-glow' : ''} ${kind === 'success' ? 'animate-[pulse-primary_0.9s_ease-out]' : ''}`}>
       <div className="flex items-start gap-3">
         {kind !== 'neutral' && (
-          <span className={`flex-none inline-flex items-center justify-center w-7 h-7 rounded-md ${kind === 'error' ? 'bg-error text-ink' : 'bg-green text-white'}`}>
+          <span className={`flex-none inline-flex items-center justify-center w-7 h-7 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-white'}`}>
             {kind === 'error' ? <X size={14} /> : <Check size={14} />}
           </span>
         )}
@@ -36,7 +36,7 @@ export default function StatusMessage({ kind = 'neutral', headline, detail, asid
       </div>
       {percent !== undefined && (
         <progress value={Math.max(0, Math.min(100, percent))} max={100}
-          className="w-full h-2 rounded-md overflow-hidden [&::-webkit-progress-bar]:bg-idle/60 [&::-webkit-progress-value]:bg-green [&::-webkit-progress-value]:transition-all" />
+          className="w-full h-2 rounded-md overflow-hidden [&::-webkit-progress-bar]:bg-idle/60 [&::-webkit-progress-value]:bg-primary [&::-webkit-progress-value]:transition-all" />
       )}
     </div>
   )
