@@ -9,6 +9,8 @@ package modpack
 import (
 	"archive/zip"
 	"context"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -56,10 +58,15 @@ type index struct {
 	Dependencies map[string]string `json:"dependencies"` // minecraft, fabric-loader | quilt-loader | forge | neoforge
 }
 
+// IconKey is the Instance.Icon value meaning "the pack's own icon, at
+// instances/<id>/icon" (served to the UI as /media/<id>/icon).
+const IconKey = "modpack"
+
 // Create makes an instance from the modpack's build for Minecraft mc and
 // loader ldr (either "" = the newest published) and fills it. The loader and
 // its version come from the pack; nothing game-side downloads until Play.
-// A pack that fails to install leaves no half instance behind.
+// The pack's icon becomes the instance's (icon is the fallback pixel icon
+// when it has none). A pack that fails to install leaves no half instance behind.
 func (m *Manager) Create(ctx context.Context, projectID, name, icon, mc, ldr string) (instance.Instance, []modinstall.Entry, error) {
 	pack, idx, err := m.fetch(ctx, projectID, mc, ldr)
 	if err != nil {
@@ -68,17 +75,40 @@ func (m *Manager) Create(ctx context.Context, projectID, name, icon, mc, ldr str
 	if name == "" {
 		name = idx.Name
 	}
+	packIcon := m.fetchIcon(ctx, projectID)
+	if packIcon != "" {
+		icon = IconKey
+	}
 	kind, version := loaderOf(idx.Dependencies)
 	inst, err := m.Instances.Create(name, idx.Dependencies["minecraft"], kind, version, icon)
 	if err != nil {
 		return instance.Instance{}, nil, err
 	}
 	entries, err := m.apply(ctx, inst, projectID, pack, idx)
+	if err == nil && packIcon != "" {
+		err = copyNew(packIcon, filepath.Join(m.Dirs.InstanceDir(inst.ID), "icon"))
+	}
 	if err != nil {
 		_ = m.Instances.Delete(inst.ID)
 		return instance.Instance{}, nil, err
 	}
 	return inst, entries, nil
+}
+
+// fetchIcon downloads the project's icon into the content cache and returns
+// its path; "" when the pack has no icon or it cannot be fetched (the
+// instance then keeps a pixel icon — never a reason to fail the install).
+func (m *Manager) fetchIcon(ctx context.Context, projectID string) string {
+	infos, err := m.Provider.Projects(ctx, []string{projectID})
+	if err != nil || len(infos) == 0 || infos[0].IconURL == "" {
+		return ""
+	}
+	sum := sha1.Sum([]byte(infos[0].IconURL))
+	path := m.Dirs.ContentCacheFile(hex.EncodeToString(sum[:]), "icon")
+	if err := m.Pool.Run(ctx, modinstall.Phase, []download.Task{{URL: infos[0].IconURL, Path: path}}); err != nil {
+		return ""
+	}
+	return path
 }
 
 // AddTo installs the modpack's build for the instance's Minecraft version
