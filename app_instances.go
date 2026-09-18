@@ -72,6 +72,15 @@ func (a *App) SetInstanceLaunch(id string, l instance.Launch) (InstanceView, err
 	return a.GetInstance(id)
 }
 
+// SetInstanceInfo renames the instance and picks its icon (a pixel icon key,
+// "modpack" to keep a pack's own icon, or "" to leave it as is).
+func (a *App) SetInstanceInfo(id, name, icon string) (InstanceView, error) {
+	if err := a.launcher.Instances.SetInfo(id, name, icon); err != nil {
+		return InstanceView{}, err
+	}
+	return a.GetInstance(id)
+}
+
 // PickJava opens a file dialog for a Java executable; "" when cancelled.
 func (a *App) PickJava() (string, error) {
 	return a.pick("Choose a Java executable", "*", "Java")
