@@ -43,6 +43,7 @@
   --color-idle-hover: #CFCFCF;
   --color-tag-gray: #E2E8F0;
   --color-error: #A12323;
+  --color-error-soft: #FF8B94; /* pastel red: error glow, danger text */
   --color-ink: #25282A;
 
   /* Theme-dependent. */
@@ -61,7 +62,7 @@
   --shadow-neu: var(--shadow-neu);
   --shadow-neu-inset: var(--shadow-neu-inset);
   --shadow-glass: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
-  --shadow-error-glow: 0 0 0 3px color-mix(in srgb, #FF8B94 40%, transparent);
+  --shadow-error-glow: 0 0 0 3px color-mix(in srgb, var(--color-error-soft) 40%, transparent);
 }
 
 /* ── Light: Minecraft Pastel Light ───────────────────────────────────── */
@@ -138,7 +139,7 @@ img { display: block; max-width: 100%; }
 @utility panel { @apply rounded-md bg-panel shadow-neu transition-all; }
 @utility panel-hover { @apply hover:-translate-y-0.5 hover:shadow-glass; }
 /* Glass: translucent and blurred. Dialogs, popovers, toasts, loaders, status messages. */
-@utility glass { @apply rounded-md bg-glass border border-glass-border backdrop-blur-[16px] shadow-glass; }
+@utility glass { @apply rounded-md bg-glass border border-glass-border backdrop-blur-lg shadow-glass; }
 /* Tag: add the fill — bg-tag-gray (neutral metadata), bg-green-soft (active /
    verified), bg-gold-soft (secondary attributes such as loader labels). */
 @utility tag { @apply inline-flex items-center px-3 py-1 text-[11px] leading-[1.3] text-ink rounded-md whitespace-nowrap; }
