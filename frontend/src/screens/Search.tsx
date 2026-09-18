@@ -40,7 +40,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
   const [loader, setLoader] = useState('')
   const [sortBy, setSortBy] = useState<SortBy>('relevance')
   const [installed, setInstalled] = useState<Set<string>>(() => new Set())
-  const { add, dialog } = useAddAction(inst?.id)
+  const { add, dialog } = useAddAction(inst?.id, { gameVersion, loader })
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
   const [pageIndex, setPageIndex] = useState(0)
   const [page, setPage] = useState<SearchPage | null>(null)
@@ -71,7 +71,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
   // choice made on the Mods tab must not narrow resource packs or shaders.
   // With an instance in context both filters are locked to it.
   const effectiveVersion = inst ? inst.version : gameVersion
-  const effectiveLoader = inst ? (type === 'mod' ? inst.loader.toLowerCase() : '') : (showLoaderFilter ? loader : '')
+  const effectiveLoader = showLoaderFilter ? (inst ? inst.loader.toLowerCase() : loader) : ''
 
   // One page's worth of cards is ever mounted at a time: a new page REPLACES
   // the results instead of piling on top of the last one, so the DOM stays a
@@ -146,8 +146,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
 
       <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${loading ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
         {page?.results.map((r) => (
-          <ResultCard key={r.id} result={r} state={stateOf(r)}
-            onAdd={r.projectType === 'modpack' ? undefined : () => add(r)}
+          <ResultCard key={r.id} result={r} state={stateOf(r)} onAdd={() => add(r)}
             onDetails={() => go({ name: 'detail', result: r, instanceId: inst?.id })} />
         ))}
       </div>
@@ -168,7 +167,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
 }
 
 /** state is only set with an instance in context: 'added' = already in it, 'busy' = installing now. */
-type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd?: () => void; onDetails: () => void }
+type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd: () => void; onDetails: () => void }
 
 const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
@@ -193,11 +192,9 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
       {/* Two big, equal-weight actions: Add installs (directly, or after a
          one-click instance pick), Details is a full page. */}
       <div className="flex gap-4 mt-auto">
-        {onAdd && (
-          <Button variant={state === undefined ? 'primary' : 'idle'} className="flex-1" disabled={state !== undefined} onClick={onAdd}>
-            {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
-          </Button>
-        )}
+        <Button variant={state === undefined ? 'primary' : 'idle'} className="flex-1" disabled={state !== undefined} onClick={onAdd}>
+          {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
+        </Button>
         <Button variant="idle" className="flex-1" onClick={onDetails}>{t.search.details}</Button>
       </div>
     </div>

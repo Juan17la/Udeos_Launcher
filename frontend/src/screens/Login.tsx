@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import PixelIcon from '../ui/PixelIcon'
+import Logo from '../ui/Logo'
 import Decor, { LOGIN_DECOR } from '../ui/Decor'
 import Button from '../ui/Button'
 import StatusMessage from '../ui/StatusMessage'
@@ -37,7 +37,7 @@ export default function Login() {
 
       {/* Heading on the canvas, never inside the panel. */}
       <div className="relative z-1 flex flex-col items-center gap-4">
-        <PixelIcon name={theme === 'dark' ? 'enderman' : 'grass'} size={64} />
+        <Logo size={64} />
         <h1 className="m-0 text-center">{t.app.name}</h1>
         <span className="tag bg-tag-gray">{__APP_VERSION__}</span>
       </div>

@@ -1,4 +1,4 @@
-import PixelIcon from '../ui/PixelIcon'
+import Logo from '../ui/Logo'
 import { Plus } from '../ui/icons'
 import Button from '../ui/Button'
 import SegmentedControl from '../ui/SegmentedControl'
@@ -9,14 +9,13 @@ import AccountMenu from './AccountMenu'
  *  links as a slider selector (the green thumb sits under the current
  *  page), account menu and the New Instance action. */
 export default function Nav() {
-  const { t, theme, screen, go } = useApp()
-  const dark = theme === 'dark'
+  const { t, screen, go } = useApp()
   // Which pill is lit: Addons also covers a project's Details page; create/instance light none.
   const current = screen.name === 'detail' ? 'search' : screen.name === 'dashboard' || screen.name === 'search' ? screen.name : ''
   return (
     <nav className="sticky top-0 z-50 bg-bg flex items-center flex-wrap gap-4 py-4 px-6">
       <div className="flex items-center gap-3 font-bold text-xl whitespace-nowrap mr-auto">
-        <PixelIcon name={dark ? 'enderman' : 'grass'} size={26} />
+        <Logo size={26} />
         {t.app.name}
       </div>
 

@@ -14,13 +14,13 @@ downloaded". Each result shows its icon, title, author, a short
 description, its loaders and its download count. Next/Previous replace the
 grid with the new page and scroll back to the top.
 
-Browsing is only half of it: every mod, resource pack and shader card has an
-**Add** button. Reached from the nav, Add asks which instance in one click;
-reached from an instance's **Add from Modrinth** button, the whole page is
-locked to that instance (its version and, for mods, its loader, shown as
-disabled dropdowns; no Modpacks tab; a Vanilla instance only gets Resource
-Packs) and Add installs straight away, with cards already in the instance
-reading **Added**. How a result is checked against the instance and
+Browsing is only half of it: every card has an **Add** button. Reached from
+the nav, Add asks which instance in one click (a modpack can also become a
+new instance); reached from an instance's **Search in Addons** button, the
+whole page is locked to that instance (its version and, for mods and
+modpacks, its loader, shown as disabled dropdowns; a Vanilla instance only
+gets Resource Packs) and Add installs straight away, with cards already in
+the instance reading **Added**. How a result is checked against the instance and
 installed is the subject of [Adding content to an instance](10-adding-content.md).
 
 ## Provider and caching

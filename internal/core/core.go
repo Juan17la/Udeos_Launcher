@@ -20,6 +20,7 @@ import (
 	"udeos/launcher/internal/launch"
 	"udeos/launcher/internal/loader"
 	"udeos/launcher/internal/modinstall"
+	"udeos/launcher/internal/modpack"
 	"udeos/launcher/internal/modsearch"
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/paths"
@@ -46,6 +47,7 @@ type Launcher struct {
 	Loaders   *loader.Manager
 	Search    *modsearch.Manager
 	Content   *modinstall.Manager
+	Modpacks  *modpack.Manager
 	OnGame    func(GameEvent)
 
 	mu      sync.Mutex
@@ -68,9 +70,10 @@ func New(dirs paths.Dirs, version string, report, reportContent func(download.Pr
 	return &Launcher{
 		Dirs: dirs, Version: version, Instances: store,
 		Installer: install.New(dirs, report), JRE: jre.New(dirs, report), Loaders: loader.New(dirs, report),
-		Search:  search,
-		Content: modinstall.New(dirs, search.Provider, reportContent),
-		OnGame:  onGame, running: map[string]*exec.Cmd{},
+		Search:   search,
+		Content:  modinstall.New(dirs, search.Provider, reportContent),
+		Modpacks: modpack.New(dirs, search.Provider, store, reportContent),
+		OnGame:   onGame, running: map[string]*exec.Cmd{},
 	}, nil
 }
 

@@ -27,8 +27,25 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Memory slider** in the instance settings, capped at the machine's RAM
   and red in the danger zone (below 1 GB, or leaving less than 2 GB).
 - The top bar stays in view while a page scrolls.
+- **Modpacks**: a modpack's Add offers a new instance built from it (its
+  loader and version come from the pack; configs and mods included, more
+  mods can be added on top) or pours its mods into a compatible instance
+  you already have. From an instance's page, the Modpacks tab shows only
+  packs for its version and loader.
+- Art slots (`frontend/src/assets/`) for the logo and background
+  decorations, falling back to the pixel icons until real assets land.
+
+### Changed
+
+- Settings hints are shorter, larger and set apart from their inputs; *Use
+  default* is a proper button.
+- The Worlds tab no longer offers *Search in Addons* (Modrinth has no worlds).
 
 ### Fixed
+
+- Mods, resource packs and shaders added before the launcher recorded icons
+  now get their Modrinth icon and description (filled in once, then saved).
+- Screenshot thumbnails were blank under `wails dev`.
 
 - Side panels (instance page, dashboard's Last played) no longer grow with
   the list next to them.
@@ -66,5 +83,4 @@ First public release. Installers for Windows, macOS and Linux are on the
 - Builds are not code-signed: Windows SmartScreen and macOS Gatekeeper will
   warn on first launch (see the Download section in [README.md](README.md)
   for how to proceed).
-- Modpack installs (search result → new instance) are not implemented yet.
 - No skin page yet.

@@ -2,10 +2,11 @@
 
 ## What the player sees
 
-The rule for this page is **two clicks at most to install**. Every mod,
-resource pack and shader card carries two big buttons, **Add** and
-**Details**; modpack cards only get **Details** (a modpack becomes an
-instance, which is separate work — see the note at the end of this page).
+The rule for this page is **two clicks at most to install**. Every card
+carries two big buttons, **Add** and **Details**. For a modpack, Add opens
+a picker that first offers a **new instance** built from the pack (name
+prefilled with its title) and then the compatible instances its mods can
+be poured into — see [Modpacks](#modpacks) below.
 
 There are two ways onto the page, and Add behaves differently on each:
 
@@ -20,8 +21,9 @@ There are two ways onto the page, and Add behaves differently on each:
   instance**.
 - **From an instance's Add from Modrinth button** (on its Mods, Resource
   Packs and Shaders tabs). The page is locked to that instance: the version
-  and (for mods) loader dropdowns are disabled and set to its values, the
-  Modpacks tab is gone (a Vanilla instance only gets Resource Packs), a
+  and (for mods and modpacks) loader dropdowns are disabled and set to its
+  values (a Vanilla instance only gets Resource Packs; a modded one also
+  gets Modpacks, filtered to its version and loader), a
   header names the instance with a **Back to …** link, and **Add** installs
   straight away with no dialog at all. Projects already in the instance
   (`ListInstalledProjects`) show a disabled **Added** button; one being
@@ -52,8 +54,8 @@ can still surface as a toast after a one-click add.
 
 `internal/modinstall.Manager.Plan` runs, in this order:
 
-1. **Type** — modpacks cannot be added to an instance (they become one, see
-   the next page); mods need a Fabric, Quilt, Forge or NeoForge instance.
+1. **Type** — mods need a Fabric, Quilt, Forge or NeoForge instance
+   (modpacks take a different path, see below).
 2. **Version and loader** — Modrinth is asked for the project's versions
    filtered by the instance's Minecraft version and, for mods, its loader
    (`GET /project/{id}/version?game_versions=[..]&loaders=[..]`). An empty
@@ -79,6 +81,41 @@ can still surface as a toast after a one-click add.
    validators the drag-and-drop path uses (`content.AddMod` looks for the
    loader's marker inside the jar, `AddResourcePack` for `pack.mcmeta`,
    `AddShaderPack` for a `shaders/` folder). A mismatch is refused there too.
+
+## Modpacks
+
+A Modrinth modpack version is a `.mrpack`: a zip holding
+`modrinth.index.json` — the Minecraft version, the loader and its version
+(`fabric-loader`, `quilt-loader`, `forge` or `neoforge`) and a list of files
+by download URL and hash — plus `overrides/` (and `client-overrides/`),
+configs and the like copied into the game directory as they are.
+`internal/modpack.Manager` handles both ways of using one:
+
+- **`Create(projectID, name, icon, mc, loader)`** picks the pack's build
+  for that Minecraft version/loader (either empty = the newest; Modrinth's
+  loader filter is loose for modpacks, so the versions are filtered again
+  client-side), downloads the `.mrpack` into the content cache, creates the
+  instance with the loader and version the index declares (nothing
+  game-side downloads until Play, as with any instance) and fills it. A
+  pack that fails to install leaves no half instance behind.
+- **`AddTo(instance, projectID)`** pours the pack's build for the
+  instance's version and loader into it. Files the instance already has —
+  its configs, its mods — are never overwritten.
+
+Filling means: every file whose `env.client` is not `unsupported` goes
+through the same `download.Pool` and `cache/content/<sha1>/` as single
+mods, is copied to its `path` (paths are checked to stay inside the game
+directory), then the overrides are unpacked. Since the index names files
+by hash only, one `POST /version_files` call maps them to Modrinth versions
+and one `GET /projects` names them, so `content.json` gets the same entries
+a single add records (project, version, title, icon, description) and the
+Mods tab shows the pack's mods as cards; an instance made from a modpack is
+an ordinary instance, so more mods can be added on top of it.
+
+Bindings: `CreateInstanceFromModpack(projectId, name, icon, gameVersion,
+loader)` and `AddContent(instanceId, projectId, "modpack")`. On the UI side
+both are jobs in the same install queue (`enqueueCreate` / `enqueue`), so
+progress and the result arrive as toasts (*Creating …* / *Created …*).
 
 ## Downloading and remembering
 
@@ -110,7 +147,9 @@ show each other's numbers.
   the instance-locked Addons page marks those cards **Added**.
 - `ListContent(instanceId)` → the `content.json` entries whose file still
   exists; the Mods/Resource Packs/Shaders tabs match them to files by name
-  to draw the card view.
+  to draw the card view. Entries recorded without an icon and description
+  (installs older than those fields, modpack files) are completed from
+  `GET /projects` once per run and saved back.
 - `GetProjectDetail(projectId)` → `modsearch.ProjectDetail`: the whole
   project page from Modrinth's `GET /project/{id}` — the one-liner and the
   full `body`, `game_versions`/`loaders` aggregated across every version
@@ -120,11 +159,13 @@ show each other's numbers.
   picker's `frontend/src/utils/compat.ts` to keep only the instances that
   can take the project.
 
-All five live in `app_content_install.go` and go through
-`Launcher.Content`, a `modinstall.Manager` that shares the search provider.
+All of them live in `app_content_install.go` and go through
+`Launcher.Content` (a `modinstall.Manager`) or `Launcher.Modpacks`
+(a `modpack.Manager`); both share the search provider.
 
 ## Trying it from the terminal
 
     go run ./cmd/udeoscli create "Fab" 1.20.1 Fabric
     go run ./cmd/udeoscli add <instance id> iris            # pulls Sodium in
     go run ./cmd/udeoscli add <instance id> faithful-32x resourcepack
+    go run ./cmd/udeoscli modpack simply-optimized-reloaded 1.20.1 forge   # new instance
