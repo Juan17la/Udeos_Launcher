@@ -68,7 +68,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	ldr := ""
 	if kind == "mod" {
 		if inst.Loader == "" || inst.Loader == loader.Vanilla {
-			return Plan{}, errors.New("this instance has no mod loader: create a Fabric, Forge or NeoForge instance to use mods")
+			return Plan{}, errors.New("this instance has no mod loader: create a Fabric, Quilt, Forge or NeoForge instance to use mods")
 		}
 		ldr = strings.ToLower(inst.Loader)
 	}
@@ -273,7 +273,7 @@ func (m *Manager) dependencyVersion(ctx context.Context, d modsearch.Dependency,
 		if err != nil {
 			return modsearch.Version{}, false, fmt.Errorf("cannot reach %s: %w", m.Provider.Name(), err)
 		}
-		if contains(v.GameVersions, mc) && (ldr == "" || contains(v.Loaders, ldr)) {
+		if contains(v.GameVersions, mc) && modsearch.LoaderMatches(v.Loaders, ldr) {
 			return v, true, nil
 		}
 		projectID = v.ProjectID

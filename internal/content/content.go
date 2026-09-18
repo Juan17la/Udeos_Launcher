@@ -294,6 +294,7 @@ func addPack(gameDir, sub, src, kind, marker string, zipOK func(string) bool) (F
 // modMarkers are the metadata files each loader expects inside a mod jar.
 var modMarkers = map[string][]string{
 	"Fabric":   {"fabric.mod.json", "quilt.mod.json"},
+	"Quilt":    {"quilt.mod.json", "fabric.mod.json"}, // Quilt loads Fabric mods
 	"Forge":    {"META-INF/mods.toml", "mcmod.info"},
 	"NeoForge": {"META-INF/neoforge.mods.toml", "META-INF/mods.toml"}, // mods.toml up to 1.20.4
 }
