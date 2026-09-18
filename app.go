@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"runtime"
+	"udeos/launcher/internal/sysinfo"
 
 	wailsrt "github.com/wailsapp/wails/v2/pkg/runtime"
 
@@ -57,9 +58,11 @@ type AppInfo struct {
 	OS      string `json:"os"`
 	Arch    string `json:"arch"`
 	DataDir string `json:"dataDir"`
+	// TotalMemoryMB is the machine's RAM (0 = unknown): the memory slider's ceiling.
+	TotalMemoryMB int `json:"totalMemoryMB"`
 }
 
-// GetAppInfo returns the launcher version and the platform it is running on.
+// GetAppInfo returns the launcher version, the platform it is running on and the machine's memory.
 func (a *App) GetAppInfo() AppInfo {
-	return AppInfo{Version: Version, OS: runtime.GOOS, Arch: runtime.GOARCH, DataDir: a.launcher.Dirs.Root}
+	return AppInfo{Version: Version, OS: runtime.GOOS, Arch: runtime.GOARCH, DataDir: a.launcher.Dirs.Root, TotalMemoryMB: sysinfo.TotalMemoryMB()}
 }

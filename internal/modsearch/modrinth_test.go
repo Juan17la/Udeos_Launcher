@@ -1,6 +1,7 @@
 package modsearch
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 	"time"
@@ -15,6 +16,20 @@ func TestBuildFacets(t *testing.T) {
 	want := `[["project_type:mod"],["versions:1.20.1"],["categories:fabric"]]`
 	if got != want {
 		t.Errorf("got %s, want %s", got, want)
+	}
+	// A Quilt instance also takes Fabric mods: one OR-group with both tags.
+	got = buildFacets(Query{Type: TypeMod, Loader: "Quilt"})
+	if want = `[["project_type:mod"],["categories:quilt","categories:fabric"]]`; got != want {
+		t.Errorf("got %s, want %s", got, want)
+	}
+}
+
+func TestLoaderMatches(t *testing.T) {
+	if !LoaderMatches([]string{"fabric"}, "Quilt") || !LoaderMatches([]string{"quilt"}, "quilt") || LoaderMatches([]string{"quilt"}, "fabric") {
+		t.Error("quilt runs fabric mods, not the other way round")
+	}
+	if LoaderMatches([]string{"forge"}, "neoforge") || !LoaderMatches([]string{"forge"}, "") {
+		t.Error("forge/neoforge are distinct; empty loader matches anything")
 	}
 }
 
@@ -73,6 +88,9 @@ func TestVersionsURL(t *testing.T) {
 	if !strings.Contains(got, "game_versions=%5B%221.20.1%22%5D") || !strings.Contains(got, "loaders=%5B%22fabric%22%5D") {
 		t.Errorf("got %s", got)
 	}
+	if got = versionsURL("AANobbMI", "1.20.1", "Quilt"); !strings.Contains(got, "loaders=%5B%22quilt%22%2C%22fabric%22%5D") {
+		t.Errorf("got %s", got)
+	}
 }
 
 func TestPickVersionPrefersReleasesThenNewest(t *testing.T) {
@@ -111,5 +129,22 @@ func TestProjectDetailAggregatesAcrossVersions(t *testing.T) {
 	got := raw.toProjectDetail()
 	if got.Title != "Sodium" || got.ProjectType != TypeMod || len(got.GameVersions) != 3 || len(got.Loaders) != 3 {
 		t.Errorf("got %+v", got)
+	}
+}
+
+func TestProjectDetailFromModrinth(t *testing.T) {
+	raw := `{"id":"x","slug":"x","title":"X","description":"short","body":"# long","icon_url":"i","downloads":3,"project_type":"mod",
+	 "game_versions":["1.21.1"],"loaders":["neoforge"],"categories":["tech"],"client_side":"optional","server_side":"required",
+	 "license":{"id":"MIT","name":""},"source_url":"s","gallery":[{"url":"b","title":"B","ordering":1},{"url":"a","title":"A","ordering":0}]}`
+	var m modrinthProjectDetail
+	if err := json.Unmarshal([]byte(raw), &m); err != nil {
+		t.Fatal(err)
+	}
+	d := m.toProjectDetail()
+	if d.Body != "# long" || d.License != "MIT" || d.ClientSide != "optional" || d.SourceURL != "s" || len(d.Categories) != 1 {
+		t.Errorf("got %+v", d)
+	}
+	if len(d.Gallery) != 2 || d.Gallery[0].URL != "a" || d.Gallery[1].Title != "B" {
+		t.Errorf("gallery not in order: %+v", d.Gallery)
 	}
 }

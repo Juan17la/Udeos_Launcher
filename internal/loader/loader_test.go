@@ -18,6 +18,9 @@ func TestProfileIDAndLabel(t *testing.T) {
 	if id, _ := ProfileID(Forge, "1.20.1", "1.20.1-47.4.10"); id != "forge-1.20.1-47.4.10" {
 		t.Error(id)
 	}
+	if id, _ := ProfileID(Quilt, "1.21.1", "0.29.1"); id != "quilt-loader-0.29.1-1.21.1" {
+		t.Error(id)
+	}
 	if id, _ := ProfileID(NeoForge, "1.21.1", "21.1.172"); id != "neoforge-1.21.1-21.1.172" {
 		t.Error(id)
 	}
