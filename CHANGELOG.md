@@ -18,6 +18,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   from Addons.
 - **Back to …** above every page title (except the dashboard), returning to
   the exact screen the player came from.
+- **Quilt** instances; Quilt runs Fabric mods, so its search and installs
+  take both.
+- **Project details** in two columns: versions, loaders and the instances
+  that can take the project (each with its own Add) on the left; the
+  project page — categories, client/server side, license, links, gallery
+  and the full description — on the right.
+- **Memory slider** in the instance settings, capped at the machine's RAM
+  and red in the danger zone (below 1 GB, or leaving less than 2 GB).
+- The top bar stays in view while a page scrolls.
 
 ### Fixed
 
