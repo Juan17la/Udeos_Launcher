@@ -41,7 +41,7 @@ func (f *fakeProvider) Versions(_ context.Context, projectID, mc, ldr string) ([
 	}
 	var out []modsearch.Version
 	for _, v := range f.versions[projectID] {
-		if (mc == "" || contains(v.GameVersions, mc)) && (ldr == "" || contains(v.Loaders, ldr)) {
+		if (mc == "" || contains(v.GameVersions, mc)) && modsearch.LoaderMatches(v.Loaders, ldr) {
 			out = append(out, v)
 		}
 	}

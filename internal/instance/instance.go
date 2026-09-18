@@ -24,7 +24,7 @@ type Instance struct {
 	ID            string     `json:"id"`
 	Name          string     `json:"name"`
 	Version       string     `json:"version"`                 // Minecraft version, e.g. "1.20.1"
-	Loader        string     `json:"loader"`                  // "Vanilla" | "Fabric" | "Forge" | "NeoForge"
+	Loader        string     `json:"loader"`                  // "Vanilla" | "Fabric" | "Quilt" | "Forge" | "NeoForge"
 	LoaderVersion string     `json:"loaderVersion,omitempty"` // loader build, e.g. "0.16.9" or "1.20.1-47.4.10"
 	Icon          string     `json:"icon"`                    // pixel icon key, e.g. "grass"
 	CreatedAt     time.Time  `json:"createdAt"`
@@ -103,7 +103,7 @@ func (s *Store) Get(id string) (Instance, error) {
 var slugRe = regexp.MustCompile(`[^a-z0-9]+`)
 
 // Create validates the input, creates the folders and saves the list. loader
-// is "Vanilla" (loaderVersion empty) or "Fabric"/"Forge"/"NeoForge" with the build to install.
+// is "Vanilla" (loaderVersion empty) or "Fabric"/"Quilt"/"Forge"/"NeoForge" with the build to install.
 func (s *Store) Create(name, version, loader, loaderVersion, icon string) (Instance, error) {
 	name = strings.TrimSpace(name)
 	if name == "" || version == "" {
