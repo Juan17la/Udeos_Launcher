@@ -43,6 +43,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Themes**: Pastel Overworld (light, now the default: birch cream canvas,
+  mint primary, sky-blue secondary) and Pastel End (dark: obsidian canvas,
+  ender-lavender primary, magenta glow behind the floating items).
+- **Logo**: an ender pearl with a mace across it, the same in both themes.
+- Projects without an icon show the stone block instead of an empty square.
+- The active profile can be removed too (the next saved one takes over).
+
 - Settings hints are shorter, larger and set apart from their inputs; *Use
   default* is a proper button.
 - The Worlds tab no longer offers *Search in Addons* (Modrinth has no worlds).
