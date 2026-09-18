@@ -32,6 +32,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   mods can be added on top) or pours its mods into a compatible instance
   you already have. From an instance's page, the Modpacks tab shows only
   packs for its version and loader.
+  An instance made from a modpack wears the pack's icon.
 - Art slots (`frontend/src/assets/`) for the logo and background
   decorations, falling back to the pixel icons until real assets land.
 

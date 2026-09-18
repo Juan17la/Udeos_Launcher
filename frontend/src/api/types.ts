@@ -27,6 +27,7 @@ export type Instance = {
   loaderVersion?: string
   /** What the tag shows: "Vanilla", "Fabric 0.16.9", "Forge 47.4.10", "NeoForge 21.1.172". */
   loaderLabel: string
+  /** A pixel icon key (ui/pixels.ts), or 'modpack' for the pack's own icon at /media/<id>/icon. */
   icon: string
   createdAt: string
   lastPlayed?: string

@@ -64,7 +64,7 @@ export default function AddInstancePickerDialog({ result, filters, onClose }: Pr
                 <Button variant="primary" className="shrink-0" disabled={!INSTANCE_NAME.test(name)} onClick={create}>{t.search.createInstance}</Button>
               </div>
             </div>
-            {!none && <p className="m-0 text-muted">{t.content.orAddTo}</p>}
+            {!none && <p className="m-0 font-bold text-base">{t.content.orAddTo}</p>}
           </>
         )}
         <AutoLoader active={detected === null} label={t.content.planning} />
