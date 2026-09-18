@@ -37,6 +37,18 @@ func (a *App) ListInstalledProjects(instanceID string) ([]string, error) {
 	return a.launcher.Content.InstalledProjects(inst)
 }
 
+// ListContent returns what the launcher installed from Modrinth into the
+// instance (title, version, icon, description per file), so the content tabs
+// can show a card instead of a bare file name. Files added by hand are not
+// listed; the tabs fall back to the file name for those.
+func (a *App) ListContent(instanceID string) ([]modinstall.Entry, error) {
+	inst, err := a.launcher.Instances.Get(instanceID)
+	if err != nil {
+		return nil, err
+	}
+	return a.launcher.Content.Installed(inst)
+}
+
 // GetProjectDetail fetches the whole project (full description, and the
 // Minecraft versions/loaders aggregated across every version) for the
 // Details page and the Add-to-instance picker's compatibility check.

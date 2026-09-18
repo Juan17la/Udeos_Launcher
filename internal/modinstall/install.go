@@ -68,6 +68,7 @@ func (m *Manager) Apply(ctx context.Context, inst instance.Instance, plan Plan) 
 		entries = append(entries, Entry{
 			ProjectID: it.Version.ProjectID, VersionID: it.Version.ID, Title: it.Title, VersionNumber: it.Version.VersionNumber,
 			Type: it.Type, File: files[i].Filename, SHA1: files[i].SHA1, Incompatible: incompatible, RequiredBy: it.RequiredBy,
+			Description: it.Info.Description, IconURL: it.Info.IconURL,
 		})
 	}
 	if len(entries) > 0 {

@@ -38,14 +38,14 @@ func params(t *testing.T, raw string) Params {
 	}
 	return Params{
 		Version: &v, Dirs: paths.FromRoot("/data"), GameDir: "/data/instances/x/.minecraft",
-		Nickname: "Steve", UUID: "uuid-1", JavaPath: "java", MaxMemoryMB: 1024,
+		Nickname: "Steve", UUID: "uuid-1", JavaPath: "java", MaxMemoryMB: 1024, JvmArgs: []string{"-Dfoo=bar"},
 		Env: rules.Env{OS: "linux", Arch: "x86_64"}, LauncherVersion: "test",
 	}
 }
 
 func TestModernArguments(t *testing.T) {
 	args := strings.Join(Arguments(params(t, modern)), " ")
-	for _, want := range []string{"-Xmx1024M", "--username Steve", "--version 1.21.1", "net.minecraft.client.main.Main", "brigadier-1.2.9.jar", "1.21.1.jar",
+	for _, want := range []string{"-Xmx1024M", "-XX:G1HeapRegionSize=32M -Dfoo=bar -Djava", "--username Steve", "--version 1.21.1", "net.minecraft.client.main.Main", "brigadier-1.2.9.jar", "1.21.1.jar",
 		"lwjgl-3.3.3-natives-linux.jar:", "-Djava.library.path=/data/versions/1.21.1/natives/java"} {
 		if !strings.Contains(args, want) {
 			t.Errorf("missing %q in %s", want, args)

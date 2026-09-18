@@ -38,11 +38,12 @@ func New(dirs paths.Dirs, provider modsearch.Provider, report func(download.Prog
 
 // PlanItem is one version that will be downloaded.
 type PlanItem struct {
-	Version    modsearch.Version `json:"version"`
-	Title      string            `json:"title"`
-	Type       string            `json:"type"`       // mod | resourcepack | shader
-	Reason     string            `json:"reason"`     // "" when the player asked for it, else the title it is required by
-	RequiredBy string            `json:"requiredBy"` // project id behind Reason
+	Version    modsearch.Version     `json:"version"`
+	Title      string                `json:"title"`
+	Type       string                `json:"type"`       // mod | resourcepack | shader
+	Reason     string                `json:"reason"`     // "" when the player asked for it, else the title it is required by
+	RequiredBy string                `json:"requiredBy"` // project id behind Reason
+	Info       modsearch.ProjectInfo `json:"-"`          // description and icon, carried into the manifest
 }
 
 // Plan is what adding a project to an instance would do, shown before it happens.
@@ -67,7 +68,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	ldr := ""
 	if kind == "mod" {
 		if inst.Loader == "" || inst.Loader == loader.Vanilla {
-			return Plan{}, errors.New("this instance has no mod loader: create a Fabric or Forge instance to use mods")
+			return Plan{}, errors.New("this instance has no mod loader: create a Fabric, Forge or NeoForge instance to use mods")
 		}
 		ldr = strings.ToLower(inst.Loader)
 	}
@@ -96,7 +97,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 		return Plan{}, err
 	}
 	if !ok {
-		return Plan{}, fmt.Errorf("%s has no build for Minecraft %s%s", root.Title, inst.Version, loaderSuffix(inst))
+		return Plan{}, fmt.Errorf("%s has no build for Minecraft %s%s%s", root.Title, inst.Version, loaderSuffix(inst), m.otherLoadersHint(ctx, root.ID, inst.Version, ldr))
 	}
 	plan.Items = append(plan.Items, PlanItem{Version: rootVersion, Title: root.Title, Type: kind})
 
@@ -180,6 +181,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	}
 	for i := range plan.Items {
 		it := &plan.Items[i]
+		it.Info = names[it.Version.ProjectID]
 		if it.Title == "" {
 			it.Title = nameOf(it.Version.ProjectID)
 		}
@@ -235,6 +237,31 @@ func (m *Manager) matchingVersion(ctx context.Context, projectID, mc, ldr string
 	}
 	v, ok := modsearch.PickVersion(versions)
 	return v, ok, nil
+}
+
+// otherLoadersHint names the loaders a project does publish for the game
+// version when none fits the instance's, so "no build for 1.21.1 with Forge"
+// also says "(its 1.21.1 builds are for neoforge)". Only reached on failure.
+func (m *Manager) otherLoadersHint(ctx context.Context, projectID, mc, ldr string) string {
+	if ldr == "" {
+		return ""
+	}
+	versions, err := m.Provider.Versions(ctx, projectID, mc, "")
+	if err != nil || len(versions) == 0 {
+		return ""
+	}
+	seen := map[string]bool{}
+	var loaders []string
+	for _, v := range versions {
+		for _, l := range v.Loaders {
+			if l = strings.ToLower(l); !seen[l] {
+				seen[l] = true
+				loaders = append(loaders, l)
+			}
+		}
+	}
+	slices.Sort(loaders)
+	return fmt.Sprintf(" (its %s builds are for %s)", mc, strings.Join(loaders, "/"))
 }
 
 // dependencyVersion resolves one dependency: the pinned version when it fits
@@ -314,6 +341,9 @@ func (m *Manager) installedEntries(inst instance.Instance) ([]Entry, error) {
 	}
 	return kept, nil
 }
+
+// Installed is the manifest minus files the player has since deleted by hand.
+func (m *Manager) Installed(inst instance.Instance) ([]Entry, error) { return m.installedEntries(inst) }
 
 // InstalledProjects lists the provider project ids present in the instance.
 func (m *Manager) InstalledProjects(inst instance.Instance) ([]string, error) {
