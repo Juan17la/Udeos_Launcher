@@ -66,7 +66,7 @@ second half maps each rule to where it lives in the code.
 - **Button colours** follow Minecraft's own buttons instead of the mint/slate
   table above: primary = the minecraft.net green `#3C8527` (hover `#2A641C`
   in light, `#4DA336` in dark, white text) in both themes; idle = light gray
-  `#E0E0E0`; secondary = gold `#FFAA00` (hover `#E69500`). Selected
+  `#E0E0E0`; gold `#FFAA00` is the loading ring. Selected
   toggles use the same green with white text. Tags use soft tints of the
   same hues: green `#B9E29A`, gold `#FFD966`, gray `#E2E8F0`.
 - **Loaders**: plain fetches (search results, version lists, listings,
@@ -113,17 +113,16 @@ block plus the runtime light/dark variables it references).
 | ≥16px spacing | screens use `gap-4`/`gap-6`, `p-4`+ on every `Panel` | screens |
 | Unframed headings | `Login` and `CreateInstance` render `h1`/`h2` above their `Panel` | screens |
 | Canvas / text | `--color-bg`, `--color-text`, `--color-muted` per theme | tokens.css |
-| Primary button | `--color-primary` (`#3C8527`) / `-hover` per theme, white text | `Button variant="primary"` |
-| Secondary button | `--color-gold`, `--color-gold-hover` | `Button variant="secondary"` |
+| Primary button | `--color-green` (`#3C8527`), `--color-primary-hover` per theme, white text | `Button variant="primary"` |
 | Idle button | `--color-idle`, `--color-idle-hover` | `Button variant="idle"`, unselected toggle |
 | Selected state | `--color-green` + white text | `Checkbox`, `IconChoice`, current nav link |
 | Locked filter | native `disabled` on `Select`/`Input`: idle fill, value kept, same radius/padding | `Field.tsx`, `screens/Search.tsx` |
-| Loaders | `Toast` with `percent` (glass + `NN%` + bar) for real progress; `AutoLoader` (glass pill + spinner) for fetches; `useSimulatedProgress` only for unmeasurable phases inside a real install; `Button loading` ring on Play | `ui/Toast.tsx`, `ui/Loader.tsx`, `ui/Button.tsx`, `components/Notifications.tsx` |
-| Success | `StatusMessage kind="success"` / `Toast tone="success"`: glass, green check, `pulse-green` keyframe | `ui/StatusMessage.tsx`, `ui/Toast.tsx` |
-| Error ≤3 words | `StatusMessage kind="error"` / `Toast tone="error"`: `--color-error` border + `--shadow-error-glow`; headline from `t.errors.*` via `utils/errors.ts`, reason as detail | `ui/StatusMessage.tsx`, `utils/errors.ts`, i18n `errors` |
-| Tags | `Tag tone="gray" \| "green" \| "gold"` (`--color-tag-gray`, `--color-green-soft`, `--color-gold-soft`) | `ui/Tag.tsx` |
-| Neumorphic panels | `--shadow-neu`, `--shadow-neu-inset`, `--color-panel` / `--color-panel-2` → `Panel`, `ListRow` | `ui/Panel.tsx`, `ui/ListRow.tsx` |
-| Glass overlays | `--color-glass`, `--color-glass-border`, `backdrop-blur-[16px]` → `Glass`, `Dialog`, `Toast`, account popover, loaders | `ui/Panel.tsx`, `ui/Dialog.tsx` |
+| Loaders | `StatusMessage` with `percent` (glass + `NN%` + native `<progress>`) for real progress; `AutoLoader` (glass pill + spinner) for fetches; `useSimulatedProgress` only for unmeasurable phases inside a real install; `Button loading` ring on Play | `ui/StatusMessage.tsx`, `ui/Loader.tsx`, `ui/Button.tsx`, `components/Notifications.tsx` |
+| Success | `StatusMessage kind="success"`: glass, green check, `pulse-green` keyframe | `ui/StatusMessage.tsx` |
+| Error ≤3 words | `StatusMessage kind="error"`: `--color-error` border + `--shadow-error-glow`; headline from `t.errors.*` via `utils/errors.ts`, reason as detail | `ui/StatusMessage.tsx`, `utils/errors.ts`, i18n `errors` |
+| Tags | `tag` utility + a fill: `bg-tag-gray` \| `bg-green-soft` \| `bg-gold-soft` | `theme/tokens.css` |
+| Neumorphic panels | `--shadow-neu`, `--shadow-neu-inset`, `--color-panel` / `--color-panel-2` → `panel` (+ `panel-hover`) utility; list rows are `bg-panel-2 shadow-neu` | `theme/tokens.css` |
+| Glass overlays | `--color-glass`, `--color-glass-border`, `backdrop-blur-[16px]` → `glass` utility used by `Dialog` (native `<dialog>` + `backdrop:`), `StatusMessage`, account popover, loaders | `theme/tokens.css`, `ui/Dialog.tsx` |
 | 150ms ease-in-out | `--default-transition-duration: 150ms`, `--default-transition-timing-function: ease-in-out`; blocks use `transition-all duration-150 ease-in-out` | tokens.css, `ui/` |
 | No microcopy | login intro, nickname hint, "more languages" and the create-form "required" line were removed; validation shows as an error only when triggered | i18n, `screens/Login.tsx` |
 
