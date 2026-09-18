@@ -53,7 +53,7 @@ can still surface as a toast after a one-click add.
 `internal/modinstall.Manager.Plan` runs, in this order:
 
 1. **Type** — modpacks cannot be added to an instance (they become one, see
-   the next page); mods need a Fabric, Forge or NeoForge instance.
+   the next page); mods need a Fabric, Quilt, Forge or NeoForge instance.
 2. **Version and loader** — Modrinth is asked for the project's versions
    filtered by the instance's Minecraft version and, for mods, its loader
    (`GET /project/{id}/version?game_versions=[..]&loaders=[..]`). An empty
@@ -111,12 +111,14 @@ show each other's numbers.
 - `ListContent(instanceId)` → the `content.json` entries whose file still
   exists; the Mods/Resource Packs/Shaders tabs match them to files by name
   to draw the card view.
-- `GetProjectDetail(projectId)` → `modsearch.ProjectDetail`: the project's
-  full description and its `game_versions`/`loaders` aggregated across every
-  version, straight from Modrinth's `GET /project/{id}` (one call — no need
-  to fetch every version to answer "what does this run on"). Used by the
-  Details page and by the Add picker's `frontend/src/lib/compat.ts` to keep
-  only the instances that can take the project.
+- `GetProjectDetail(projectId)` → `modsearch.ProjectDetail`: the whole
+  project page from Modrinth's `GET /project/{id}` — the one-liner and the
+  full `body`, `game_versions`/`loaders` aggregated across every version
+  (one call — no need to fetch every version to answer "what does this run
+  on"), categories, client/server side, license, source/issues/wiki links
+  and the gallery in its order. Used by the Details page and by the Add
+  picker's `frontend/src/utils/compat.ts` to keep only the instances that
+  can take the project.
 
 All five live in `app_content_install.go` and go through
 `Launcher.Content`, a `modinstall.Manager` that shares the search provider.

@@ -9,7 +9,9 @@ package modsearch
 
 import (
 	"context"
+	"slices"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -22,6 +24,30 @@ const (
 	TypeShader       ProjectType = "shader"
 	TypeModpack      ProjectType = "modpack"
 )
+
+// LoaderNames are the provider loader tags an instance's loader accepts: Quilt
+// loads Fabric mods, so a Quilt instance searches and installs both.
+func LoaderNames(ldr string) []string {
+	ldr = strings.ToLower(ldr)
+	if ldr == "quilt" {
+		return []string{"quilt", "fabric"}
+	}
+	return []string{ldr}
+}
+
+// LoaderMatches reports whether a version published for `loaders` runs on an
+// instance whose loader is ldr ("" = anything).
+func LoaderMatches(loaders []string, ldr string) bool {
+	if ldr == "" {
+		return true
+	}
+	for _, want := range LoaderNames(ldr) {
+		if slices.ContainsFunc(loaders, func(l string) bool { return strings.EqualFold(l, want) }) {
+			return true
+		}
+	}
+	return false
+}
 
 // Query is provider-agnostic search input.
 type Query struct {
@@ -126,12 +152,28 @@ type ProjectDetail struct {
 	ID           string      `json:"id"`
 	Slug         string      `json:"slug"`
 	Title        string      `json:"title"`
-	Description  string      `json:"description"`
+	Description  string      `json:"description"` // the one-liner
+	Body         string      `json:"body"`        // the full page: Markdown, often with HTML mixed in
 	IconURL      string      `json:"iconUrl"`
 	Downloads    int64       `json:"downloads"`
 	ProjectType  ProjectType `json:"projectType"`
 	GameVersions []string    `json:"gameVersions"`
 	Loaders      []string    `json:"loaders"`
+	Categories   []string    `json:"categories"`
+	ClientSide   string      `json:"clientSide"` // required | optional | unsupported | unknown
+	ServerSide   string      `json:"serverSide"`
+	License      string      `json:"license"`
+	SourceURL    string      `json:"sourceUrl"`
+	IssuesURL    string      `json:"issuesUrl"`
+	WikiURL      string      `json:"wikiUrl"`
+	Gallery      []Image     `json:"gallery"`
+}
+
+// Image is one gallery picture with its caption.
+type Image struct {
+	URL         string `json:"url"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
 }
 
 // PrimaryFile is the file to install: the one flagged primary, else the first.

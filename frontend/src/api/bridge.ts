@@ -74,6 +74,7 @@ declare global {
     runtime?: {
       EventsOn(name: string, cb: (data: unknown) => void): () => void
       EventsOff(name: string): void
+      BrowserOpenURL(url: string): void
     }
   }
 }
@@ -98,6 +99,12 @@ export const api: Backend = new Proxy({} as Backend, {
     }
   },
 })
+
+/** Open a link in the system browser (a plain <a> would navigate the webview itself away). */
+export function openExternal(url: string) {
+  if (inWails && window.runtime) window.runtime.BrowserOpenURL(url)
+  else window.open(url, '_blank', 'noopener')
+}
 
 /** Subscribe to a backend event; returns the unsubscribe function. */
 export function on<K extends keyof Events>(name: K, cb: (data: Events[K]) => void): () => void {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -108,7 +109,11 @@ func buildFacets(q Query) string {
 		groups = append(groups, []string{"versions:" + q.GameVersion})
 	}
 	if q.Loader != "" {
-		groups = append(groups, []string{"categories:" + strings.ToLower(q.Loader)})
+		var group []string
+		for _, l := range LoaderNames(q.Loader) {
+			group = append(group, "categories:"+l)
+		}
+		groups = append(groups, group)
 	}
 	raw, _ := json.Marshal(groups)
 	return string(raw)
@@ -231,7 +236,7 @@ func versionsURL(projectID, gameVersion, loader string) string {
 		params.Set("game_versions", jsonList(gameVersion))
 	}
 	if loader != "" {
-		params.Set("loaders", jsonList(strings.ToLower(loader)))
+		params.Set("loaders", jsonList(LoaderNames(loader)...))
 	}
 	if len(params) > 0 {
 		u += "?" + params.Encode()
@@ -289,18 +294,45 @@ type modrinthProjectDetail struct {
 	Slug         string   `json:"slug"`
 	Title        string   `json:"title"`
 	Description  string   `json:"description"`
+	Body         string   `json:"body"`
 	IconURL      string   `json:"icon_url"`
 	Downloads    int64    `json:"downloads"`
 	ProjectType  string   `json:"project_type"`
 	GameVersions []string `json:"game_versions"`
 	Loaders      []string `json:"loaders"`
+	Categories   []string `json:"categories"`
+	ClientSide   string   `json:"client_side"`
+	ServerSide   string   `json:"server_side"`
+	License      struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"license"`
+	SourceURL string `json:"source_url"`
+	IssuesURL string `json:"issues_url"`
+	WikiURL   string `json:"wiki_url"`
+	Gallery   []struct {
+		URL         string `json:"url"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		Ordering    int    `json:"ordering"`
+	} `json:"gallery"`
 }
 
 func (raw modrinthProjectDetail) toProjectDetail() ProjectDetail {
-	return ProjectDetail{
-		ID: raw.ID, Slug: raw.Slug, Title: raw.Title, Description: raw.Description, IconURL: raw.IconURL,
+	d := ProjectDetail{
+		ID: raw.ID, Slug: raw.Slug, Title: raw.Title, Description: raw.Description, Body: raw.Body, IconURL: raw.IconURL,
 		Downloads: raw.Downloads, ProjectType: ProjectType(raw.ProjectType), GameVersions: raw.GameVersions, Loaders: raw.Loaders,
+		Categories: raw.Categories, ClientSide: raw.ClientSide, ServerSide: raw.ServerSide,
+		License: raw.License.Name, SourceURL: raw.SourceURL, IssuesURL: raw.IssuesURL, WikiURL: raw.WikiURL, Gallery: []Image{},
 	}
+	if d.License == "" {
+		d.License = raw.License.ID
+	}
+	sort.SliceStable(raw.Gallery, func(i, j int) bool { return raw.Gallery[i].Ordering < raw.Gallery[j].Ordering })
+	for _, g := range raw.Gallery {
+		d.Gallery = append(d.Gallery, Image{URL: g.URL, Title: g.Title, Description: g.Description})
+	}
+	return d
 }
 
 // ProjectDetail fetches the whole project (GET /project/{id}): its full

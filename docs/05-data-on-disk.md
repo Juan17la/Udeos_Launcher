@@ -16,7 +16,7 @@ elsewhere, which is how tests run against a throw-away directory and how a
 
 - `versions/<id>/` — the version JSON, the client jar and the unpacked
   natives of each installed version, plus `manifest.json`, the cached
-  version list. Loader profiles (`fabric-loader-0.16.9-1.21.1/`,
+  version list. Loader profiles (`fabric-loader-0.16.9-1.21.1/`, `quilt-loader-0.29.1-1.21.1/`,
   `forge-1.20.1-47.4.10/`, `neoforge-1.21.1-21.1.172/`) only hold a JSON:
   they reuse the vanilla jar.
 - `libraries/` — every library jar, in Maven layout. Two versions that need

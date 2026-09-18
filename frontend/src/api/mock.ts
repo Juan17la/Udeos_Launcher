@@ -22,6 +22,7 @@ export function createMock() {
     Fabric: [['24w33a', '0.16.9'], ['1.21.1', '0.16.9'], ['1.20.4', '0.16.9'], ['1.19.2', '0.16.9']],
     Forge: [['1.21.1', '1.21.1-52.1.0'], ['1.20.4', '1.20.4-49.2.0'], ['1.19.2', '1.19.2-43.5.0'], ['1.12.2', '1.12.2-14.23.5.2859']],
     NeoForge: [['1.21.1', '21.1.172'], ['1.20.4', '20.4.251']],
+    Quilt: [['1.21.1', '0.29.1'], ['1.20.4', '0.29.1'], ['1.20.1', '0.29.1']],
   }
   const mods: Record<string, FileEntry[]> = { i3: [
     { name: 'jei-1.20.1-forge-15.3.0.4.jar', sizeBytes: 1_200_000, modTime: new Date().toISOString(), isDir: false },
@@ -84,6 +85,10 @@ export function createMock() {
     create: 'Create is a mod offering a variety of tools and blocks for building Create-ive contraptions, from small builds to entire factories all completely functional.',
     optifine: 'A mock entry used to exercise the incompatible-dependency path in the dev fixtures; not a real download.',
   }
+  // Modrinth bodies mix Markdown and HTML; this one exercises both paths of utils/markdown.
+  const bodies: Record<string, string> = {
+    sodium: `**Latest News** - Sodium 0.9 is out, _with early support for Vulkan!_\n\n---\n\n## Installation\n\n<p><a href="https://fabricmc.net"><img src="https://cdn.modrinth.com/data/AANobbMI/images/d84313e6f57dc9e7896961dbd2dfc2689d482758_350.webp" width="160" /></a></p>\n<p>Runs on <a href="https://fabricmc.net">Fabric</a> and Quilt.<br>Needs Java 21.</p>\n\n- Faster chunk rendering\n- Fixes \`smooth lighting\` bugs\n\n<iframe src="https://youtube.com/embed/x"></iframe><script>alert(1)</script>`,
+  }
   const deps: Record<string, ProjectVersion['dependencies']> = {
     iris: [{ projectId: 'sodium', versionId: '', type: 'required' }, { projectId: 'fabric-api', versionId: '', type: 'required' }],
     sodium: [{ projectId: 'optifine', versionId: '', type: 'incompatible' }],
@@ -108,8 +113,11 @@ export function createMock() {
     const loaders = [...new Set(versions.flatMap((v) => v.loaders))]
     return {
       id, slug: hit?.slug ?? id, title: titles[id] ?? hit?.title ?? id,
-      description: descriptions[id] ?? hit?.description ?? '', iconUrl: hit?.iconUrl ?? '',
+      description: hit?.description ?? '', body: bodies[id] ?? descriptions[id] ?? hit?.description ?? '', iconUrl: hit?.iconUrl ?? '',
       downloads: hit?.downloads ?? 0, projectType: type, gameVersions, loaders,
+      categories: ['utility', 'optimization'], clientSide: 'required', serverSide: id === 'sodium' ? 'unsupported' : 'required',
+      license: 'LGPL-3.0', sourceUrl: `https://github.com/mock/${id}`, issuesUrl: `https://github.com/mock/${id}/issues`, wikiUrl: '',
+      gallery: id === 'sodium' ? [{ url: 'https://cdn.modrinth.com/data/AANobbMI/images/d84313e6f57dc9e7896961dbd2dfc2689d482758_350.webp', title: 'Underwater lighting', description: 'Smooth lighting under water.' }] : [],
     }
   }
   const installed: Record<string, ContentEntry[]> = { i3: [
@@ -164,7 +172,7 @@ export function createMock() {
   }
 
   const backend = {
-    async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock' } },
+    async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock', totalMemoryMB: 16384 } },
     async GetProfile() {
       return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', language: 'en' as const, theme: 'dark' as const, agreed: false, maxMemoryMB: 2048 } }
     },
