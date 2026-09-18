@@ -22,7 +22,7 @@ type Profile struct {
 	UUID        string   `json:"uuid"`
 	Nicknames   []string `json:"nicknames"`
 	Language    string   `json:"language"` // "en" | "es"
-	Theme       string   `json:"theme"`    // "light" | "dark"
+	Theme       string   `json:"theme"`    // "light" (default) | "dark"
 	Agreed      bool     `json:"agreed"`   // accepted Privacy Policy & Terms of Use
 	MaxMemoryMB int      `json:"maxMemoryMB"`
 	JavaPath    string   `json:"javaPath,omitempty"` // optional override; empty = managed runtime
@@ -83,8 +83,8 @@ func (p *Profile) normalize() {
 	if p.Language != "es" {
 		p.Language = "en"
 	}
-	if p.Theme != "light" {
-		p.Theme = "dark"
+	if p.Theme != "dark" {
+		p.Theme = "light"
 	}
 	if p.MaxMemoryMB < 512 {
 		p.MaxMemoryMB = DefaultMaxMemoryMB
