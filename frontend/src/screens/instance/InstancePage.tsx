@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import PixelIcon from '../../ui/PixelIcon'
+import InstanceIcon from '../../components/InstanceIcon'
 import { Folder } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
@@ -39,7 +39,7 @@ export default function InstancePage({ id }: { id: string }) {
          mods list scrolls past it while it stays put. */}
       <div className="panel flex flex-col items-center justify-between gap-4 text-center sticky top-24 p-6 h-[calc(100vh-9.5rem)] min-h-fit">
         <div className="flex flex-col items-center justify-center gap-4 flex-1">
-          <PixelIcon name={inst.icon} size={96} />
+          <InstanceIcon inst={inst} size={96} />
           <div className="max-w-full flex flex-col gap-3">
             <h1 className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{inst.name}</h1>
             <div className="flex gap-2 justify-center">
