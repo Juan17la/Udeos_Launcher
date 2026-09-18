@@ -53,11 +53,15 @@ can still surface as a toast after a one-click add.
 `internal/modinstall.Manager.Plan` runs, in this order:
 
 1. **Type** — modpacks cannot be added to an instance (they become one, see
-   the next page); mods need a Fabric or Forge instance.
+   the next page); mods need a Fabric, Forge or NeoForge instance.
 2. **Version and loader** — Modrinth is asked for the project's versions
    filtered by the instance's Minecraft version and, for mods, its loader
    (`GET /project/{id}/version?game_versions=[..]&loaders=[..]`). An empty
-   answer is refused with *"X has no build for Minecraft 1.20.1 with Fabric"*.
+   answer is refused with *"X has no build for Minecraft 1.20.1 with Fabric"*
+   — and, when the project does publish for that Minecraft version on other
+   loaders, *"(its 1.20.1 builds are for forge)"*, one extra request made
+   only on failure. This is the usual story for 1.21+ Forge instances: the
+   mod's build is NeoForge's.
    Among the matches, releases win over betas and alphas, then the newest.
 3. **Already there** — a project recorded in the instance's `content.json`
    whose file still exists is reported as already installed, not added twice.
@@ -84,7 +88,9 @@ verified by SHA-1, and is skipped next time (another instance adding the
 same mod costs nothing). It is then copied into `mods/`, `resourcepacks/` or
 `shaderpacks/`, and an entry is appended to `instances/<id>/content.json`:
 project id, version id, title, version number, file name, SHA-1, which
-project pulled it in, and the project ids it is incompatible with. The
+project pulled it in, the project ids it is incompatible with, and the
+project's icon URL and one-line description (from the same `GET /projects`
+call that names the plan) for the instance tabs' card view. The
 Remove buttons on the instance tabs drop the entry along with the file, and
 an entry whose file disappeared by hand is ignored.
 
@@ -102,6 +108,9 @@ show each other's numbers.
   was installed; plans again first so a stale plan cannot be applied.
 - `ListInstalledProjects(instanceId)` → project ids installed in an instance;
   the instance-locked Addons page marks those cards **Added**.
+- `ListContent(instanceId)` → the `content.json` entries whose file still
+  exists; the Mods/Resource Packs/Shaders tabs match them to files by name
+  to draw the card view.
 - `GetProjectDetail(projectId)` → `modsearch.ProjectDetail`: the project's
   full description and its `game_versions`/`loaders` aggregated across every
   version, straight from Modrinth's `GET /project/{id}` (one call — no need
@@ -109,7 +118,7 @@ show each other's numbers.
   Details page and by the Add picker's `frontend/src/lib/compat.ts` to keep
   only the instances that can take the project.
 
-All four live in `app_content_install.go` and go through
+All five live in `app_content_install.go` and go through
 `Launcher.Content`, a `modinstall.Manager` that shares the search provider.
 
 ## Trying it from the terminal

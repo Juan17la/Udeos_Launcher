@@ -1,8 +1,8 @@
 # Udeos Launcher
 
 A Minecraft launcher for Windows, Linux and macOS that needs **no Microsoft account**:
-pick a nickname, create an instance for the version you want — vanilla, **Forge** or
-**Fabric**, no installer to run — and play. Everything runs locally; the launcher only
+pick a nickname, create an instance for the version you want — vanilla, **Forge**,
+**NeoForge** or **Fabric**, no installer to run — and play. Everything runs locally; the launcher only
 talks to Mojang's public CDN, the loaders' own servers and Modrinth to download game
 files and browse content.
 

@@ -17,7 +17,8 @@ elsewhere, which is how tests run against a throw-away directory and how a
 - `versions/<id>/` — the version JSON, the client jar and the unpacked
   natives of each installed version, plus `manifest.json`, the cached
   version list. Loader profiles (`fabric-loader-0.16.9-1.21.1/`,
-  `forge-1.20.1-47.4.10/`) only hold a JSON: they reuse the vanilla jar.
+  `forge-1.20.1-47.4.10/`, `neoforge-1.21.1-21.1.172/`) only hold a JSON:
+  they reuse the vanilla jar.
 - `libraries/` — every library jar, in Maven layout. Two versions that need
   the same Netty release share one file.
 - `assets/indexes/` and `assets/objects/` — asset indexes and the
@@ -26,12 +27,13 @@ elsewhere, which is how tests run against a throw-away directory and how a
   versions.
 - `runtimes/<component>/<platform>/` — the Java runtimes downloaded from
   Mojang, one per component actually used.
-- `cache/loaders/` — the Fabric and Forge support tables, so the create form
-  can still offer them offline; `cache/forge/` — downloaded Forge installers.
+- `cache/loaders/` — the Fabric, Forge and NeoForge support tables, so the
+  create form can still offer them offline; `cache/forge/` and
+  `cache/neoforge/` — downloaded installers.
 - `cache/search/` — cached search pages; `cache/content/<sha1>/<file>` — every
   mod, pack or shader downloaded from Modrinth, kept so a second instance
   adding the same file does not download it again.
-- `launcher_profiles.json` — an empty stub Forge's installer requires.
+- `launcher_profiles.json` — an empty stub the Forge/NeoForge installer requires.
 
 Deleting any of these only costs a re-download; nothing the player made lives
 there.
@@ -39,7 +41,8 @@ there.
 ## Private to each instance
 
 - `instances.json` — the list of instances: id, name, version, loader and
-  loader build, icon, creation date, last played, total play time.
+  loader build, icon, creation date, last played, total play time and the
+  `launch` settings (memory, Java path, extra JVM arguments; empty = defaults).
 - `instances/<id>/.minecraft/` — the game directory. The game itself creates
   `saves/` (worlds), `screenshots/`, `options.txt`, `logs/`; the launcher
   pre-creates `resourcepacks/`, `mods/` and `shaderpacks/` so the instance

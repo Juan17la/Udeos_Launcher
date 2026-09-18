@@ -20,11 +20,16 @@ which launcher they use.
 When Play is pressed for an installed version, the launcher assembles one
 java command:
 
-1. **Java executable** — the managed runtime for the version's component, or
-   a custom path if the profile sets one.
-2. **Memory** — a maximum heap (2 GB by default, adjustable in the profile
-   file) and a handful of garbage-collector flags that keep frame times
-   smooth; these are the flags the official launcher uses.
+1. **Java executable** — the instance's own Java if its Settings tab names
+   one, else the profile's, else the managed runtime for the version's
+   component.
+2. **Memory** — a maximum heap (the instance's setting, else the profile's
+   2 GB default) and a handful of garbage-collector flags that keep frame
+   times smooth; these are the flags the official launcher uses. The
+   instance's *extra JVM arguments* come right after, so a flag set there
+   overrides a default. These three live in `Instance.Launch`
+   (`instances.json`) and are edited on the instance page's **Settings**
+   tab (`SetInstanceLaunch`).
 3. **JVM arguments** from the version JSON, filtered by the rules: on macOS
    this adds the flag that makes the window open on the main thread, on
    Windows some OS-version hints. Placeholders are replaced: the natives
