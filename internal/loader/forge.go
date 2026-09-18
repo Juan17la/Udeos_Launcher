@@ -249,33 +249,8 @@ func fileExists(path string) bool {
 	return err == nil && !st.IsDir()
 }
 
-// readJSONEntry decodes one file inside a jar.
-func readJSONEntry[T any](jar, name string) (*T, error) {
-	r, err := zip.OpenReader(jar)
-	if err != nil {
-		return nil, err
-	}
-	defer r.Close()
-	for _, f := range r.File {
-		if f.Name != name {
-			continue
-		}
-		rc, err := f.Open()
-		if err != nil {
-			return nil, err
-		}
-		defer rc.Close()
-		var out T
-		if err := json.NewDecoder(rc).Decode(&out); err != nil {
-			return nil, fmt.Errorf("%s: %w", name, err)
-		}
-		return &out, nil
-	}
-	return nil, errors.New(name + " not found in installer")
-}
-
-// extractEntry copies one file out of a jar.
-func extractEntry(jar, name, dst string) error {
+// withEntry runs fn on one file inside a jar.
+func withEntry(jar, name string, fn func(io.Reader) error) error {
 	r, err := zip.OpenReader(jar)
 	if err != nil {
 		return err
@@ -290,6 +265,24 @@ func extractEntry(jar, name, dst string) error {
 			return err
 		}
 		defer rc.Close()
+		return fn(rc)
+	}
+	return errors.New(name + " not found in installer")
+}
+
+// readJSONEntry decodes one file inside a jar.
+func readJSONEntry[T any](jar, name string) (*T, error) {
+	var out T
+	err := withEntry(jar, name, func(r io.Reader) error { return json.NewDecoder(r).Decode(&out) })
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", name, err)
+	}
+	return &out, nil
+}
+
+// extractEntry copies one file out of a jar.
+func extractEntry(jar, name, dst string) error {
+	return withEntry(jar, name, func(r io.Reader) error {
 		if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 			return err
 		}
@@ -297,11 +290,10 @@ func extractEntry(jar, name, dst string) error {
 		if err != nil {
 			return err
 		}
-		_, err = io.Copy(out, rc)
+		_, err = io.Copy(out, r)
 		if cerr := out.Close(); err == nil {
 			err = cerr
 		}
 		return err
-	}
-	return errors.New(name + " not found in installer")
+	})
 }
