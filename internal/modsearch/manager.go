@@ -4,13 +4,11 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	"os"
-	"path/filepath"
 	"sync"
 	"time"
 
+	"udeos/launcher/internal/cache"
 	"udeos/launcher/internal/paths"
 )
 
@@ -57,23 +55,18 @@ func (m *Manager) Search(ctx context.Context, q Query) (Page, error) {
 	if page, ok := m.fromMemory(key); ok {
 		return page, nil
 	}
-	cache := m.Dirs.SearchCacheFile(key)
-	page, err := m.Provider.Search(ctx, q)
-	if err == nil {
-		m.remember(key, page)
-		// Keystroke-by-keystroke free text would write a cache file per
-		// character; only persist once the query looks intentional.
-		if q.Text == "" || len(q.Text) >= 3 {
-			writeCache(cache, page)
-		}
-		return page, nil
+	// Keystroke-by-keystroke free text would write a cache file per
+	// character; only persist once the query looks intentional.
+	path := ""
+	if q.Text == "" || len(q.Text) >= 3 {
+		path = m.Dirs.SearchCacheFile(key)
 	}
-	var cached Page
-	if readErr := readCache(cache, &cached); readErr != nil {
-		return Page{}, fmt.Errorf("cannot reach %s (%v) and no cached results", m.Provider.Name(), err)
+	page, err := cache.Fetch(path, m.Provider.Name(), func() (Page, error) { return m.Provider.Search(ctx, q) })
+	if err != nil {
+		return Page{}, err
 	}
-	m.remember(key, cached) // retries while offline stay off the network too
-	return cached, nil
+	m.remember(key, page) // retries while offline stay off the network too
+	return page, nil
 }
 
 // GameVersions returns the version list for the search filter. It is fetched
@@ -85,12 +78,9 @@ func (m *Manager) GameVersions(ctx context.Context) ([]GameVersion, error) {
 	if have != nil {
 		return have, nil
 	}
-	cache := m.Dirs.SearchVersionsCacheFile()
-	versions, err := m.Provider.GameVersions(ctx)
-	if err == nil {
-		writeCache(cache, versions)
-	} else if readErr := readCache(cache, &versions); readErr != nil {
-		return nil, fmt.Errorf("cannot reach %s (%v) and no cached version list", m.Provider.Name(), err)
+	versions, err := cache.Fetch(m.Dirs.SearchVersionsCacheFile(), m.Provider.Name(), func() ([]GameVersion, error) { return m.Provider.GameVersions(ctx) })
+	if err != nil {
+		return nil, err
 	}
 	m.mu.Lock()
 	m.versions = versions
@@ -145,37 +135,6 @@ func cacheKey(q Query) string {
 	}
 	sum := sha1.Sum([]byte(q.Text))
 	return fmt.Sprintf("%s_%s_%s_%s_%d_%s", q.Type, gv, ldr, idx, q.Offset, hex.EncodeToString(sum[:])[:8])
-}
-
-func writeCache(path string, v any) {
-	raw, err := json.Marshal(v)
-	if err != nil {
-		return
-	}
-	_ = os.MkdirAll(filepath.Dir(path), 0o755)
-	_ = os.WriteFile(path, raw, 0o644)
-}
-
-func readCache(path string, v any) error {
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(raw, v)
-}
-
-// Versions, VersionByID and Projects go straight to the provider: they are
-// asked once, when the player adds a project, and must be fresh.
-func (m *Manager) Versions(ctx context.Context, projectID, gameVersion, loader string) ([]Version, error) {
-	return m.Provider.Versions(ctx, projectID, gameVersion, loader)
-}
-
-func (m *Manager) VersionByID(ctx context.Context, id string) (Version, error) {
-	return m.Provider.VersionByID(ctx, id)
-}
-
-func (m *Manager) Projects(ctx context.Context, ids []string) ([]ProjectInfo, error) {
-	return m.Provider.Projects(ctx, ids)
 }
 
 // ProjectDetail goes straight to the provider: fetched once, at click time.

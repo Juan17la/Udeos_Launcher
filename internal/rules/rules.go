@@ -8,17 +8,17 @@ import (
 	"udeos/launcher/internal/mojang"
 )
 
-// Env is what rules are matched against.
+// Env is what rules are matched against. No optional launcher feature (demo
+// mode, custom resolution, quick play) is ever enabled, so a rule that asks
+// for one never matches.
 type Env struct {
-	OS       string // windows | linux | osx
-	Arch     string // x86 | x86_64 | arm64
-	Features map[string]bool
+	OS   string // windows | linux | osx
+	Arch string // x86 | x86_64 | arm64
 }
 
-// Current describes the machine the launcher runs on. No optional launcher
-// feature (demo mode, custom resolution, quick play) is enabled.
+// Current describes the machine the launcher runs on.
 func Current() Env {
-	e := Env{Features: map[string]bool{}}
+	e := Env{}
 	switch runtime.GOOS {
 	case "windows":
 		e.OS = "windows"
@@ -39,9 +39,6 @@ func Current() Env {
 	}
 	return e
 }
-
-// NativeKey is the key used in the old-style "natives" map (windows/linux/osx).
-func (e Env) NativeKey() string { return e.OS }
 
 // Allowed applies the rules in order. With no rules everything is allowed;
 // with rules, the default is "disallow" and each matching rule overrides it.
@@ -73,8 +70,8 @@ func matches(r mojang.Rule, env Env) bool {
 			return false
 		}
 	}
-	for name, want := range r.Features {
-		if env.Features[name] != want {
+	for _, want := range r.Features {
+		if want {
 			return false
 		}
 	}

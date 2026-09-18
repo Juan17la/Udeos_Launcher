@@ -39,7 +39,7 @@ func params(t *testing.T, raw string) Params {
 	return Params{
 		Version: &v, Dirs: paths.FromRoot("/data"), GameDir: "/data/instances/x/.minecraft",
 		Nickname: "Steve", UUID: "uuid-1", JavaPath: "java", MaxMemoryMB: 1024,
-		Env: rules.Env{OS: "linux", Arch: "x86_64", Features: map[string]bool{}}, LauncherVersion: "test",
+		Env: rules.Env{OS: "linux", Arch: "x86_64"}, LauncherVersion: "test",
 	}
 }
 
