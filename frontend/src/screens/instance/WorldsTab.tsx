@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Folder, X } from '../../ui/icons'
 import Button from '../../ui/Button'
-import ListRow from '../../ui/ListRow'
-import Empty from '../../ui/Empty'
 import AutoLoader from '../../ui/Loader'
 import { ConfirmDialog } from '../../ui/Dialog'
 import { useApp, useLaunch } from '../../state'
@@ -17,7 +15,7 @@ import type { World } from '../../api/types'
 /** Like the file tabs, plus Save to Device and a confirmation before a
  *  world is deleted. Re-lists when the game closes (new worlds, play time). */
 export default function WorldsTab({ id }: { id: string }) {
-  const { t } = useApp()
+  const { t, language } = useApp()
   const { launch } = useLaunch()
   const { items, note, error, pick, remove, setNote, clearNote } = useFileList(id, WORLDS, t.instance.worldAdded, launch.status)
   const [toDelete, setToDelete] = useState<World | null>(null)
@@ -37,12 +35,16 @@ export default function WorldsTab({ id }: { id: string }) {
       <Feedback error={error} note={note} onClearNote={clearNote} />
       <FolderLink id={id} sub={WORLDS.folder} />
       <AutoLoader active={items === null} label={t.common.loading} />
-      {items?.length === 0 && <Empty text={t.instance.empty.worlds} />}
+      {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty.worlds}</p>}
       {items?.map((w) => (
-        <ListRow key={w.folder} title={w.name} meta={fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, t), size: bytes(w.sizeBytes) })}>
+        <div key={w.folder} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
+            <div className="text-[15px] font-bold truncate">{w.name}</div>
+            <div className="text-xs text-muted">{fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, language), size: bytes(w.sizeBytes) })}</div>
+          </div>
           <Button variant="idle" size="sm" onClick={() => save(w)}><Folder /> {t.instance.saveToDevice}</Button>
           <Button variant="danger" size="sm" square title={t.instance.removeWorld} onClick={() => setToDelete(w)}><X /></Button>
-        </ListRow>
+        </div>
       ))}
       {toDelete && (
         <ConfirmDialog danger title={t.instance.confirmDeleteWorldTitle} body={fmt(t.instance.confirmDeleteWorld, { name: toDelete.name })} confirmLabel={t.common.delete}

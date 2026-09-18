@@ -7,8 +7,8 @@ import (
 )
 
 func TestAllowed(t *testing.T) {
-	linux := Env{OS: "linux", Arch: "x86_64", Features: map[string]bool{}}
-	osx := Env{OS: "osx", Arch: "x86_64", Features: map[string]bool{}}
+	linux := Env{OS: "linux", Arch: "x86_64"}
+	osx := Env{OS: "osx", Arch: "x86_64"}
 
 	onlyOSX := []mojang.Rule{{Action: "allow", OS: &mojang.OSRule{Name: "osx"}}}
 	if Allowed(onlyOSX, linux) || !Allowed(onlyOSX, osx) {

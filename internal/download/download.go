@@ -36,16 +36,18 @@ type Progress struct {
 	Current    string `json:"current"`
 }
 
+// workers is how many files download at once.
+const workers = 8
+
 // Pool runs tasks on a fixed number of workers.
 type Pool struct {
-	Workers    int
-	HTTP       *http.Client
+	http       *http.Client
 	OnProgress func(Progress)
 }
 
-// NewPool returns a pool with 8 workers.
+// NewPool returns a pool whose progress goes to onProgress.
 func NewPool(onProgress func(Progress)) *Pool {
-	return &Pool{Workers: 8, HTTP: &http.Client{Timeout: 10 * time.Minute}, OnProgress: onProgress}
+	return &Pool{http: &http.Client{Timeout: 10 * time.Minute}, OnProgress: onProgress}
 }
 
 // Run downloads every task, stopping at the first error or context cancel.
@@ -71,9 +73,9 @@ func (p *Pool) Run(ctx context.Context, phase string, tasks []Task) error {
 	}
 
 	queue := make(chan Task)
-	errs := make(chan error, p.Workers)
+	errs := make(chan error, workers)
 	var wg sync.WaitGroup
-	for i := 0; i < p.Workers; i++ {
+	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -132,7 +134,7 @@ func (p *Pool) fetchOnce(ctx context.Context, t Task) error {
 		return err
 	}
 	req.Header.Set("User-Agent", "UdeosLauncher")
-	res, err := p.HTTP.Do(req)
+	res, err := p.http.Do(req)
 	if err != nil {
 		return err
 	}

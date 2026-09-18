@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -146,8 +147,8 @@ func freeWorldDir(gameDir, name string) string {
 
 // zipWorldPrefix finds where level.dat sits in the archive: "" for the root,
 // "Folder/" when everything is inside one top-level folder.
-func zipWorldPrefix(path string) (string, bool) {
-	r, err := zip.OpenReader(path)
+func zipWorldPrefix(archive string) (string, bool) {
+	r, err := zip.OpenReader(archive)
 	if err != nil {
 		return "", false
 	}
@@ -156,19 +157,11 @@ func zipWorldPrefix(path string) (string, bool) {
 		if f.Name == "level.dat" {
 			return "", true
 		}
-		if dir, file := pathSplit(f.Name); file == "level.dat" && dir != "" && !strings.Contains(strings.TrimSuffix(dir, "/"), "/") {
+		if dir, file := path.Split(f.Name); file == "level.dat" && dir != "" && !strings.Contains(strings.TrimSuffix(dir, "/"), "/") {
 			return dir, true
 		}
 	}
 	return "", false
-}
-
-func pathSplit(name string) (dir, file string) {
-	i := strings.LastIndex(name, "/")
-	if i < 0 {
-		return "", name
-	}
-	return name[:i+1], name[i+1:]
 }
 
 // unzipInto extracts the entries under prefix into dst, refusing paths that
@@ -230,10 +223,11 @@ func ExportWorld(gameDir, folder, dst string) error {
 	return zipDir(src, dst, filepath.Base(folder))
 }
 
-// ListFiles lists entries of a game sub-folder, newest first. When exts is
-// given only files with those extensions (or folders) are returned.
-func ListFiles(gameDir, sub string, exts ...string) ([]FileEntry, error) {
-	entries, err := os.ReadDir(filepath.Join(gameDir, sub))
+// ListFiles lists the files with ext (and every folder) in a game
+// sub-folder, newest first.
+func ListFiles(gameDir, sub, ext string) ([]FileEntry, error) {
+	dir := filepath.Join(gameDir, sub)
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return []FileEntry{}, nil
@@ -242,21 +236,12 @@ func ListFiles(gameDir, sub string, exts ...string) ([]FileEntry, error) {
 	}
 	out := []FileEntry{}
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), ".") {
+		if strings.HasPrefix(e.Name(), ".") || (!e.IsDir() && !strings.HasSuffix(strings.ToLower(e.Name()), ext)) {
 			continue
 		}
-		if !e.IsDir() && len(exts) > 0 && !hasExt(e.Name(), exts) {
-			continue
+		if fe, err := entryOf(filepath.Join(dir, e.Name())); err == nil {
+			out = append(out, fe)
 		}
-		info, err := e.Info()
-		if err != nil {
-			continue
-		}
-		fe := FileEntry{Name: e.Name(), ModTime: info.ModTime(), IsDir: e.IsDir(), SizeBytes: info.Size()}
-		if e.IsDir() {
-			fe.SizeBytes = dirSize(filepath.Join(gameDir, sub, e.Name()))
-		}
-		out = append(out, fe)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ModTime.After(out[j].ModTime) })
 	return out, nil
@@ -269,32 +254,41 @@ func CopyOut(gameDir, sub, name, dst string) error {
 
 // AddResourcePack validates and copies a .zip (or folder) into resourcepacks/.
 func AddResourcePack(gameDir, src string) (FileEntry, error) {
+	return addPack(gameDir, "resourcepacks", src, "resource pack", "pack.mcmeta", func(zip string) bool { return zipHasAny(zip, "pack.mcmeta") })
+}
+
+// AddShaderPack copies a .zip (or folder) into shaderpacks/ after checking it
+// carries a shaders/ folder, which is what every shader loader looks for.
+func AddShaderPack(gameDir, src string) (FileEntry, error) {
+	return addPack(gameDir, "shaderpacks", src, "shader pack", "shaders", func(zip string) bool { return zipHasDir(zip, "shaders/") })
+}
+
+// addPack copies a pack folder (holding marker) or .zip (passing zipOK) into sub/.
+func addPack(gameDir, sub, src, kind, marker string, zipOK func(string) bool) (FileEntry, error) {
 	st, err := os.Stat(src)
 	if err != nil {
 		return FileEntry{}, err
 	}
-	name := filepath.Base(src)
-	dst := filepath.Join(gameDir, "resourcepacks", name)
+	dst := filepath.Join(gameDir, sub, filepath.Base(src))
 	if st.IsDir() {
-		if _, err := os.Stat(filepath.Join(src, "pack.mcmeta")); err != nil {
-			return FileEntry{}, errors.New("that folder is not a resource pack (no pack.mcmeta)")
+		if _, err := os.Stat(filepath.Join(src, marker)); err != nil {
+			return FileEntry{}, fmt.Errorf("that folder is not a %s (no %s inside)", kind, marker)
 		}
 		if err := copyDir(src, dst); err != nil {
 			return FileEntry{}, err
 		}
-	} else {
-		if !strings.EqualFold(filepath.Ext(name), ".zip") {
-			return FileEntry{}, errors.New("resource packs must be .zip files")
-		}
-		if !zipHas(src, "pack.mcmeta") {
-			return FileEntry{}, errors.New("that zip is not a resource pack (no pack.mcmeta inside)")
-		}
-		if err := copyFile(src, dst); err != nil {
-			return FileEntry{}, err
-		}
+		return entryOf(dst)
 	}
-	info, _ := os.Stat(dst)
-	return FileEntry{Name: name, SizeBytes: info.Size(), ModTime: info.ModTime(), IsDir: info.IsDir()}, nil
+	if !strings.EqualFold(filepath.Ext(src), ".zip") {
+		return FileEntry{}, fmt.Errorf("%ss must be .zip files", kind)
+	}
+	if !zipOK(src) {
+		return FileEntry{}, fmt.Errorf("that zip is not a %s (no %s inside)", kind, marker)
+	}
+	if err := copyFile(src, dst); err != nil {
+		return FileEntry{}, err
+	}
+	return entryOf(dst)
 }
 
 // modMarkers are the metadata files each loader expects inside a mod jar.
@@ -319,42 +313,12 @@ func AddMod(gameDir, src, loader string) (FileEntry, error) {
 	if !known {
 		return FileEntry{}, errors.New("this instance has no mod loader")
 	}
-	if !zipHasAny(src, markers) {
+	if !zipHasAny(src, markers...) {
 		return FileEntry{}, fmt.Errorf("that .jar is not a %s mod", loader)
 	}
 	dst := filepath.Join(gameDir, "mods", name)
 	if err := copyFile(src, dst); err != nil {
 		return FileEntry{}, err
-	}
-	return entryOf(dst)
-}
-
-// AddShaderPack copies a .zip (or folder) into shaderpacks/ after checking it
-// carries a shaders/ folder, which is what every shader loader looks for.
-func AddShaderPack(gameDir, src string) (FileEntry, error) {
-	st, err := os.Stat(src)
-	if err != nil {
-		return FileEntry{}, err
-	}
-	name := filepath.Base(src)
-	dst := filepath.Join(gameDir, "shaderpacks", name)
-	if st.IsDir() {
-		if _, err := os.Stat(filepath.Join(src, "shaders")); err != nil {
-			return FileEntry{}, errors.New("that folder is not a shader pack (no shaders/ inside)")
-		}
-		if err := copyDir(src, dst); err != nil {
-			return FileEntry{}, err
-		}
-	} else {
-		if !strings.EqualFold(filepath.Ext(name), ".zip") {
-			return FileEntry{}, errors.New("shader packs must be .zip files")
-		}
-		if !zipHasDir(src, "shaders/") {
-			return FileEntry{}, errors.New("that zip is not a shader pack (no shaders/ folder inside)")
-		}
-		if err := copyFile(src, dst); err != nil {
-			return FileEntry{}, err
-		}
 	}
 	return entryOf(dst)
 }
@@ -376,20 +340,7 @@ func Remove(gameDir, sub, name string) error {
 	return os.RemoveAll(filepath.Join(gameDir, sub, filepath.Base(name)))
 }
 
-func hasExt(name string, exts []string) bool {
-	for _, e := range exts {
-		if strings.HasSuffix(strings.ToLower(name), e) {
-			return true
-		}
-	}
-	return false
-}
-
-func zipHas(path, entry string) bool {
-	return zipHasAny(path, []string{entry})
-}
-
-func zipHasAny(path string, entries []string) bool {
+func zipHasAny(path string, entries ...string) bool {
 	r, err := zip.OpenReader(path)
 	if err != nil {
 		return false

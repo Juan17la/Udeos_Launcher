@@ -24,6 +24,46 @@ func (a *App) gameDir(id string) (string, error) {
 	return a.launcher.Dirs.GameDir(id), nil
 }
 
+// list, pick, remove and saveAs are the bodies every content kind shares;
+// the exported methods below exist because Wails binds one JS function per
+// exported method.
+func (a *App) list(id, sub, ext string) ([]content.FileEntry, error) {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return nil, err
+	}
+	return content.ListFiles(dir, sub, ext)
+}
+
+// pick opens a file chooser; "" means the player cancelled.
+func (a *App) pick(title, pattern, label string) (string, error) {
+	return wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
+		Title:   title,
+		Filters: []wailsrt.FileFilter{{DisplayName: label + " (" + pattern + ")", Pattern: pattern}},
+	})
+}
+
+// saveAs asks where to save; "" means the player cancelled.
+func (a *App) saveAs(title, name, pattern, label string) (string, error) {
+	return wailsrt.SaveFileDialog(a.ctx, wailsrt.SaveDialogOptions{
+		Title:           title,
+		DefaultFilename: filepath.Base(name),
+		Filters:         []wailsrt.FileFilter{{DisplayName: label + " (" + pattern + ")", Pattern: pattern}},
+	})
+}
+
+// remove deletes a file from a game sub-folder and drops it from content.json.
+func (a *App) remove(id, sub, name string) error {
+	dir, err := a.gameDir(id)
+	if err != nil {
+		return err
+	}
+	if err := content.Remove(dir, sub, name); err != nil {
+		return err
+	}
+	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), sub, name)
+}
+
 // ListWorlds returns the instance's saved worlds.
 func (a *App) ListWorlds(id string) ([]content.World, error) {
 	dir, err := a.gameDir(id)
@@ -40,11 +80,7 @@ func (a *App) ExportWorld(id, folder string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dst, err := wailsrt.SaveFileDialog(a.ctx, wailsrt.SaveDialogOptions{
-		Title:           "Save world",
-		DefaultFilename: filepath.Base(folder) + ".zip",
-		Filters:         []wailsrt.FileFilter{{DisplayName: "Zip archive (*.zip)", Pattern: "*.zip"}},
-	})
+	dst, err := a.saveAs("Save world", folder+".zip", "*.zip", "Zip archive")
 	if err != nil || dst == "" {
 		return "", err
 	}
@@ -66,10 +102,7 @@ func (a *App) AddWorld(id, path string) (content.World, error) {
 // PickWorld opens a file chooser for a world .zip and imports it. Returns an
 // empty folder name when cancelled. Folders can be dragged onto the window.
 func (a *App) PickWorld(id string) (content.World, error) {
-	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
-		Title:   "Choose a world",
-		Filters: []wailsrt.FileFilter{{DisplayName: "World archive (*.zip)", Pattern: "*.zip"}},
-	})
+	path, err := a.pick("Choose a world", "*.zip", "World archive")
 	if err != nil || path == "" {
 		return content.World{}, err
 	}
@@ -87,11 +120,7 @@ func (a *App) RemoveWorld(id, folder string) error {
 
 // ListScreenshots returns the PNG files in screenshots/. The UI shows them via /media/.
 func (a *App) ListScreenshots(id string) ([]content.FileEntry, error) {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return nil, err
-	}
-	return content.ListFiles(dir, "screenshots", ".png")
+	return a.list(id, "screenshots", ".png")
 }
 
 // ExportScreenshot copies a screenshot to a location the player picks.
@@ -100,11 +129,7 @@ func (a *App) ExportScreenshot(id, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	dst, err := wailsrt.SaveFileDialog(a.ctx, wailsrt.SaveDialogOptions{
-		Title:           "Save screenshot",
-		DefaultFilename: filepath.Base(name),
-		Filters:         []wailsrt.FileFilter{{DisplayName: "PNG image (*.png)", Pattern: "*.png"}},
-	})
+	dst, err := a.saveAs("Save screenshot", name, "*.png", "PNG image")
 	if err != nil || dst == "" {
 		return "", err
 	}
@@ -113,20 +138,15 @@ func (a *App) ExportScreenshot(id, name string) (string, error) {
 
 // ListResourcePacks lists resourcepacks/ (zip files and folders).
 func (a *App) ListResourcePacks(id string) ([]content.FileEntry, error) {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return nil, err
-	}
-	return content.ListFiles(dir, "resourcepacks", ".zip")
+	return a.list(id, "resourcepacks", ".zip")
 }
 
 // ListMods lists the .jar files in mods/.
-func (a *App) ListMods(id string) ([]content.FileEntry, error) {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return nil, err
-	}
-	return content.ListFiles(dir, "mods", ".jar")
+func (a *App) ListMods(id string) ([]content.FileEntry, error) { return a.list(id, "mods", ".jar") }
+
+// ListShaders lists shaderpacks/.
+func (a *App) ListShaders(id string) ([]content.FileEntry, error) {
+	return a.list(id, "shaderpacks", ".zip")
 }
 
 // AddMod copies a .jar into mods/ after checking it is a mod for the
@@ -139,40 +159,6 @@ func (a *App) AddMod(id, path string) (content.FileEntry, error) {
 	return content.AddMod(a.launcher.Dirs.GameDir(id), path, inst.Loader)
 }
 
-// PickMod opens a file chooser for a mod .jar and adds it. Returns an empty
-// name when cancelled.
-func (a *App) PickMod(id string) (content.FileEntry, error) {
-	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
-		Title:   "Choose a mod",
-		Filters: []wailsrt.FileFilter{{DisplayName: "Mod (*.jar)", Pattern: "*.jar"}},
-	})
-	if err != nil || path == "" {
-		return content.FileEntry{}, err
-	}
-	return a.AddMod(id, path)
-}
-
-// RemoveMod deletes a mod from the instance.
-func (a *App) RemoveMod(id, name string) error {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return err
-	}
-	if err := content.Remove(dir, "mods", name); err != nil {
-		return err
-	}
-	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), "mods", name)
-}
-
-// ListShaders lists shaderpacks/.
-func (a *App) ListShaders(id string) ([]content.FileEntry, error) {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return nil, err
-	}
-	return content.ListFiles(dir, "shaderpacks", ".zip")
-}
-
 // AddShader copies a shader pack (.zip or folder) into shaderpacks/.
 func (a *App) AddShader(id, path string) (content.FileEntry, error) {
 	dir, err := a.gameDir(id)
@@ -180,30 +166,6 @@ func (a *App) AddShader(id, path string) (content.FileEntry, error) {
 		return content.FileEntry{}, err
 	}
 	return content.AddShaderPack(dir, path)
-}
-
-// PickShader opens a file chooser for a shader pack .zip and adds it.
-func (a *App) PickShader(id string) (content.FileEntry, error) {
-	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
-		Title:   "Choose a shader pack",
-		Filters: []wailsrt.FileFilter{{DisplayName: "Shader pack (*.zip)", Pattern: "*.zip"}},
-	})
-	if err != nil || path == "" {
-		return content.FileEntry{}, err
-	}
-	return a.AddShader(id, path)
-}
-
-// RemoveShader deletes a shader pack from the instance.
-func (a *App) RemoveShader(id, name string) error {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return err
-	}
-	if err := content.Remove(dir, "shaderpacks", name); err != nil {
-		return err
-	}
-	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), "shaderpacks", name)
 }
 
 // AddResourcePack copies a local .zip/folder into the instance after checking it is a pack.
@@ -215,29 +177,33 @@ func (a *App) AddResourcePack(id, path string) (content.FileEntry, error) {
 	return content.AddResourcePack(dir, path)
 }
 
-// PickResourcePack opens a file chooser and adds the selected pack. Returns
-// the entry, or an empty name when cancelled.
+// PickMod, PickShader and PickResourcePack open a file chooser and add the
+// selected file. They return an empty name when cancelled.
+func (a *App) PickMod(id string) (content.FileEntry, error) {
+	return a.pickAndAdd(id, "Choose a mod", "*.jar", "Mod", a.AddMod)
+}
+
+func (a *App) PickShader(id string) (content.FileEntry, error) {
+	return a.pickAndAdd(id, "Choose a shader pack", "*.zip", "Shader pack", a.AddShader)
+}
+
 func (a *App) PickResourcePack(id string) (content.FileEntry, error) {
-	path, err := wailsrt.OpenFileDialog(a.ctx, wailsrt.OpenDialogOptions{
-		Title:   "Choose a resource pack",
-		Filters: []wailsrt.FileFilter{{DisplayName: "Resource pack (*.zip)", Pattern: "*.zip"}},
-	})
+	return a.pickAndAdd(id, "Choose a resource pack", "*.zip", "Resource pack", a.AddResourcePack)
+}
+
+func (a *App) pickAndAdd(id, title, pattern, label string, add func(id, path string) (content.FileEntry, error)) (content.FileEntry, error) {
+	path, err := a.pick(title, pattern, label)
 	if err != nil || path == "" {
 		return content.FileEntry{}, err
 	}
-	return a.AddResourcePack(id, path)
+	return add(id, path)
 }
 
-// RemoveResourcePack deletes a pack from the instance.
+// RemoveMod, RemoveShader and RemoveResourcePack delete a file from the instance.
+func (a *App) RemoveMod(id, name string) error    { return a.remove(id, "mods", name) }
+func (a *App) RemoveShader(id, name string) error { return a.remove(id, "shaderpacks", name) }
 func (a *App) RemoveResourcePack(id, name string) error {
-	dir, err := a.gameDir(id)
-	if err != nil {
-		return err
-	}
-	if err := content.Remove(dir, "resourcepacks", name); err != nil {
-		return err
-	}
-	return modinstall.Forget(a.launcher.Dirs.ContentFile(id), "resourcepacks", name)
+	return a.remove(id, "resourcepacks", name)
 }
 
 // openableSubdirs are the game sub-folders the UI may ask to open.

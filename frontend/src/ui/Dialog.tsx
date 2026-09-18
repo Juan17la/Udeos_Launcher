@@ -1,31 +1,25 @@
-import { ReactNode, useEffect } from 'react'
-import { Glass } from './Panel'
+import { ReactNode, useEffect, useRef } from 'react'
 import Button from './Button'
 import { useApp } from '../state'
 
 type Props = { title: string; children: ReactNode; actions: ReactNode; onClose: () => void; width?: number }
 
-/** Modal dialog on a blurred backdrop: a glass panel, closed by clicking
- *  outside or pressing Escape. */
+/** Modal dialog: a native <dialog> (top layer, focus trap, Escape) on a
+ *  blurred backdrop, as a glass panel; clicking the backdrop closes it. */
 export default function Dialog({ title, children, actions, onClose, width = 440 }: Props) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
+  const ref = useRef<HTMLDialogElement>(null)
+  useEffect(() => { ref.current?.showModal() }, [])
   return (
-    <div className="fixed inset-0 grid place-items-center z-9000 p-4 bg-black/30 backdrop-blur-[4px]" onClick={onClose}>
-      <Glass
-        role="dialog" aria-modal="true"
-        className="relative z-9001 flex flex-col gap-4 p-6 animate-[dialog-fade_0.15s_ease-in-out]"
-        onClick={(e) => e.stopPropagation()}
-        style={{ width: `min(${width}px, 100%)` }}
-      >
+    <dialog ref={ref} onCancel={onClose} onClick={(e) => { if (e.target === ref.current) onClose() }}
+      className="glass p-0 m-auto max-w-[calc(100%-2rem)] text-text animate-[dialog-fade_0.15s_ease-in-out] backdrop:bg-black/30 backdrop:backdrop-blur-[4px]"
+      style={{ width }}>
+      {/* The padding lives on an inner block so a click on it is not a click on the backdrop. */}
+      <div className="flex flex-col gap-4 p-6">
         <div className="text-xl font-bold leading-[1.2]">{title}</div>
         <div className="text-sm">{children}</div>
         <div className="flex justify-end gap-4">{actions}</div>
-      </Glass>
-    </div>
+      </div>
+    </dialog>
   )
 }
 

@@ -3,7 +3,6 @@ import PixelIcon from '../ui/PixelIcon'
 import { ICON_CHOICES } from '../ui/pixels'
 import Button from '../ui/Button'
 import { Checkbox, Input, Label, Select } from '../ui/Field'
-import { Panel } from '../ui/Panel'
 import AutoLoader from '../ui/Loader'
 import StatusMessage from '../ui/StatusMessage'
 import SegmentedControl from '../ui/SegmentedControl'
@@ -92,7 +91,7 @@ export default function CreateInstance() {
         <p className="m-0 text-muted">{t.create.subtitle}</p>
       </div>
 
-      <Panel className="w-[min(560px,100%)] flex flex-col gap-6 p-6">
+      <div className="panel w-[min(560px,100%)] flex flex-col gap-6 p-6">
         <div>
           <Label htmlFor="create-name">{t.create.name}</Label>
           <Input id="create-name" type="text" placeholder={t.create.namePlaceholder} value={name} maxLength={INSTANCE_NAME.maxLength} autoFocus onChange={(e) => setName(e.target.value)} />
@@ -140,7 +139,7 @@ export default function CreateInstance() {
           <Button variant="idle" onClick={() => go({ name: 'dashboard' })}>{t.common.cancel}</Button>
           <Button variant="primary" disabled={!canSubmit} onClick={submit}>{t.create.submit}</Button>
         </div>
-      </Panel>
+      </div>
     </main>
   )
 }

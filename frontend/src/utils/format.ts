@@ -1,18 +1,10 @@
-import type { Dict } from '../i18n/en'
-import { fmt } from '../i18n/format'
-
-/** "2 days ago" style label for an ISO timestamp. */
-export function ago(iso: string | undefined, t: Dict): string {
-  if (!iso) return t.dashboard.neverPlayed
-  const ms = Date.now() - new Date(iso).getTime()
-  const min = Math.floor(ms / 60000)
-  if (min < 1) return t.dashboard.justNow
-  if (min < 60) return fmt(t.dashboard.minutesAgo, { n: min })
-  const h = Math.floor(min / 60)
-  if (h < 24) return fmt(t.dashboard.hoursAgo, { n: h })
-  const d = Math.floor(h / 24)
-  if (d === 1) return t.dashboard.yesterday
-  return fmt(t.dashboard.daysAgo, { n: d })
+/** "2 days ago" style label for an ISO timestamp, in the UI language. */
+export function ago(iso: string, lang: string): string {
+  const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
+  const min = Math.round((new Date(iso).getTime() - Date.now()) / 60000)
+  if (Math.abs(min) < 60) return rtf.format(min, 'minute')
+  if (Math.abs(min) < 1440) return rtf.format(Math.round(min / 60), 'hour')
+  return rtf.format(Math.round(min / 1440), 'day')
 }
 
 /** Play time in hours: one decimal under an hour, whole hours after. */
