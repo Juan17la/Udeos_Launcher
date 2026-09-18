@@ -72,12 +72,12 @@ export function createMock() {
     sodium: ['1.21.1', '1.20.4', '1.20.1'], iris: ['1.21.1', '1.20.4', '1.20.1'], jei: ['1.20.4', '1.20.1', '1.19.2'], create: ['1.20.4', '1.20.1', '1.19.2', '1.12.2'], optifine: ['1.20.1'],
     faithful: ['1.21.1', '1.20.4', '1.19.2'], dandelion: ['1.20.4'],
     bsl: ['1.21.1', '1.20.4'], complementary: ['1.20.4', '1.19.2'],
-    allthemods: ['1.20.4'], vaultsurvival: ['1.18.2'],
+    allthemods: ['1.20.1'], vaultsurvival: ['1.18.2'],
   }
 
   // Dev fixture for the add-to-instance flow: what each project "publishes" and
   // what it depends on. fabric-api is not searchable, only pulled in as a dependency.
-  const titles: Record<string, string> = { sodium: 'Sodium', iris: 'Iris Shaders', jei: 'Just Enough Items', create: 'Create', optifine: 'OptiFine (mock)', 'fabric-api': 'Fabric API', faithful: 'Faithful 32x', dandelion: 'Dandelion X', bsl: 'BSL Shaders', complementary: 'Complementary Reimagined' }
+  const titles: Record<string, string> = { allthemods: 'All the Mods 10', vaultsurvival: 'Vault Hunters', sodium: 'Sodium', iris: 'Iris Shaders', jei: 'Just Enough Items', create: 'Create', optifine: 'OptiFine (mock)', 'fabric-api': 'Fabric API', faithful: 'Faithful 32x', dandelion: 'Dandelion X', bsl: 'BSL Shaders', complementary: 'Complementary Reimagined' }
   const descriptions: Record<string, string> = {
     sodium: 'Sodium is a free and open-source rendering engine for Minecraft that dramatically improves frame rates while fixing many graphical issues. It has no downsides and is compatible with most existing mods.',
     iris: 'Iris brings modern shader support to the Fabric mod loader. Built to be compatible with existing OptiFine shader packs, Iris is blazingly fast and packed with features. Requires Sodium and Fabric API.',
@@ -123,10 +123,9 @@ export function createMock() {
   const installed: Record<string, ContentEntry[]> = { i3: [
     { projectId: 'jei', versionId: 'jei@1.20.1', title: 'Just Enough Items', versionNumber: '15.3.0.4', type: 'mod', file: 'jei-1.20.1-forge-15.3.0.4.jar', sha1: '', description: 'View items and recipes.', iconUrl: '' },
   ] }
-  const planContent = (instanceId: string, projectId: string, projectType: ProjectType): ContentPlan => {
+  const planContent = (instanceId: string, projectId: string, projectType: ContentType): ContentPlan => {
     const inst = instances.find((x) => x.id === instanceId)
     if (!inst) throw new Error('instance not found')
-    if (projectType === 'modpack') throw new Error('cannot add a modpack to an instance')
     const title = titles[projectId] ?? projectId
     const have = installed[instanceId] ?? []
     const plan: ContentPlan = { instance: instanceId, projectId, title, type: projectType, items: [], alreadyInstalled: have.some((e) => e.projectId === projectId), warnings: [] }
@@ -250,8 +249,19 @@ export function createMock() {
       return { results: all.slice(offset, offset + limit), total: all.length, offset }
     },
     async ListSearchGameVersions() { return gameVersions.map((v) => ({ ...v })) },
-    async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType) },
-    async AddContent(instanceId: string, projectId: string, projectType: ProjectType) { const plan = planContent(instanceId, projectId, projectType); return plan.alreadyInstalled ? [] : applyContent(instanceId, plan) },
+    async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType as ContentType) },
+    // A mock modpack "pours" one mod (JEI) into the instance.
+    async AddContent(instanceId: string, projectId: string, projectType: ProjectType) {
+      const plan = planContent(instanceId, projectType === 'modpack' ? 'jei' : projectId, projectType === 'modpack' ? 'mod' : projectType)
+      return plan.alreadyInstalled ? [] : applyContent(instanceId, plan)
+    },
+    async CreateInstanceFromModpack(projectId: string, name: string, icon: string, gameVersion: string) {
+      const hit = searchResults.modpack.find((r) => r.id === projectId)!
+      const mc = gameVersion || mockVersionsById[projectId][0]
+      const inst = await backend.CreateInstance(name || hit.title, mc, 'Forge', `${mc}-47.4.10`, icon)
+      await applyContent(inst.id, planContent(inst.id, 'jei', 'mod'))
+      return { ...inst }
+    },
     async ListInstalledProjects(instanceId: string) { return (installed[instanceId] ?? []).map((e) => e.projectId) },
     async ListContent(instanceId: string) { return (installed[instanceId] ?? []).map((e) => ({ ...e })) },
     async GetProjectDetail(projectId: string) { await sleep(300); return projectDetail(projectId) },
