@@ -1,12 +1,12 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
 /** Button variants from the design system (docs/11-design-system.md):
- *  primary   — the minecraft.net button green (darker on hover in light, lighter in dark)
- *  idle      — the light Minecraft button: pastel light gray, for neutral
- *              actions and anything unselected
- *  danger    — pastel red
+ *  primary   — pastel mint (Overworld) / ender lavender (End): Play, New Instance
+ *  secondary — pastel sky blue (Overworld) / charcoal-purple (End): Open instance
+ *  idle      — warm pebble gray / charcoal-purple, for neutral actions and anything unselected
+ *  danger    — pastel end purple-red
  *  ghost     — no fill, for inline links-as-buttons */
-export type ButtonVariant = 'primary' | 'idle' | 'danger' | 'ghost'
+export type ButtonVariant = 'primary' | 'secondary' | 'idle' | 'danger' | 'ghost'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -30,8 +30,9 @@ const SIZE: Record<ButtonSize, string> = {
 const SQUARE: Record<ButtonSize, string> = { sm: 'px-2.5 py-2 min-w-9 h-9', md: 'px-3 py-2.5 min-w-10 h-10', lg: 'px-3.5 py-3 min-w-12 h-12' }
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-green text-white hover:bg-primary-hover shadow-neu active:shadow-neu-inset',
-  idle: 'bg-idle text-ink hover:bg-idle-hover shadow-neu active:shadow-neu-inset',
+  primary: 'bg-primary text-white hover:bg-primary-hover shadow-primary active:shadow-neu-inset',
+  secondary: 'bg-secondary text-text hover:bg-secondary-hover shadow-secondary active:shadow-neu-inset',
+  idle: 'bg-idle text-text hover:bg-idle-hover shadow-neu active:shadow-neu-inset',
   danger: 'bg-error/80 text-white hover:bg-error/90 shadow-neu active:shadow-neu-inset',
   ghost: 'bg-transparent text-text hover:bg-idle/40 active:bg-idle/60',
 }

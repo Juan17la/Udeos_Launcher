@@ -1,12 +1,12 @@
 import PixelIcon from './PixelIcon'
-import { ASSETS } from '../assets'
-import { useApp } from '../state'
 
-/** The brand mark: the theme's logo asset when one is set in assets/, else
- *  the ender pearl (dark) / grass block (light) texture. */
+/** The brand mark, the same in both themes: an ender pearl with a mace
+ *  laid diagonally across it. */
 export default function Logo({ size }: { size: number }) {
-  const { theme } = useApp()
-  const src = ASSETS.logo[theme]
-  if (src) return <img src={src} alt="" width={size} height={size} className="flex-none [image-rendering:pixelated]" />
-  return <PixelIcon name={theme === 'dark' ? 'ender_pearl' : 'grass_block_side'} size={size} />
+  return (
+    <span className="relative inline-block flex-none" style={{ width: size, height: size }} aria-hidden>
+      <PixelIcon name="ender_pearl" size={size} />
+      <PixelIcon name="mace" size={size * 0.8} className="absolute -right-[10%] -bottom-[10%] -rotate-45 drop-shadow-sm" />
+    </span>
+  )
 }

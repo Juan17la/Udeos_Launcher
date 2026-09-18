@@ -27,7 +27,7 @@ export default memo(function Decor({ slots, opacity = 0.13, offset = 0 }: { slot
   return (
     <>
       {slots.map((s, i) => (
-        <span key={i} className="absolute pointer-events-none z-0 [image-rendering:pixelated]" style={{ top: s.top, left: s.left, width: s.size, height: s.size, transform: `rotate(${s.rot}deg)`, opacity }}>
+        <span key={i} className="absolute pointer-events-none z-0 [image-rendering:pixelated]" style={{ top: s.top, left: s.left, width: s.size, height: s.size, transform: `rotate(${s.rot}deg)`, opacity, filter: 'var(--decor-glow)' }}>
           <PixelIcon name={items[(i + offset) % items.length]} size={s.size} />
         </span>
       ))}

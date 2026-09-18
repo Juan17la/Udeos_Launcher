@@ -63,12 +63,31 @@ second half maps each rule to where it lives in the code.
 
 ### Revisions
 
-- **Button colours** follow Minecraft's own buttons instead of the mint/slate
-  table above: primary = the minecraft.net green `#3C8527` (hover `#2A641C`
-  in light, `#4DA336` in dark, white text) in both themes; idle = light gray
-  `#E0E0E0`; gold `#FFAA00` is the loading ring. Selected
-  toggles use the same green with white text. Tags use soft tints of the
-  same hues: green `#B9E29A`, gold `#FFD966`, gray `#E2E8F0`.
+- **Palette (2026-09-18, current)** — Pastel Overworld (light, the default)
+  and Pastel End (dark); the table above is history.
+
+  | Role | Light: Pastel Overworld | Dark: Pastel End |
+  | --- | --- | --- |
+  | Canvas | soft birch cream `#F6F3EB` | muted obsidian `#29252E` |
+  | Panels, cards, popups | warm off-white `#FCFBF8` (rows `#F3F0E8`) | deep lavender-gray `#383240` (rows `#4D4556`) |
+  | Primary button, active tab, selected | pastel mint `#9BBF9D` (hover `#86AE89`) | pastel ender lavender `#AA8CC5` (hover `#BBA1D3`) |
+  | Secondary button (Open instance) | pastel sky blue `#9EC5CB` | charcoal-purple `#4D4556` (no End blue was specified) |
+  | Idle button, profile button, inactive toggle | warm pebble gray `#DCD7CF` | charcoal-purple `#4D4556` |
+  | Headings, body text | soft oak charcoal `#36302B` | off-white lavender `#EDE7F2` |
+  | Subtext, labels | muted earth brown `#8C847D` | soft muted violet `#AFA6B8` |
+  | Floating item glow | none | magenta halo `rgba(194,145,217,.4)` (`--decor-glow`) |
+  | Neumorphic shadow / rim | `rgba(54,48,43,.08)` / white `.85` | `rgba(15,12,20,.5)` / lavender `rgba(217,195,225,.05)` |
+  | Inset (inputs, pressed) | `rgba(54,48,43,.06)` | `rgba(15,12,20,.35)` |
+  | Elevation under primary / secondary | mint `rgba(155,191,157,.35)` / sky `rgba(158,197,203,.35)` | lavender `rgba(170,140,197,.3)` |
+
+  Shared: version badge pastel leaf green `#CBE3C3`, loader badge pastel
+  glowstone gold `#F5DF98`, gray badge `#DCD7CF` / `#AFA6B8`, ink on badges
+  `#36302B`. The primary colour changes hue between themes, so its token is
+  `--color-primary` (never "green"). Text on idle fills follows the theme
+  text colour; ink is only for the light badge fills.
+- **Logo**: an ender pearl with a mace laid diagonally across it, the same
+  in both themes (`ui/Logo.tsx`). Projects without an icon show the stone
+  block (`components/ProjectIcon.tsx`).
 - **Loaders**: plain fetches (search results, version lists, listings,
   project detail) show an instant glass spinner; the percentage loader is
   reserved for work with real progress — the game install and content
@@ -113,12 +132,13 @@ block plus the runtime light/dark variables it references).
 | ≥16px spacing | screens use `gap-4`/`gap-6`, `p-4`+ on every `Panel` | screens |
 | Unframed headings | `Login` and `CreateInstance` render `h1`/`h2` above their `Panel` | screens |
 | Canvas / text | `--color-bg`, `--color-text`, `--color-muted` per theme | tokens.css |
-| Primary button | `--color-green` (`#3C8527`), `--color-primary-hover` per theme, white text | `Button variant="primary"` |
+| Primary button | `--color-primary` / `--color-primary-hover` per theme, `--shadow-primary`, white text | `Button variant="primary"` |
+| Secondary button | `--color-secondary` / `--color-secondary-hover`, `--shadow-secondary` | `Button variant="secondary"` (Open instance) |
 | Idle button | `--color-idle`, `--color-idle-hover` | `Button variant="idle"`, unselected toggle |
-| Selected state | `--color-green` + white text | `Checkbox`, `IconChoice`, current nav link |
+| Selected state | `--color-primary` + white text | `Checkbox`, `IconPicker`, current nav link |
 | Locked filter | native `disabled` on `Select`/`Input`: idle fill, value kept, same radius/padding | `Field.tsx`, `screens/Search.tsx` |
 | Loaders | `StatusMessage` with `percent` (glass + `NN%` + native `<progress>`) for real progress; `AutoLoader` (glass pill + spinner) for fetches; `useSimulatedProgress` only for unmeasurable phases inside a real install; `Button loading` ring on Play | `ui/StatusMessage.tsx`, `ui/Loader.tsx`, `ui/Button.tsx`, `components/Notifications.tsx` |
-| Success | `StatusMessage kind="success"`: glass, green check, `pulse-green` keyframe | `ui/StatusMessage.tsx` |
+| Success | `StatusMessage kind="success"`: glass, primary-coloured check, `pulse-primary` keyframe | `ui/StatusMessage.tsx` |
 | Error ≤3 words | `StatusMessage kind="error"`: `--color-error` border + `--shadow-error-glow`; headline from `t.errors.*` via `utils/errors.ts`, reason as detail | `ui/StatusMessage.tsx`, `utils/errors.ts`, i18n `errors` |
 | Tags | `tag` utility + a fill: `bg-tag-gray` \| `bg-green-soft` \| `bg-gold-soft` | `theme/tokens.css` |
 | Neumorphic panels | `--shadow-neu`, `--shadow-neu-inset`, `--color-panel` / `--color-panel-2` → `panel` (+ `panel-hover`) utility; list rows are `bg-panel-2 shadow-neu` | `theme/tokens.css` |
