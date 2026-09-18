@@ -1,7 +1,5 @@
 import { X } from '../../ui/icons'
 import Button from '../../ui/Button'
-import ListRow from '../../ui/ListRow'
-import Empty from '../../ui/Empty'
 import AutoLoader from '../../ui/Loader'
 import { useApp } from '../../state'
 import { useFileList } from '../../hooks/useFileList'
@@ -22,11 +20,15 @@ export default function FilesTab({ id, kind }: { id: string; kind: FileKind }) {
       <Feedback error={error} note={note} onClearNote={clearNote} />
       <FolderLink id={id} sub={source.folder} />
       <AutoLoader active={items === null} label={t.common.loading} />
-      {items?.length === 0 && <Empty text={t.instance.empty[kind]} />}
+      {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty[kind]}</p>}
       {items?.map((f) => (
-        <ListRow key={f.name} title={f.name} meta={bytes(f.sizeBytes)}>
+        <div key={f.name} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
+            <div className="text-[15px] font-bold truncate">{f.name}</div>
+            <div className="text-xs text-muted">{bytes(f.sizeBytes)}</div>
+          </div>
           <Button variant="danger" size="sm" square title={t.instance.remove} onClick={() => remove(f)}><X /></Button>
-        </ListRow>
+        </div>
       ))}
     </div>
   )

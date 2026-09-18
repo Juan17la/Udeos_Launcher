@@ -22,7 +22,7 @@ export default function Nav() {
 
       <div className="flex items-center justify-center flex-1">
         <SegmentedControl aria-label={t.app.name}
-          options={[{ value: 'dashboard', label: t.nav.dashboard }, { value: 'search', label: t.nav.search }, { value: 'skin', label: t.nav.skin, disabled: true }]}
+          options={[{ value: 'dashboard', label: t.nav.dashboard }, { value: 'search', label: t.nav.search }]}
           value={current} onChange={(v) => go(v === 'search' ? { name: 'search' } : { name: 'dashboard' })} />
       </div>
 

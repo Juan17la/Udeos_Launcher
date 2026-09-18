@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
  *  that slides under the chosen option. The thumb is measured from the
  *  option buttons, so any label length works and wrapping keeps it aligned. */
 type Props<V extends string> = {
-  options: { value: V; label: string; disabled?: boolean }[]
+  options: { value: V; label: string }[]
   value: V
   onChange: (v: V) => void
   'aria-labelledby'?: string
@@ -38,10 +38,10 @@ export default function SegmentedControl<V extends string>({ options, value, onC
       )}
       {options.map((o) => (
         <button
-          key={o.value} type="button" role="radio" aria-checked={o.value === value} disabled={o.disabled}
+          key={o.value} type="button" role="radio" aria-checked={o.value === value}
           ref={(el) => { if (el) refs.current.set(o.value, el); else refs.current.delete(o.value) }}
           onClick={() => onChange(o.value)}
-          className={`relative z-1 px-4 py-2 text-[13px] font-bold leading-[1.2] whitespace-nowrap rounded-md border-0 bg-transparent cursor-pointer transition-all duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed ${o.value === value ? 'text-white' : 'text-ink hover:text-green-hover active:scale-[0.97]'}`}
+          className={`relative z-1 px-4 py-2 text-[13px] font-bold leading-[1.2] whitespace-nowrap rounded-md border-0 bg-transparent cursor-pointer transition-all duration-150 ease-in-out ${o.value === value ? 'text-white' : 'text-ink hover:text-green-hover active:scale-[0.97]'}`}
         >
           {o.label}
         </button>

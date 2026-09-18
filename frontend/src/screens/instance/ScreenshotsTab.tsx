@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Camera, Folder } from '../../ui/icons'
 import Button from '../../ui/Button'
-import Empty from '../../ui/Empty'
 import AutoLoader from '../../ui/Loader'
 import Dialog from '../../ui/Dialog'
 import { useApp, useLaunch } from '../../state'
@@ -14,7 +13,7 @@ import type { FileEntry } from '../../api/types'
 /** Thumbnails served by the Go side under /media; click for a preview,
  *  Save to Device copies the file out. Re-lists when the game closes. */
 export default function ScreenshotsTab({ id }: { id: string }) {
-  const { t } = useApp()
+  const { t, language } = useApp()
   const { launch } = useLaunch()
   const [shots, setShots] = useState<FileEntry[] | null>(null)
   const [note, setNote] = useState<string | null>(null)
@@ -34,7 +33,7 @@ export default function ScreenshotsTab({ id }: { id: string }) {
       <Feedback error={null} note={note} onClearNote={clearNote} />
       <FolderLink id={id} sub="screenshots" />
       <AutoLoader active={shots === null} label={t.common.loading} />
-      {shots?.length === 0 && <Empty text={t.instance.empty.screenshots} />}
+      {shots?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty.screenshots}</p>}
       {shots && shots.length > 0 && (
         <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))' }}>
           {shots.map((s) => (
@@ -61,7 +60,7 @@ export default function ScreenshotsTab({ id }: { id: string }) {
           <Button variant="primary" onClick={() => setOpen(null)}>{t.common.close}</Button>
         </>}>
           <img src={src(open)} alt={open.name} className="block w-full max-h-[70vh] object-contain rounded-md bg-panel" />
-          <p className="mt-4 mb-0 text-xs text-muted">{bytes(open.sizeBytes)} · {ago(open.modTime, t)}</p>
+          <p className="mt-4 mb-0 text-xs text-muted">{bytes(open.sizeBytes)} · {ago(open.modTime, language)}</p>
         </Dialog>
       )}
     </div>
