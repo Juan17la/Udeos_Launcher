@@ -1,18 +1,16 @@
 import { useState } from 'react'
 import PixelIcon from '../ui/PixelIcon'
 import Decor, { LOGIN_DECOR } from '../ui/Decor'
-import Button from '../ui/atoms/Button'
-import Tag from '../ui/atoms/Tag'
-import StatusMessage from '../ui/atoms/Status'
-import { Panel } from '../ui/atoms/Surface'
-import { Input, Label, Select } from '../ui/atoms/Field'
-import { Checkbox } from '../ui/atoms/Selectable'
-import { AutoLoader } from '../ui/atoms/Loader'
-import { errorHeadline, messageOf } from '../lib/errors'
+import Button from '../ui/Button'
+import Tag from '../ui/Tag'
+import StatusMessage from '../ui/StatusMessage'
+import { Panel } from '../ui/Panel'
+import { Checkbox, Input, Label, Select } from '../ui/Field'
+import AutoLoader from '../ui/Loader'
+import { errorHeadline, messageOf } from '../utils/errors'
+import { NICKNAME } from '../utils/validation'
 import { useApp } from '../state'
 import { LANGUAGES } from '../i18n'
-
-const NICK_RE = /^[A-Za-z0-9_]{3,16}$/
 
 /** First-run screen: language, then nickname + consent. No account involved. */
 export default function Login() {
@@ -23,16 +21,17 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const valid = NICK_RE.test(nickname.trim())
+  const valid = NICKNAME.test(nickname)
   const submit = async () => {
     if (!valid || !agreed || busy) return
     setBusy(true); setError(null)
     try {
-      await saveProfile({ nickname: nickname.trim(), uuid: '', language, theme, agreed: true, maxMemoryMB: 2048 })
+      await saveProfile({ nickname: NICKNAME.normalize(nickname), uuid: '', language, theme, agreed: true, maxMemoryMB: 2048 })
     } catch (e) {
       setError(messageOf(e))
     } finally { setBusy(false) }
   }
+  const openPrivacy = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPrivacyOpen(true) }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 relative overflow-hidden">
@@ -45,7 +44,7 @@ export default function Login() {
         <Tag tone="gray">{__APP_VERSION__}</Tag>
       </div>
 
-      <Panel className="relative z-1 w-[min(440px,100%)] p-6 gap-4">
+      <Panel className="relative z-1 w-[min(440px,100%)] flex flex-col gap-4 p-6">
         {step === 'language' ? (
           <>
             <div>
@@ -60,13 +59,13 @@ export default function Login() {
           <>
             <div>
               <Label htmlFor="nickname-input">{t.login.nickname}</Label>
-              <Input id="nickname-input" type="text" placeholder={t.login.placeholder} value={nickname} maxLength={16} autoFocus
+              <Input id="nickname-input" type="text" placeholder={t.login.placeholder} value={nickname} maxLength={NICKNAME.maxLength} autoFocus
                 onChange={(e) => setNickname(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit() }} />
             </div>
             {nickname.trim() !== '' && !valid && <StatusMessage kind="error" headline={t.errors.invalidNickname} />}
             <Checkbox checked={agreed} onChange={(e) => setAgreed(e.target.checked)} label={
               <span className="text-muted leading-[1.45]">
-                {t.login.agree} <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPrivacyOpen(true) }}>{t.login.privacyPolicy}</a> {t.login.and} <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPrivacyOpen(true) }}>{t.login.terms}</a>.
+                {t.login.agree} <a href="#" onClick={openPrivacy}>{t.login.privacyPolicy}</a> {t.login.and} <a href="#" onClick={openPrivacy}>{t.login.terms}</a>.
               </span>
             } />
             {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}

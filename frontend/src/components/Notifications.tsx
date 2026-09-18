@@ -1,10 +1,10 @@
+import { useEffect, useRef, useState } from 'react'
 import { useApp, useContent, useLaunch } from '../state'
-import { fmt } from '../i18n/format'
-import { bytes } from '../ui/time'
-import { errorHeadline } from '../lib/errors'
-import Toast from '../ui/molecules/Toast'
-import { useSimulatedProgress } from '../ui/atoms/Loader'
 import type { ContentJob } from '../state'
+import { fmt } from '../i18n/format'
+import { bytes } from '../utils/format'
+import { errorHeadline } from '../utils/errors'
+import Toast from '../ui/Toast'
 
 /** Bottom-right notification stack: the game install that Play kicked off
  *  (a live percentage, non-blocking — the Play button itself shows the
@@ -69,4 +69,31 @@ function JobToast({ job }: { job: ContentJob }) {
       aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
       percent={job.status === 'installing' ? pct : 0} />
   )
+}
+
+/** A counter for phases with no measurable progress inside a real job:
+ *  while `active` it eases from 0 towards 90, and when `active` drops it
+ *  snaps to 100 and, 250ms later, returns null. */
+function useSimulatedProgress(active: boolean): number | null {
+  const [value, setValue] = useState<number | null>(active ? 0 : null)
+  const start = useRef(0)
+  useEffect(() => {
+    if (active) {
+      start.current = performance.now()
+      setValue(0)
+      let frame = 0
+      const tick = (now: number) => {
+        const t = (now - start.current) / 1500
+        setValue(90 * (1 - Math.exp(-2.2 * t)))
+        frame = requestAnimationFrame(tick)
+      }
+      frame = requestAnimationFrame(tick)
+      return () => cancelAnimationFrame(frame)
+    }
+    // Finished: show 100 briefly, then go away.
+    setValue((v) => (v === null ? null : 100))
+    const id = setTimeout(() => setValue(null), 250)
+    return () => clearTimeout(id)
+  }, [active])
+  return value
 }

@@ -1,0 +1,49 @@
+import { useCallback, useEffect, useState } from 'react'
+import { api, on } from '../api/bridge'
+import type { GameEvent, Progress } from '../api/types'
+import { messageOf } from '../utils/errors'
+
+/** What the Play button is doing right now. */
+export type LaunchState =
+  | { status: 'idle' }
+  | { status: 'preparing'; instanceId: string; progress: Progress | null }
+  | { status: 'error'; instanceId: string; message: string }
+  | { status: 'exited'; instanceId: string; exitCode: number; logPath: string }
+
+export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void }
+
+/** Owns the launch state: Play, the install progress ticks while preparing,
+ *  and the game process events (running clears it, a bad exit opens the
+ *  crash dialog). `refreshInstances` keeps the running flags in sync. */
+export function useLaunchController(refreshInstances: () => Promise<void>): LaunchController {
+  const [launch, setLaunch] = useState<LaunchState>({ status: 'idle' })
+
+  useEffect(() => {
+    const offProgress = on('install:progress', (p) => {
+      setLaunch((cur) => (cur.status === 'preparing' ? { ...cur, progress: p } : cur))
+    })
+    const offGame = on('game:state', (ev: GameEvent) => {
+      if (ev.running) {
+        setLaunch({ status: 'idle' })
+      } else if (ev.exitCode !== 0 || ev.error) {
+        setLaunch({ status: 'exited', instanceId: ev.instanceId, exitCode: ev.exitCode, logPath: ev.logPath })
+      }
+      refreshInstances()
+    })
+    return () => { offProgress(); offGame() }
+  }, [refreshInstances])
+
+  const play = useCallback(async (id: string) => {
+    setLaunch({ status: 'preparing', instanceId: id, progress: null })
+    try {
+      await api.LaunchInstance(id)
+      await refreshInstances()
+    } catch (e) {
+      setLaunch({ status: 'error', instanceId: id, message: messageOf(e) })
+    }
+  }, [refreshInstances])
+
+  const dismissLaunch = useCallback(() => setLaunch({ status: 'idle' }), [])
+
+  return { launch, play, dismissLaunch }
+}
