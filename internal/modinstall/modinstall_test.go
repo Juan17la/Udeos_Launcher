@@ -206,7 +206,7 @@ func TestPlanValidatesVersionAndLoader(t *testing.T) {
 	inst := fabricInstance(t, dirs)
 	m := &Manager{Dirs: dirs, Provider: newFake()}
 	_, err := m.Plan(context.Background(), inst, "optif", modsearch.TypeMod) // Forge-only
-	if err == nil || !strings.Contains(err.Error(), "no build for Minecraft 1.20.1 with Fabric") {
+	if err == nil || !strings.Contains(err.Error(), "no build for Minecraft 1.20.1 with Fabric (its 1.20.1 builds are for forge)") {
 		t.Errorf("got %v", err)
 	}
 	inst.Version = "1.19.2"

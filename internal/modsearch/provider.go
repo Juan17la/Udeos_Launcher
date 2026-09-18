@@ -106,12 +106,15 @@ type Dependency struct {
 	Type      string `json:"type"`
 }
 
-// ProjectInfo is the little a plan needs to name a dependency.
+// ProjectInfo is the little a plan needs to name a dependency, plus the icon
+// and one-line description the instance's content list shows afterwards.
 type ProjectInfo struct {
 	ID          string      `json:"id"`
 	Slug        string      `json:"slug"`
 	Title       string      `json:"title"`
 	ProjectType ProjectType `json:"projectType"`
+	Description string      `json:"description"`
+	IconURL     string      `json:"iconUrl"`
 }
 
 // ProjectDetail is the whole-project view for the Details page: Modrinth
