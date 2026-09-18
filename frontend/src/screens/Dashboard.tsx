@@ -33,7 +33,7 @@ export default function Dashboard() {
       </div>
 
       {last && (
-        <div className="panel relative z-1 flex flex-col items-center gap-4 text-center p-6 sticky top-6 h-[calc(100vh-9.5rem)] min-h-fit">
+        <div className="panel relative z-1 flex flex-col items-center gap-4 text-center p-6 sticky top-24 h-[calc(100vh-9.5rem)] min-h-fit">
           <span className="text-[11px] tracking-[0.12em] uppercase text-muted">{t.dashboard.lastPlayed}</span>
           <PixelIcon name={last.icon} size={120} />
           <h3 className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{last.name}</h3>

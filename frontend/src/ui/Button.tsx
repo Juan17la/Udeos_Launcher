@@ -36,7 +36,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   ghost: 'bg-transparent text-text hover:bg-idle/40 active:bg-idle/60',
 }
 
-const base = 'relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-[0.98] disabled:pointer-events-none disabled:shadow-none'
+const base = 'relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-98 disabled:pointer-events-none disabled:shadow-none'
 const idleDisabled = 'disabled:opacity-60 disabled:cursor-not-allowed'
 
 export default function Button({ variant = 'idle', size = 'md', block, square, loading, className = '', type = 'button', children, disabled, ...rest }: Props) {
@@ -49,7 +49,7 @@ export default function Button({ variant = 'idle', size = 'md', block, square, l
           <span aria-hidden className="absolute left-1/2 top-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2">
             <span className="block w-full h-full animate-spin" style={{ background: 'conic-gradient(from 0deg, transparent 0 55%, var(--color-gold) 100%)' }} />
           </span>
-          <span aria-hidden className="absolute inset-[3px] rounded-md bg-inherit" />
+          <span aria-hidden className="absolute inset-0.75 rounded-md bg-inherit" />
         </>
       )}
       <span className="relative z-1 inline-flex items-center gap-2">{children}</span>

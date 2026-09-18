@@ -54,7 +54,9 @@ const en = {
     worldMeta: 'Played {when} • {size}', savedTo: 'Saved to {path}',
     settings: {
       title: 'Launch settings', subtitle: 'How the game is started for this instance. Leave a field empty to use the default.',
-      memory: 'Memory (MB)', memoryHint: 'Maximum heap for the game (-Xmx). Default {mb} MB. Modpacks usually want 4096–8192.',
+      memory: 'Memory', memoryHint: 'Maximum heap for the game (-Xmx). Default {mb} MB. Modpacks usually want 4096–8192.',
+      memoryValue: '{mb} MB of {total} MB', memoryDefault: 'Use default ({mb} MB)',
+      memoryTooLow: 'Below 1 GB the game may not even start.', memoryTooHigh: 'Leaves less than 2 GB for the system — expect stutter, freezes or crashes.',
       java: 'Java executable', javaHint: 'Empty: the Java runtime Mojang recommends for this version is downloaded and used.', javaPlaceholder: 'Managed runtime', pickJava: 'Choose…',
       jvmArgs: 'Extra JVM arguments', jvmArgsHint: 'Added after the launcher\'s defaults, so yours win. Space separated.', jvmArgsPlaceholder: 'e.g. -XX:+UseZGC -Dfml.earlyWindowControl=false',
       save: 'Save', saved: 'Settings saved',
@@ -75,8 +77,11 @@ const en = {
     vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
   },
   detail: {
-    versionsHeading: 'Available versions', loadersHeading: 'Loaders', instancesHeading: 'Your instances',
-    noInstances: 'You have no instances yet.', add: 'Add to an instance',
+    versionsHeading: 'Available versions', loadersHeading: 'Loaders', instancesHeading: 'Install into',
+    noInstances: 'You have no instances yet.', add: 'Add', showMore: '+{n} more', showLess: 'Show fewer',
+    noCompatible: 'None of your instances can use this. Create a {loaders} instance for {versions}.',
+    client: 'Client', server: 'Server', side: { required: 'required', optional: 'optional', unsupported: 'unsupported', unknown: 'unknown' },
+    license: 'License', source: 'Source code', issues: 'Issues', wiki: 'Wiki', gallery: 'Gallery', about: 'About',
   },
   content: {
     pickTitle: 'Add {title} to…', pickHint: 'Choose an instance — it installs right away.',
