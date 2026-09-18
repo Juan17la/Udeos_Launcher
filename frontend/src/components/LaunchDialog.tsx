@@ -1,8 +1,8 @@
 import { useApp, useLaunch } from '../state'
 import { fmt } from '../i18n/format'
 import { api } from '../api/bridge'
-import Dialog from '../ui/molecules/Dialog'
-import Button from '../ui/atoms/Button'
+import Dialog from '../ui/Dialog'
+import Button from '../ui/Button'
 
 /** Why the game did not start, or why it closed: a short headline with the
  *  message / exit code and log path as detail. Progress while preparing is

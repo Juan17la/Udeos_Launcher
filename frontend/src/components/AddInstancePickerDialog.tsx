@@ -1,19 +1,19 @@
-import { ReactNode, useEffect, useState } from 'react'
-import Dialog from '../ui/molecules/Dialog'
-import Button from '../ui/atoms/Button'
-import Tag from '../ui/atoms/Tag'
-import StatusMessage from '../ui/atoms/Status'
-import { AutoLoader } from '../ui/atoms/Loader'
+import { useEffect, useState } from 'react'
+import Dialog from '../ui/Dialog'
+import Button from '../ui/Button'
+import Tag from '../ui/Tag'
+import StatusMessage from '../ui/StatusMessage'
+import AutoLoader from '../ui/Loader'
 import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
-import { computeCompat } from '../lib/compat'
+import { computeCompat } from '../utils/compat'
 import type { Instance, ProjectDetail, SearchResult } from '../api/types'
 
 type Props = { result: SearchResult; onClose: () => void }
 
 /** Which instances can take the project: detection fetches ProjectDetail
- *  once (aggregate versions/loaders, see lib/compat.ts). When Modrinth
+ *  once (aggregate versions/loaders, see utils/compat.ts). When Modrinth
  *  cannot be reached every instance is offered instead — the backend still
  *  plans precisely and the toast reports a mismatch. */
 type Detected = { detail: ProjectDetail | null; choices: Instance[] }
@@ -59,39 +59,4 @@ export default function AddInstancePickerDialog({ result, onClose }: Props) {
       )}
     </Dialog>
   )
-}
-
-/** The Add action every card and the Details page share. With an instance
- *  in context (the player came from that instance's page) Add installs
- *  straight away; otherwise it opens the picker, or — with no instances at
- *  all — a dialog pointing at Create instance. Render `dialog` once in the
- *  calling screen. */
-export function useAddAction(instanceId?: string): { add: (result: SearchResult) => void; dialog: ReactNode } {
-  const { t, instances, go } = useApp()
-  const { enqueue } = useContent()
-  const [picking, setPicking] = useState<SearchResult | null>(null)
-  const [noInstances, setNoInstances] = useState<SearchResult | null>(null)
-  const inst = instanceId ? instances.find((i) => i.id === instanceId) : undefined
-
-  const add = (result: SearchResult) => {
-    if (inst) enqueue(inst.id, result)
-    else if (instances.length === 0) setNoInstances(result)
-    else setPicking(result)
-  }
-
-  const dialog = (
-    <>
-      {picking && <AddInstancePickerDialog result={picking} onClose={() => setPicking(null)} />}
-      {noInstances && (
-        <Dialog title={t.content.noInstancesTitle} onClose={() => setNoInstances(null)} actions={<>
-          <Button variant="idle" onClick={() => setNoInstances(null)}>{t.common.close}</Button>
-          <Button variant="primary" onClick={() => { setNoInstances(null); go({ name: 'create' }) }}>{t.search.createInstance}</Button>
-        </>}>
-          <StatusMessage kind="error" headline={t.content.noInstancesTitle} detail={fmt(t.content.noInstancesBody, { title: noInstances.title })} />
-        </Dialog>
-      )}
-    </>
-  )
-
-  return { add, dialog }
 }
