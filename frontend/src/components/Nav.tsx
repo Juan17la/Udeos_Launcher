@@ -1,7 +1,7 @@
 import PixelIcon from '../ui/PixelIcon'
 import { Plus } from '../ui/icons'
-import Button from '../ui/atoms/Button'
-import SegmentedControl from '../ui/molecules/SegmentedControl'
+import Button from '../ui/Button'
+import SegmentedControl from '../ui/SegmentedControl'
 import { useApp } from '../state'
 import AccountMenu from './AccountMenu'
 

@@ -1,5 +1,5 @@
-import Dialog from '../ui/molecules/Dialog'
-import Button from '../ui/atoms/Button'
+import Dialog from '../ui/Dialog'
+import Button from '../ui/Button'
 import { useApp } from '../state'
 
 export default function PrivacyDialog() {
