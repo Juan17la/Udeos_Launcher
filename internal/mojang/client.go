@@ -1,6 +1,7 @@
 package mojang
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -57,4 +58,27 @@ func (c *Client) GetBytes(ctx context.Context, url string) ([]byte, error) {
 		return nil, fmt.Errorf("GET %s: %s", url, res.Status)
 	}
 	return io.ReadAll(res.Body)
+}
+
+// PostJSON sends body as JSON and decodes the reply into v.
+func (c *Client) PostJSON(ctx context.Context, url string, body, v any) error {
+	raw, err := json.Marshal(body)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(raw))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("User-Agent", "UdeosLauncher")
+	req.Header.Set("Content-Type", "application/json")
+	res, err := c.HTTP.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+	if res.StatusCode != http.StatusOK {
+		return fmt.Errorf("POST %s: %s", url, res.Status)
+	}
+	return json.NewDecoder(res.Body).Decode(v)
 }
