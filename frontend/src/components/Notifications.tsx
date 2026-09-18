@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useApp, useContent, useLaunch } from '../state'
 import type { ContentJob } from '../state'
 import { fmt } from '../i18n/format'
 import { bytes } from '../utils/format'
 import { errorHeadline } from '../utils/errors'
-import Toast from '../ui/Toast'
+import StatusMessage from '../ui/StatusMessage'
+
+/** Notifications slide in from the right edge. */
+const slide = 'animate-[toast-in_0.15s_ease-in-out]'
 
 /** Bottom-right notification stack: the game install that Play kicked off
  *  (a live percentage, non-blocking — the Play button itself shows the
@@ -41,7 +44,7 @@ function LaunchToast() {
   const pct = Math.round(measurable ? (p!.done / p!.total) * 100 : phase === 'done' ? 100 : (simulated ?? 0))
   const counts = measurable ? ` · ${p!.done}/${p!.total}${p!.totalBytes > 0 ? ` · ${bytes(p!.bytes)}` : ''}` : ''
   return (
-    <Toast title={fmt(t.launch.preparing, { name: inst?.name ?? '' })} aside={`${pct}%`} percent={pct} detail={<>
+    <StatusMessage className={slide} headline={fmt(t.launch.preparing, { name: inst?.name ?? '' })} aside={`${pct}%`} percent={pct} detail={<>
       <div>{label}{counts}</div>
       {p?.current && <div className="overflow-hidden text-ellipsis whitespace-nowrap">{p.current}</div>}
       <div>{phase === 'loader' && inst?.loader === 'Forge' ? t.launch.loaderTakesAWhile : t.launch.firstTime}</div>
@@ -58,42 +61,31 @@ function JobToast({ job }: { job: ContentJob }) {
   const pct = p && p.total > 0 ? Math.round((p.done / p.total) * 100) : 0
 
   if (job.status === 'error') {
-    return <Toast tone="error" title={errorHeadline(job.message, t.errors)} detail={job.message} onDismiss={() => dismiss(job.id)} />
+    return <StatusMessage className={slide} kind="error" headline={errorHeadline(job.message, t.errors)} detail={job.message} onDismiss={() => dismiss(job.id)} />
   }
   if (job.status === 'done') {
     const text = job.count === 0 ? fmt(t.content.alreadyInstalled, { title, name }) : job.count === 1 ? fmt(t.content.doneOne, { title, name }) : fmt(t.content.done, { n: job.count, name })
-    return <Toast tone="success" title={text} onDismiss={() => dismiss(job.id)} />
+    return <StatusMessage className={slide} kind="success" headline={text} onDismiss={() => dismiss(job.id)} />
   }
   return (
-    <Toast title={fmt(t.content.installingTo, { title, name })}
+    <StatusMessage className={slide} headline={fmt(t.content.installingTo, { title, name })}
       aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
       percent={job.status === 'installing' ? pct : 0} />
   )
 }
 
-/** A counter for phases with no measurable progress inside a real job:
- *  while `active` it eases from 0 towards 90, and when `active` drops it
- *  snaps to 100 and, 250ms later, returns null. */
+/** A counter for phases with no measurable progress: while `active` it
+ *  eases from 0 towards 90, otherwise it is null. */
 function useSimulatedProgress(active: boolean): number | null {
-  const [value, setValue] = useState<number | null>(active ? 0 : null)
-  const start = useRef(0)
+  const [value, setValue] = useState<number | null>(null)
   useEffect(() => {
-    if (active) {
-      start.current = performance.now()
-      setValue(0)
-      let frame = 0
-      const tick = (now: number) => {
-        const t = (now - start.current) / 1500
-        setValue(90 * (1 - Math.exp(-2.2 * t)))
-        frame = requestAnimationFrame(tick)
-      }
+    if (!active) { setValue(null); return }
+    const start = performance.now()
+    let frame = requestAnimationFrame(function tick(now) {
+      setValue(90 * (1 - Math.exp(-2.2 * (now - start) / 1500)))
       frame = requestAnimationFrame(tick)
-      return () => cancelAnimationFrame(frame)
-    }
-    // Finished: show 100 briefly, then go away.
-    setValue((v) => (v === null ? null : 100))
-    const id = setTimeout(() => setValue(null), 250)
-    return () => clearTimeout(id)
+    })
+    return () => cancelAnimationFrame(frame)
   }, [active])
   return value
 }
