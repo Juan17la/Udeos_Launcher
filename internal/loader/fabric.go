@@ -9,12 +9,8 @@ import (
 // FabricMetaURL is Fabric's public metadata service.
 const FabricMetaURL = "https://meta.fabricmc.net/v2"
 
-type fabricLoader struct {
-	Version string `json:"version"`
-	Stable  bool   `json:"stable"`
-}
-
-type fabricGame struct {
+// fabricEntry is one row of Fabric meta's loader and game version lists.
+type fabricEntry struct {
 	Version string `json:"version"`
 	Stable  bool   `json:"stable"`
 }
@@ -23,7 +19,7 @@ type fabricGame struct {
 // loader: the loader is game-version independent, only the intermediary
 // mappings (fetched at install time) differ.
 func (m *Manager) fabricOptions(ctx context.Context) ([]Option, error) {
-	var loaders []fabricLoader
+	var loaders []fabricEntry
 	if err := m.Client.GetJSON(ctx, FabricMetaURL+"/versions/loader", &loaders); err != nil {
 		return nil, err
 	}
@@ -40,7 +36,7 @@ func (m *Manager) fabricOptions(ctx context.Context) ([]Option, error) {
 	if latest == "" {
 		return nil, errors.New("fabric meta lists no loader versions")
 	}
-	var games []fabricGame
+	var games []fabricEntry
 	if err := m.Client.GetJSON(ctx, FabricMetaURL+"/versions/game", &games); err != nil {
 		return nil, err
 	}

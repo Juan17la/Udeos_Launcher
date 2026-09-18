@@ -28,7 +28,6 @@ type Params struct {
 	MaxMemoryMB     int
 	Env             rules.Env
 	LauncherVersion string
-	LogConfigPath   string // empty when the version has no logging block
 	LegacyAssets    string // ${game_assets} for pre-1.7.3 versions
 }
 
@@ -139,10 +138,6 @@ func Arguments(p Params) []string {
 			"-cp", classpath,
 		)
 	}
-	if p.LogConfigPath != "" && v.Logging != nil && v.Logging.Client != nil {
-		args = append(args, strings.ReplaceAll(v.Logging.Client.Argument, "${path}", p.LogConfigPath))
-	}
-
 	args = append(args, v.MainClass)
 
 	if v.Arguments != nil {
