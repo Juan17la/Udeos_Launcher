@@ -1,15 +1,15 @@
-# 8. Mod loaders: Fabric, Forge and NeoForge
+# 8. Mod loaders: Fabric, Quilt, Forge and NeoForge
 
 ## What the player sees
 
-On the create form the player picks **Vanilla**, **Forge**, **NeoForge** or **Fabric**,
+On the create form the player picks **Vanilla**, **Forge**, **NeoForge**, **Fabric** or **Quilt**,
 then a Minecraft version. Nothing else: no loader version to choose, no
 installer to download, no "run the installer once" step. The version list is
 filtered to what the chosen loader actually supports, and a note under the
 selector says which loader build will be installed (the newest stable
 Fabric loader, Forge's *recommended* build for that version falling back
 to *latest*, or NeoForge's newest stable build). The instance card shows it
-as a tag: `Forge 47.4.10`, `NeoForge 21.1.172`, `Fabric 0.16.9`.
+as a tag: `Forge 47.4.10`, `NeoForge 21.1.172`, `Fabric 0.16.9`, `Quilt 0.29.1`.
 
 NeoForge matters for anything past 1.20.1: most mods that used to ship a
 Forge build (Create, JEI, …) publish NeoForge builds for 1.21+ instead, so a
@@ -62,6 +62,22 @@ Fabric's meta service does all the work:
    version JSON, saved as is. Its libraries carry a maven base URL and a
    SHA-1, so the regular installer downloads and verifies them like any
    other library.
+
+## Quilt
+
+Quilt forked Fabric's meta service, so the same three calls against
+`meta.quiltmc.org/v3` do the job (`fabricOptions`/`installFabric` take the
+loader kind and pick the base URL). Quilt's loader list has no `stable`
+flag: the newest build without a `-beta` suffix is used. Profile id
+`quilt-loader-<loader>-<mc>`.
+
+Quilt runs Fabric mods, so everything that filters by loader treats a Quilt
+instance as *quilt or fabric*: `modsearch.LoaderNames` expands it for the
+Modrinth search facets (`["categories:quilt","categories:fabric"]`, one OR
+group) and the version filter, `modsearch.LoaderMatches` for the planner's
+pinned-dependency check, `frontend/src/utils/compat.ts` for the Details
+page, and `content.AddMod` accepts either `quilt.mod.json` or
+`fabric.mod.json`.
 
 ## Forge
 

@@ -40,7 +40,7 @@ export default function ScreenshotsTab({ id }: { id: string }) {
             <div key={s.name} className="flex flex-col gap-4">
               <button
                 type="button" title={`${t.instance.view}: ${s.name}`} onClick={() => setOpen(s)}
-                className="relative aspect-[16/10] rounded-md bg-panel shadow-neu flex items-center justify-center overflow-hidden p-0 border-0 cursor-zoom-in transition-all duration-150 ease-in-out hover:-translate-y-0.5"
+                className="relative aspect-16/10 rounded-md bg-panel shadow-neu flex items-center justify-center overflow-hidden p-0 border-0 cursor-zoom-in transition-all duration-150 ease-in-out hover:-translate-y-0.5"
               >
                 {failed.has(s.name) ? (
                   <span className="text-muted"><Camera /></span>

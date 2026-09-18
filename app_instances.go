@@ -96,7 +96,7 @@ type VersionList struct {
 	Versions       []VersionOption `json:"versions"`
 }
 
-// ListLoaderVersions returns, for Fabric, Forge or NeoForge, every Minecraft version
+// ListLoaderVersions returns, for Fabric, Quilt, Forge or NeoForge, every Minecraft version
 // the loader supports and the loader build that will be installed for it.
 // The create form uses it to filter the version list once a loader is picked.
 func (a *App) ListLoaderVersions(ldr string) ([]loader.Option, error) {
