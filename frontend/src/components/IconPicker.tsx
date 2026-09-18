@@ -23,7 +23,7 @@ function Cell({ selected, title, onClick, children }: { selected: boolean; title
   return (
     <button
       type="button" aria-pressed={selected} title={title} onClick={onClick}
-      className={`inline-flex items-center justify-center px-2.5 py-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-green text-white' : 'bg-idle text-ink hover:bg-idle-hover'} shadow-neu`}
+      className={`inline-flex items-center justify-center px-2.5 py-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-primary text-white' : 'bg-idle text-text hover:bg-idle-hover'} shadow-neu`}
     >
       {children}
     </button>

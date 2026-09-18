@@ -11,8 +11,8 @@
    Colors that differ per theme stay runtime CSS variables (set in the
    :root / [data-theme='dark'] blocks further down) because Tailwind's
    @theme is compile-time and the launcher swaps light/dark at runtime;
-   `@theme inline` re-uses those variables by reference. The pastel palette
-   itself is theme-invariant, so those are plain values. */
+   `@theme inline` re-uses those variables by reference. Only the badge
+   tints, ink and error are the same in both themes. */
 
 @import "tailwindcss";
 
@@ -31,22 +31,16 @@
   --default-transition-duration: 150ms;
   --default-transition-timing-function: ease-in-out;
 
-  /* Button palette, from Minecraft's own buttons: the minecraft.net green
-     and the light-gray stone button; gold is the loading ring. `soft`
-     variants tint tags and highlights; `ink` is dark text on a light fill. */
-  --color-green: #3C8527;
-  --color-green-hover: #2A641C;
-  --color-green-soft: #B9E29A;
-  --color-gold: #FFAA00;
-  --color-gold-soft: #FFD966;
-  --color-idle: #E0E0E0;
-  --color-idle-hover: #CFCFCF;
-  --color-tag-gray: #E2E8F0;
-  --color-error: #A12323;
-  --color-error-soft: #FF8B94; /* pastel red: error glow, danger text */
-  --color-ink: #25282A;
-
-  /* Theme-dependent. */
+  /* Fills that differ per theme (Pastel Overworld / Pastel End) are the
+     runtime variables below; only the badge tints, ink and error are the
+     same in both. `primary` is mint in light and ender lavender in dark, so
+     it is named for its role, never its colour. */
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-hover: var(--color-secondary-hover);
+  --color-idle: var(--color-idle);
+  --color-idle-hover: var(--color-idle-hover);
   --color-bg: var(--color-bg);
   --color-text: var(--color-text);
   --color-muted: var(--color-muted);
@@ -54,45 +48,73 @@
   --color-panel-2: var(--color-panel-2);
   --color-glass: var(--color-glass);
   --color-glass-border: var(--color-glass-border);
-  --color-primary-hover: var(--color-primary-hover); /* the green's hover: darker in light, lighter in dark */
 
-  /* Neumorphism: soft light from the top-left, shadow to the bottom-right,
-     against the canvas — elevation without outlines. `neu-inset` is the
-     pressed/recessed variant used by inputs. */
+  /* Shared badges and accents. `ink` is the dark text on a light tag fill. */
+  --color-green-soft: #CBE3C3; /* Minecraft version badge */
+  --color-gold-soft: #F5DF98;  /* loader badge */
+  --color-gold: #F5DF98;       /* the loading ring */
+  --color-tag-gray: var(--color-tag-gray); /* light in both themes: tags keep ink text */
+  --color-ink: #36302B;
+  --color-error: #8A4C80;
+  --color-error-soft: #D4C1D9;
+
+  /* Neumorphism: warm taupe shadow + white rim light on cream, deep violet
+     shadow + faint lavender rim on obsidian. Coloured elevation under the
+     primary/secondary buttons. */
   --shadow-neu: var(--shadow-neu);
   --shadow-neu-inset: var(--shadow-neu-inset);
+  --shadow-primary: var(--shadow-primary);
+  --shadow-secondary: var(--shadow-secondary);
   --shadow-glass: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
   --shadow-error-glow: 0 0 0 3px color-mix(in srgb, var(--color-error-soft) 40%, transparent);
 }
 
-/* ── Light: Minecraft Pastel Light ───────────────────────────────────── */
+/* ── Light: Pastel Overworld (the default) ───────────────────────────── */
 :root, :root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #F7F9FA;
-  --color-text: #25282A;
-  --color-muted: color-mix(in srgb, #25282A 62%, transparent);
-  --color-panel: #d8e5d5;
-  --color-panel-2: #d8e5d5;
-  --color-glass: rgba(255, 255, 255, 0.6);
-  --color-glass-border: rgba(255, 255, 255, 0.7);
-  --color-primary-hover: #2A641C;
-  --shadow-neu: 3px 3px 8px rgba(0, 0, 0, 0.10), -3px -3px 8px #00000045;
-  --shadow-neu-inset: inset 3px 3px 8px rgba(0, 0, 0, 0.07), inset -3px -3px 8px #ffffff;
+  --color-bg: #F6F3EB;              /* soft birch cream canvas */
+  --color-panel: #FCFBF8;           /* warm off-white panels and cards */
+  --color-panel-2: #F3F0E8;         /* rows inside a panel */
+  --color-primary: #9BBF9D;         /* pastel mint: Play, New Instance */
+  --color-primary-hover: #86AE89;
+  --color-secondary: #9EC5CB;       /* pastel sky blue: Open instance */
+  --color-secondary-hover: #8BB6BD;
+  --color-idle: #DCD7CF;            /* warm pebble gray: profile button, inactive toggles */
+  --color-idle-hover: #D0CAC1;
+  --color-tag-gray: #DCD7CF;
+  --color-text: #36302B;            /* soft oak charcoal */
+  --color-muted: #8C847D;           /* muted earth brown */
+  --color-glass: rgba(252, 251, 248, 0.7);
+  --color-glass-border: rgba(255, 255, 255, 0.85);
+  --shadow-neu: 3px 3px 8px rgba(54, 48, 43, 0.08), -3px -3px 8px rgba(255, 255, 255, 0.85);
+  --shadow-neu-inset: inset 3px 3px 8px rgba(54, 48, 43, 0.06), inset -3px -3px 8px rgba(255, 255, 255, 0.85);
+  --shadow-primary: 0 4px 12px rgba(155, 191, 157, 0.35);
+  --shadow-secondary: 0 4px 12px rgba(158, 197, 203, 0.35);
+  --decor-glow: none;
 }
 
-/* ── Dark: Minecraft Pastel Dark ─────────────────────────────────────── */
+/* ── Dark: Pastel End ────────────────────────────────────────────────── */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #25282A;
-  --color-text: #F7F9FA;
-  --color-muted: color-mix(in srgb, #F7F9FA 62%, transparent);
-  --color-panel: #31363A;
-  --color-panel-2: #3B4146;
-  --color-glass: rgba(49, 54, 58, 0.6);
-  --color-glass-border: rgba(255, 255, 255, 0.1);
-  --color-primary-hover: #4DA336;
-  --shadow-neu: 6px 6px 14px rgba(0, 0, 0, 0.45), -6px -6px 14px rgba(255, 255, 255, 0.04);
-  --shadow-neu-inset: inset 3px 3px 8px rgba(0, 0, 0, 0.45), inset -3px -3px 8px rgba(255, 255, 255, 0.04);
+  --color-bg: #29252E;              /* muted obsidian canvas */
+  --color-panel: #383240;           /* deep lavender-gray panels, cards, popups */
+  --color-panel-2: #4D4556;         /* charcoal-purple rows and secondary fills */
+  --color-primary: #AA8CC5;         /* pastel ender lavender: Play, active tab */
+  --color-primary-hover: #BBA1D3;
+  --color-secondary: #4D4556;       /* no End blue in the palette: the charcoal-purple fill */
+  --color-secondary-hover: #5A5164;
+  --color-idle: #4D4556;            /* profile button, inactive toggles */
+  --color-idle-hover: #5A5164;
+  --color-tag-gray: #AFA6B8;        /* soft muted violet, so ink text still reads */
+  --color-text: #EDE7F2;            /* off-white lavender */
+  --color-muted: #AFA6B8;           /* soft muted violet */
+  --color-glass: rgba(56, 50, 64, 0.7);
+  --color-glass-border: rgba(217, 195, 225, 0.08);
+  --shadow-neu: 6px 6px 14px rgba(15, 12, 20, 0.5), -6px -6px 14px rgba(217, 195, 225, 0.05);
+  --shadow-neu-inset: inset 3px 3px 8px rgba(15, 12, 20, 0.35), inset -3px -3px 8px rgba(217, 195, 225, 0.05);
+  --shadow-primary: 0 4px 12px rgba(170, 140, 197, 0.3);
+  --shadow-secondary: 0 4px 12px rgba(15, 12, 20, 0.35);
+  --decor-glow: drop-shadow(0 0 12px rgba(194, 145, 217, 0.4)); /* magenta halo behind the floating End items */
 }
 
 /* ── Base tag defaults (element selectors, not component classes — same
@@ -116,20 +138,20 @@ h4 { font-size: 20px; }
 h5 { font-size: 16px; }
 h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
 p { margin: 0 0 12px; }
-a { color: inherit; text-decoration-color: var(--color-green); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+a { color: inherit; text-decoration-color: var(--color-primary); text-decoration-thickness: 2px; text-underline-offset: 3px; }
 img { display: block; max-width: 100%; }
 :focus { outline: none; }
-:focus-visible { outline: 2px solid var(--color-green); outline-offset: 2px; }
-::selection { background: color-mix(in srgb, var(--color-green) 55%, transparent); }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
+::selection { background: color-mix(in srgb, var(--color-primary) 55%, transparent); }
 
 /* Keyframes Tailwind can't express without a name declared somewhere. */
 @keyframes dialog-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 /* Notifications slide in from the right edge. */
 @keyframes toast-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
-/* Success feedback: one soft green pulse (applied as animate-[pulse-green_0.9s_ease-out]). */
-@keyframes pulse-green {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, #3C8527 70%, transparent); }
-  100% { box-shadow: 0 0 0 14px color-mix(in srgb, #3C8527 0%, transparent); }
+/* Success feedback: one soft pulse in the primary colour (applied as animate-[pulse-primary_0.9s_ease-out]). */
+@keyframes pulse-primary {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 70%, transparent); }
+  100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--color-primary) 0%, transparent); }
 }
 
 /* ── Surfaces (docs/11-design-system.md): look only, no layout, so the

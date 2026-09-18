@@ -5,6 +5,7 @@ import { fmt } from '../i18n/format'
 import Button from '../ui/Button'
 import AutoLoader from '../ui/Loader'
 import BackButton from '../components/BackButton'
+import ProjectIcon from '../components/ProjectIcon'
 import Markdown from '../utils/markdown'
 import { computeCompat } from '../utils/compat'
 import { useAddAction } from '../hooks/useAddAction'
@@ -87,10 +88,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
 
           <article className="min-w-0 flex flex-col gap-6">
             <div className="flex gap-6 items-start">
-              {detail.iconUrl && (
-                <img src={detail.iconUrl} alt="" width={72} height={72} className="rounded-md object-cover shrink-0"
-                  onError={(e) => { e.currentTarget.style.display = 'none' }} />
-              )}
+              <ProjectIcon url={detail.iconUrl} size={72} />
               <div className="min-w-0 flex flex-col gap-2">
                 <div className="flex gap-2 flex-wrap">
                   <span className="tag bg-tag-gray">{t.search.types[result.projectType]}</span>
