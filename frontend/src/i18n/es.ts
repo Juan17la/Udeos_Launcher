@@ -4,9 +4,10 @@ const es: Dict = {
   app: { name: 'Udeos Launcher' },
   nav: {
     dashboard: 'Instancias', search: 'Complementos', newInstance: 'Nueva instancia', privacy: 'Privacidad y términos',
+    profiles: 'Perfiles', addProfile: 'Añadir perfil', removeProfile: 'Quitar perfil',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
-  common: { back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
+  common: { save: 'Guardar', back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   privacy: {
     title: 'Privacidad y términos',
     body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben — el launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
@@ -40,7 +41,7 @@ const es: Dict = {
     loaderUnsupported: '{loader} no tiene una versión para {version}.',
   },
   instance: {
-    deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
+    edit: 'Editar nombre e icono', deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
     notInstalled: 'Aún no descargada — Jugar la descargará primero.', installed: 'Lista para jugar',
     tabs: { mods: 'Mods', resourcepacks: 'Paquetes de recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas', settings: 'Ajustes' },
     views: { card: 'Tarjetas', compact: 'Compacto' }, addedByHand: 'Añadido a mano',

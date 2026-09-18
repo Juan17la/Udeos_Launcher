@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import InstanceIcon from '../../components/InstanceIcon'
-import { Folder } from '../../ui/icons'
+import { Folder, Pencil } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
 import SegmentedControl from '../../ui/SegmentedControl'
 import { useApp } from '../../state'
 import PlayButton from '../../components/PlayButton'
 import BackButton from '../../components/BackButton'
+import EditInstanceDialog from '../../components/EditInstanceDialog'
 import { api } from '../../api/bridge'
 import FilesTab from './FilesTab'
 import WorldsTab from './WorldsTab'
@@ -22,6 +23,7 @@ export default function InstancePage({ id }: { id: string }) {
   const tabs: Tab[] = vanilla ? ['resourcepacks', 'worlds', 'screenshots', 'settings'] : ['mods', 'resourcepacks', 'shaders', 'worlds', 'screenshots', 'settings']
   const [tab, setTab] = useState<Tab>(tabs[0])
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => { if (!inst) go({ name: 'dashboard' }) }, [inst, go])
   if (!inst) return null
@@ -33,15 +35,16 @@ export default function InstancePage({ id }: { id: string }) {
   }
 
   return (
-    <main className="flex-1 grid items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12" style={{ gridTemplateColumns: '0.4fr minmax(0,0.6fr)' }}>
+    <main className="flex-1 grid items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12" style={{ gridTemplateColumns: 'minmax(0,0.4fr) minmax(0,0.6fr)' }}>
       <div className="col-span-2"><BackButton /></div>
       {/* The side panel is the viewport's height, not the list's: a long
          mods list scrolls past it while it stays put. */}
       <div className="panel flex flex-col items-center justify-between gap-4 text-center sticky top-24 p-6 h-[calc(100vh-9.5rem)] min-h-fit">
-        <div className="flex flex-col items-center justify-center gap-4 flex-1">
+        {/* w-full on both wrappers: a shrink-to-fit column has no width for the name's max-width to resolve against. */}
+        <div className="flex flex-col items-center justify-center gap-4 flex-1 w-full min-w-0">
           <InstanceIcon inst={inst} size={96} />
-          <div className="max-w-full flex flex-col gap-3">
-            <h1 className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{inst.name}</h1>
+          <div className="w-full min-w-0 flex flex-col gap-3">
+            <h1 className="m-0 truncate" title={inst.name}>{inst.name}</h1>
             <div className="flex gap-2 justify-center">
               <span className="tag bg-green-soft">{inst.version}</span>
               <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
@@ -52,6 +55,7 @@ export default function InstancePage({ id }: { id: string }) {
 
         <div className="flex flex-col w-full gap-4 min-h-0">
           <PlayButton inst={inst} />
+          <Button variant="idle" block onClick={() => setEditing(true)}><Pencil /> {t.instance.edit}</Button>
           <Button variant="idle" block onClick={() => api.OpenInstanceFolder(inst.id, '')}>
             <Folder /> {t.instance.openFolder}
           </Button>
@@ -68,6 +72,7 @@ export default function InstancePage({ id }: { id: string }) {
         {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
       </div>
 
+      {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} />}
       {confirmDelete && (
         <ConfirmDialog danger title={t.instance.confirmDeleteTitle} body={t.instance.confirmDelete} confirmLabel={t.common.delete}
           onConfirm={remove} onClose={() => setConfirmDelete(false)} />

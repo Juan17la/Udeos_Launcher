@@ -14,6 +14,8 @@ type Backend = {
   /** loaderVersion comes from ListLoaderVersions (empty for Vanilla). Nothing is downloaded until Play. */
   CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string): Promise<Instance>
   DeleteInstance(id: string): Promise<void>
+  /** Renames the instance and sets its icon ('' keeps it, 'modpack' = the pack's own). */
+  SetInstanceInfo(id: string, name: string, icon: string): Promise<Instance>
   /** Stores the instance's JVM settings and returns the updated instance. */
   SetInstanceLaunch(id: string, launch: LaunchSettings): Promise<Instance>
   /** File dialog for a Java executable; '' when cancelled. */

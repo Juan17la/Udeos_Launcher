@@ -13,9 +13,9 @@ export function createMock() {
   const stored = localStorage.getItem('mock:profile')
   if (stored) profile = JSON.parse(stored)
   const instances: Instance[] = [
-    { id: 'i1', name: 'Skyline Adventures', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'grass', createdAt: new Date().toISOString(), lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), playTimeSec: 61200, launch: {}, counts: { mods: 0, resourcePacks: 1, worlds: 2, screenshots: 3 }, installed: true, running: false },
-    { id: 'i2', name: 'New World', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'crafting_table', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
-    { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'furnace', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
+    { id: 'i1', name: 'Skyline Adventures', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'grass_block_side', createdAt: new Date().toISOString(), lastPlayed: new Date(Date.now() - 2 * 864e5).toISOString(), playTimeSec: 61200, launch: {}, counts: { mods: 0, resourcePacks: 1, worlds: 2, screenshots: 3 }, installed: true, running: false },
+    { id: 'i2', name: 'New World', version: '1.21.1', loader: 'Vanilla', loaderLabel: 'Vanilla', icon: 'oak_planks', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
+    { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'diamond_pickaxe', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
     { id: 'i4', name: 'Fabric Fun', version: '1.20.1', loader: 'Fabric', loaderVersion: '0.16.9', loaderLabel: 'Fabric 0.16.9', icon: 'diamond', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
   ]
   const loaderOptions: Record<string, Array<[string, string]>> = {
@@ -173,9 +173,9 @@ export function createMock() {
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock', totalMemoryMB: 16384 } },
     async GetProfile() {
-      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', language: 'en' as const, theme: 'dark' as const, agreed: false, maxMemoryMB: 2048 } }
+      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'dark' as const, agreed: false, maxMemoryMB: 2048 } }
     },
-    async SaveProfile(p: Profile) { profile = { ...p, uuid: 'mock-uuid' }; localStorage.setItem('mock:profile', JSON.stringify(profile)); return profile },
+    async SaveProfile(p: Profile) { profile = { ...p, uuid: 'mock-uuid', nicknames: [p.nickname, ...p.nicknames.filter((n) => n !== p.nickname)] }; localStorage.setItem('mock:profile', JSON.stringify(profile)); return profile },
     async ListInstances() { return instances.map((i) => ({ ...i })) },
     async GetInstance(id: string) { const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); return { ...i } },
     async CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string) {
@@ -184,6 +184,9 @@ export function createMock() {
       instances.push(inst); return inst
     },
     async DeleteInstance(id: string) { const i = instances.findIndex((x) => x.id === id); if (i >= 0) instances.splice(i, 1) },
+    async SetInstanceInfo(id: string, name: string, icon: string) {
+      const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); i.name = name; if (icon) i.icon = icon; return { ...i }
+    },
     async SetInstanceLaunch(id: string, launch: LaunchSettings) {
       if (launch.maxMemoryMB && launch.maxMemoryMB < 512) throw new Error('memory must be at least 512 MB')
       const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); i.launch = { ...launch }; return { ...i }
