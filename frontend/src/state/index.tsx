@@ -34,6 +34,8 @@ type AppState = {
   previous: Screen | null; back: () => void
   profile: Profile | null; saveProfile: (p: Profile) => Promise<void>
   nickname: string
+  /** Switch to, add (a new name) or remove a saved nickname. Preferences stay. */
+  setNickname: (name: string) => Promise<void>; removeNickname: (name: string) => Promise<void>
   instances: Instance[]; refreshInstances: () => Promise<void>
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
 }
@@ -111,6 +113,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setTheme = (t: Theme) => { setThemeState(t); persistPrefs({ theme: t }) }
   const setLanguage = (l: Language) => { setLanguageState(l); persistPrefs({ language: l }) }
 
+  const setNickname = useCallback((name: string) => persistPrefs({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])] }), [persistPrefs, profile])
+  const removeNickname = useCallback((name: string) => persistPrefs({ nicknames: (profile?.nicknames ?? []).filter((n) => n !== name) }), [persistPrefs, profile])
+
   const saveProfile = useCallback(async (p: Profile) => {
     setProfile(await api.SaveProfile(p))
     await refreshInstances()
@@ -119,10 +124,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppState>(() => ({
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
-    screen, go, previous: history[history.length - 1] ?? null, back, profile, saveProfile, nickname: profile?.nickname ?? '',
+    screen, go, previous: history[history.length - 1] ?? null, back, profile, saveProfile, nickname: profile?.nickname ?? '', setNickname, removeNickname,
     instances, refreshInstances,
     privacyOpen, setPrivacyOpen,
-  }), [ready, theme, language, screen, history, profile, instances, privacyOpen, refreshInstances, saveProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, language, screen, history, profile, instances, privacyOpen, refreshInstances, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppCtx.Provider value={value}>

@@ -3,8 +3,9 @@ const en = {
   nav: {
     dashboard: 'Instances', search: 'Addons', newInstance: 'New Instance', privacy: 'Privacy & Terms',
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
+    profiles: 'Profiles', addProfile: 'Add profile', removeProfile: 'Remove profile',
   },
-  common: { back: 'Back to {name}', cancel: 'Cancel', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
+  common: { back: 'Back to {name}', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
   privacy: {
     title: 'Privacy & Terms',
     body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded — the launcher only connects out to download game files, mods, and updates.',
@@ -39,7 +40,7 @@ const en = {
     loaderUnsupported: '{loader} has no build for {version}.',
   },
   instance: {
-    deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
+    edit: 'Edit name and icon', deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
     notInstalled: 'Not downloaded yet — Play will download it first.', installed: 'Ready to play',
     tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', worlds: 'Worlds', screenshots: 'Screenshots', settings: 'Settings' },
     views: { card: 'Cards', compact: 'Compact' }, addedByHand: 'Added by hand',
