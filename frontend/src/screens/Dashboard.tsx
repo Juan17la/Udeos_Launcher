@@ -46,7 +46,7 @@ export default function Dashboard() {
           </p>
           <div className="flex-1" />
           <PlayButton inst={last} size="lg" />
-          <Button variant="idle" block onClick={() => go({ name: 'instance', id: last.id })}>{t.dashboard.openInstance}</Button>
+          <Button variant="secondary" block onClick={() => go({ name: 'instance', id: last.id })}>{t.dashboard.openInstance}</Button>
         </div>
       )}
     </main>

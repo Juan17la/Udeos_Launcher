@@ -34,7 +34,8 @@ type AppState = {
   previous: Screen | null; back: () => void
   profile: Profile | null; saveProfile: (p: Profile) => Promise<void>
   nickname: string
-  /** Switch to, add (a new name) or remove a saved nickname. Preferences stay. */
+  /** Switch to, add (a new name) or remove a saved nickname (removing the active one
+   *  hands over to the next; the last one cannot be removed). Preferences stay. */
   setNickname: (name: string) => Promise<void>; removeNickname: (name: string) => Promise<void>
   instances: Instance[]; refreshInstances: () => Promise<void>
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
@@ -51,7 +52,7 @@ const ContentCtx = createContext<ContentQueue | null>(null)
 export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
-  const [theme, setThemeState] = useState<Theme>('dark')
+  const [theme, setThemeState] = useState<Theme>('light')
   const [language, setLanguageState] = useState<Language>('en')
   // The screen on stage plus where the player came from (newest last), so
   // Back lands exactly where they were: an instance's page, or Addons with
@@ -114,7 +115,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setLanguage = (l: Language) => { setLanguageState(l); persistPrefs({ language: l }) }
 
   const setNickname = useCallback((name: string) => persistPrefs({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])] }), [persistPrefs, profile])
-  const removeNickname = useCallback((name: string) => persistPrefs({ nicknames: (profile?.nicknames ?? []).filter((n) => n !== name) }), [persistPrefs, profile])
+  const removeNickname = useCallback((name: string) => {
+    const rest = (profile?.nicknames ?? []).filter((n) => n !== name)
+    if (rest.length === 0) return Promise.resolve()
+    return persistPrefs({ nicknames: rest, nickname: name === profile?.nickname ? rest[0] : profile?.nickname })
+  }, [persistPrefs, profile])
 
   const saveProfile = useCallback(async (p: Profile) => {
     setProfile(await api.SaveProfile(p))
