@@ -26,9 +26,10 @@ CDN install and the offline launch work, and where data lives. Start with
 ├── frontend/          React + TypeScript UI (Vite)
 │   └── src/
 │       ├── api/       typed bridge to the Go bindings (+ browser mock)
-│       ├── screens/   Login, Dashboard, Create Instance, Instance, Search
-│       ├── components/, ui/, theme/, i18n/
-│       └── state.tsx  app-wide React context
+│       ├── screens/   Login, Dashboard, Create Instance, instance/, Search, Project Detail
+│       ├── ui/        reusable building blocks (Button, Panel, ListRow, Dialog, …)
+│       ├── hooks/, utils/, components/, theme/, i18n/
+│       └── state/     app context + launch and content-queue hooks
 ├── build/             app icon and Linux packaging files (`wails build` adds the rest)
 ├── .github/workflows/ CI checks and the release pipeline that builds the installers
 ├── docs/              project documentation

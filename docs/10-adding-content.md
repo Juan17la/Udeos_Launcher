@@ -32,7 +32,7 @@ corner, not a modal: the percentage while downloading, a short *Added …*
 note that clears itself after a few seconds, or — when the backend refuses
 (no build for that version/loader, incompatible with an installed mod) —
 the reason in red, staying until dismissed. Installs are queued
-(`useContent` in `frontend/src/state.tsx`) and run one at a time because
+(`useContentQueue` in `frontend/src/state/useContentQueue.ts`) and run one at a time because
 `content:progress` carries no job id; a queued toast reads *Waiting…*. The
 queue lives above every screen, so navigating away does not lose it.
 
