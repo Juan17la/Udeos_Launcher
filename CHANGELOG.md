@@ -33,6 +33,11 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   you already have. From an instance's page, the Modpacks tab shows only
   packs for its version and loader.
   An instance made from a modpack wears the pack's icon.
+- **Profiles**: keep several nicknames and switch between them from the
+  account menu (add, remove; the active one cannot be removed).
+- **Edit name and icon** on the instance page.
+- Instance icons and background decorations are now real Minecraft
+  block/item textures (`frontend/src/assets/icons/`), a curated set of ~120.
 - Art slots (`frontend/src/assets/`) for the logo and background
   decorations, falling back to the pixel icons until real assets land.
 
@@ -47,6 +52,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Mods, resource packs and shaders added before the launcher recorded icons
   now get their Modrinth icon and description (filled in once, then saved).
 - Screenshot thumbnails were blank under `wails dev`.
+- A long instance name no longer pushes the instance page's tabs off screen.
 
 - Side panels (instance page, dashboard's Last played) no longer grow with
   the list next to them.
