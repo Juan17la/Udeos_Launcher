@@ -3,16 +3,15 @@ import type { Dict } from './en'
 const es: Dict = {
   app: { name: 'Udeos Launcher' },
   nav: {
-    dashboard: 'Instancias', search: 'Complementos', skin: 'Skin', newInstance: 'Nueva instancia',
-    comingSoon: 'Próximamente', privacy: 'Privacidad y términos', theme: 'Tema',
+    dashboard: 'Instancias', search: 'Complementos', newInstance: 'Nueva instancia', privacy: 'Privacidad y términos',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
-  common: { cancel: 'Cancelar', done: 'Listo', gotIt: 'Entendido', back: 'Volver', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', save: 'Guardar', ok: 'OK', or: 'o', running: 'Jugando…', loading: 'Cargando' },
+  common: { cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   privacy: {
     title: 'Privacidad y términos',
     body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben — el launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
   },
-  language: { title: 'Idioma', choose: 'Elige tu idioma' },
+  language: { choose: 'Elige tu idioma' },
   login: {
     continue: 'Continuar', nickname: 'Apodo', placeholder: 'p. ej. ZorroCrafter',
     agree: 'Acepto la', and: 'y los', privacyPolicy: 'Política de privacidad', terms: 'Términos de uso',
@@ -28,7 +27,6 @@ const es: Dict = {
     manage: 'Gestionar', mods: 'mods', packs: 'packs', worlds: 'mundos',
     lastPlayed: 'Última partida', openInstance: 'Abrir instancia', neverPlayed: 'Nunca jugada', playedAgo: 'Jugada {when} · {hours}h en total',
     empty: 'Aún no tienes instancias. Crea una para empezar a jugar.', createFirst: 'Crea tu primera instancia',
-    justNow: 'ahora mismo', daysAgo: 'hace {n} días', hoursAgo: 'hace {n} horas', minutesAgo: 'hace {n} minutos', today: 'hoy', yesterday: 'ayer',
   },
   create: {
     title: 'Crear nueva instancia', subtitle: 'Ponle un nombre, elige una versión y un bloque como icono.',
@@ -48,7 +46,7 @@ const es: Dict = {
     saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta', view: 'Ver',
     removeWorld: 'Eliminar mundo', confirmDeleteWorldTitle: '¿Eliminar este mundo?', confirmDeleteWorld: '"{name}" y todo lo construido en él se borrará de esta instancia. Guárdalo en tu equipo antes si quieres conservar una copia.',
     worldAdded: 'Mundo "{name}" añadido', fileAdded: '{name} añadido',
-    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', browseModrinth: 'Añadir desde Modrinth', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
+    dropHere: 'Arrastra un archivo de {kind} aquí', browse: 'Buscar archivo', browseModrinth: 'Buscar en Addons', kinds: { mods: 'mod (.jar)', resourcepacks: 'paquete de recursos (.zip)', shaders: 'shader', worlds: 'mundo (.zip o carpeta)' },
     empty: {
       mods: 'Aún no hay mods. Arrastra un archivo .jar aquí.', resourcepacks: 'Aún no hay paquetes de recursos. Arrastra un .zip aquí o usa Buscar.', shaders: 'Aún no hay shaders. Arrastra un shader pack aquí.',
       worlds: 'Aún no hay mundos. Juega la instancia para crear uno, o arrastra aquí una carpeta o .zip de un mundo.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',
@@ -61,17 +59,16 @@ const es: Dict = {
     types: { mod: 'Mods', resourcepack: 'Paquetes de recursos', shader: 'Shaders', modpack: 'Modpacks' },
     downloads: '{n} descargas', empty: 'No se encontraron resultados.',
     previous: 'Anterior', next: 'Siguiente', pageOf: 'Página {page} de {total}',
-    error: 'No se pudo conectar con Modrinth y no hay resultados guardados. Revisa tu conexión.',
     add: 'Añadir', details: 'Detalles', createInstance: 'Crear instancia',
     added: 'Añadido', adding: 'Añadiendo…',
     sort: { relevance: 'Relevancia', downloads: 'Más descargados', newest: 'Más nuevos', updated: 'Actualizados recientemente' },
-    forInstance: 'Añadiendo a {name}', backToInstance: 'Volver a {name}', lockedTo: 'Versión y cargador fijados a los de {name}.',
+    forInstance: 'Añadiendo a {name}', backToInstance: 'Volver a {name}',
   },
   compat: {
     vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
   },
   detail: {
-    back: 'Volver a Buscar', loading: 'Cargando…',
+    back: 'Volver a Buscar',
     versionsHeading: 'Versiones disponibles', loadersHeading: 'Cargadores', instancesHeading: 'Tus instancias',
     noInstances: 'Todavía no tienes instancias.', add: 'Añadir a una instancia',
   },
@@ -80,7 +77,7 @@ const es: Dict = {
     noCompatible: 'Ninguna instancia puede usar esto todavía. Crea una instancia {loaders} para {versions} para instalarlo.',
     noInstancesTitle: 'Aún no hay instancias', noInstancesBody: 'Crea una instancia primero y luego añádele {title}.',
     planning: 'Comprobando versiones…',
-    installingTo: 'Añadiendo {title} a {name}', queued: 'Esperando…', failed: 'No se pudo añadir {title} a {name}',
+    installingTo: 'Añadiendo {title} a {name}', queued: 'Esperando…',
     alreadyInstalled: '{title} ya está en {name}.', done: '{n} archivo(s) añadidos a {name}.', doneOne: '{title} añadido a {name}.',
   },
   launch: {
@@ -88,7 +85,7 @@ const es: Dict = {
     phases: { version: 'Leyendo la versión', libraries: 'Descargando librerías del juego', assets: 'Descargando sonidos y texturas', client: 'Descargando el juego', natives: 'Desempaquetando librerías nativas', java: 'Descargando Java', loader: 'Instalando el cargador de mods', done: 'Lanzando' },
     loaderTakesAWhile: 'Forge parchea los archivos del juego en la primera instalación; puede tardar un par de minutos.',
     firstTime: 'La primera vez que juegas una versión se descargan unos cientos de MB. Las siguientes veces es instantáneo.',
-    errorTitle: 'No se pudo iniciar el juego', exitedTitle: 'El juego se cerró inesperadamente', exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',
+    exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',
   },
 }
 export default es

@@ -2,9 +2,7 @@ import { useState } from 'react'
 import PixelIcon from '../ui/PixelIcon'
 import Decor, { LOGIN_DECOR } from '../ui/Decor'
 import Button from '../ui/Button'
-import Tag from '../ui/Tag'
 import StatusMessage from '../ui/StatusMessage'
-import { Panel } from '../ui/Panel'
 import { Checkbox, Input, Label, Select } from '../ui/Field'
 import AutoLoader from '../ui/Loader'
 import { errorHeadline, messageOf } from '../utils/errors'
@@ -41,10 +39,10 @@ export default function Login() {
       <div className="relative z-1 flex flex-col items-center gap-4">
         <PixelIcon name={theme === 'dark' ? 'enderman' : 'grass'} size={64} />
         <h1 className="m-0 text-center">{t.app.name}</h1>
-        <Tag tone="gray">{__APP_VERSION__}</Tag>
+        <span className="tag bg-tag-gray">{__APP_VERSION__}</span>
       </div>
 
-      <Panel className="relative z-1 w-[min(440px,100%)] flex flex-col gap-4 p-6">
+      <div className="panel relative z-1 w-[min(440px,100%)] flex flex-col gap-4 p-6">
         {step === 'language' ? (
           <>
             <div>
@@ -74,7 +72,7 @@ export default function Login() {
             <Button variant="ghost" size="sm" onClick={() => setStep('language')}>{t.login.backToLanguage}</Button>
           </>
         )}
-      </Panel>
+      </div>
     </div>
   )
 }

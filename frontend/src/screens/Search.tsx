@@ -4,10 +4,7 @@ import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { ChevronLeft } from '../ui/icons'
 import Button from '../ui/Button'
-import Tag from '../ui/Tag'
 import { Input, Select } from '../ui/Field'
-import { Panel } from '../ui/Panel'
-import Empty from '../ui/Empty'
 import StatusMessage from '../ui/StatusMessage'
 import AutoLoader from '../ui/Loader'
 import SegmentedControl from '../ui/SegmentedControl'
@@ -116,8 +113,8 @@ export default function Search({ instanceId, type: initialType }: Props) {
       {inst && (
         <div className="flex items-center gap-4 flex-wrap">
           <span className="font-bold text-lg">{fmt(t.search.forInstance, { name: inst.name })}</span>
-          <Tag tone="green">{inst.version}</Tag>
-          <Tag tone="gold">{inst.loaderLabel}</Tag>
+          <span className="tag bg-green-soft">{inst.version}</span>
+          <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
           <Button variant="ghost" size="sm" onClick={() => go({ name: 'instance', id: inst.id })}>
             <ChevronLeft /> {fmt(t.search.backToInstance, { name: inst.name })}
           </Button>
@@ -147,7 +144,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
 
       {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
       <AutoLoader active={loading} label={t.common.loading} />
-      {page?.results.length === 0 && <Empty text={t.search.empty} />}
+      {page?.results.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.search.empty}</p>}
 
       <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${loading ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
         {page?.results.map((r) => (
@@ -178,7 +175,7 @@ type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd?: () =>
 const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
-    <Panel hover className="flex flex-col gap-4 p-5">
+    <div className="panel panel-hover flex flex-col gap-4 p-5">
       <div className="flex items-center gap-4">
         {result.iconUrl && (
           <img src={result.iconUrl} alt="" loading="lazy" decoding="async" width={44} height={44}
@@ -192,8 +189,8 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
       </div>
       <p className="m-0 text-[13px] text-muted line-clamp-2">{result.description}</p>
       <div className="flex gap-2 flex-wrap">
-        {result.loaders.map((l) => <Tag key={l} tone="gold">{l}</Tag>)}
-        <Tag tone="gray">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</Tag>
+        {result.loaders.map((l) => <span key={l} className="tag bg-gold-soft">{l}</span>)}
+        <span className="tag bg-tag-gray">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
       </div>
       {/* Two big, equal-weight actions: Add installs (directly, or after a
          one-click instance pick), Details is a full page. */}
@@ -205,6 +202,6 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
         )}
         <Button variant="idle" className="flex-1" onClick={onDetails}>{t.search.details}</Button>
       </div>
-    </Panel>
+    </div>
   )
 })

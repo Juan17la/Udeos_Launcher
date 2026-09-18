@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -190,7 +189,7 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 		return err
 	}
 	fmt.Fprintf(logFile, "# %s\n# %s %v\n\n", time.Now().Format(time.RFC3339), java, redact(cmd.Args[1:]))
-	cmd.Stdout = io.MultiWriter(logFile)
+	cmd.Stdout = logFile
 	cmd.Stderr = logFile
 
 	if err := cmd.Start(); err != nil {

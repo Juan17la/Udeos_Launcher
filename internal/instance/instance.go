@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -127,19 +128,14 @@ func (s *Store) Create(name, version, loader, loaderVersion, icon string) (Insta
 func (s *Store) Delete(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	idx := -1
-	for i, it := range s.items {
-		if it.ID == id {
-			idx = i
-		}
-	}
+	idx := slices.IndexFunc(s.items, func(it Instance) bool { return it.ID == id })
 	if idx < 0 {
 		return ErrNotFound
 	}
 	if err := os.RemoveAll(s.dirs.InstanceDir(id)); err != nil {
 		return err
 	}
-	s.items = append(s.items[:idx], s.items[idx+1:]...)
+	s.items = slices.Delete(s.items, idx, idx+1)
 	return s.saveLocked()
 }
 

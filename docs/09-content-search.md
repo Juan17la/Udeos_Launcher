@@ -26,9 +26,10 @@ installed is the subject of [Adding content to an instance](10-adding-content.md
 ## Provider and caching
 
 `internal/modsearch` defines a small `Provider` interface (`Search`,
-`GameVersions`, plus `Versions`, `VersionByID` and `Projects` used when a
-result is added) so a marketplace other than Modrinth could be added later
-without touching the frontend or the Wails bindings. `Modrinth` is the only
+`GameVersions`, plus `Versions`, `VersionByID` and `Projects`, which
+`internal/modinstall` calls directly when a result is added) so a marketplace
+other than Modrinth could be added later without touching the frontend or
+the Wails bindings. `Modrinth` is the only
 implementation today, hitting `api.modrinth.com/v2`:
 
 - `GET /search?facets=...&index=...` — `facets` is Modrinth's AND-of-OR-groups
@@ -39,8 +40,9 @@ implementation today, hitting `api.modrinth.com/v2`:
   (`downloads`, `newest`, `updated`); it is left out for relevance.
 - `GET /tag/game_version` — the list behind the version filter.
 
-`modsearch.Manager` wraps the provider with the same fetch-then-cache idiom
-`internal/loader` uses for loader lists: on success, write the page to
+`modsearch.Manager` wraps the provider in `internal/cache.Fetch`, the one
+fetch-then-cache idiom shared with Mojang's manifest and the loader lists:
+on success, write the page to
 `cache/search/<type>_<version>_<loader>_<sort>_<offset>_<hash>.json`; on failure,
 read that same file back instead of failing outright. A free-text query
 under 3 characters is not cached, so typing does not create a cache file per

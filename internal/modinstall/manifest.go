@@ -11,6 +11,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"sync"
 )
 
@@ -70,13 +71,8 @@ func Append(path string, entries []Entry) error {
 		return err
 	}
 	for _, e := range entries {
-		kept := have[:0]
-		for _, h := range have {
-			if h.ProjectID == "" || h.ProjectID != e.ProjectID {
-				kept = append(kept, h)
-			}
-		}
-		have = append(kept, e)
+		have = slices.DeleteFunc(have, func(h Entry) bool { return h.ProjectID != "" && h.ProjectID == e.ProjectID })
+		have = append(have, e)
 	}
 	return save(path, have)
 }
@@ -90,16 +86,8 @@ func Forget(path, sub, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kept := have[:0]
-	changed := false
-	for _, h := range have {
-		if h.File == fileName && typeSubdir(h.Type) == sub {
-			changed = true
-			continue
-		}
-		kept = append(kept, h)
-	}
-	if !changed {
+	kept := slices.DeleteFunc(have, func(h Entry) bool { return h.File == fileName && typeSubdir(h.Type) == sub })
+	if len(kept) == len(have) {
 		return nil
 	}
 	return save(path, kept)

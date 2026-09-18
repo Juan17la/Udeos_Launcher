@@ -33,17 +33,15 @@ export const PIXELS: Record<string, string[]> = {
   netherite_ingot: ['........', '.hhhhhh.', 'hHhhhhHh', 'hhhhhhhh', 'hHhhhhHh', '.hhhhhh.', '........', '........'],
 }
 
-export type IconName = keyof typeof PIXELS
-
 /** Icons a player can pick for an instance (key, label). */
-export const ICON_CHOICES: [IconName, string][] = [
+export const ICON_CHOICES: [string, string][] = [
   ['grass', 'Grass'], ['dirt', 'Dirt'], ['stone', 'Stone'], ['cobblestone', 'Cobblestone'], ['planks', 'Wood Planks'],
   ['crafting_table', 'Crafting Table'], ['furnace', 'Furnace'], ['enderman', 'Enderman'], ['sword', 'Sword'],
   ['axe', 'Axe'], ['bow', 'Bow'], ['arrow', 'Arrow'], ['mace', 'Mace'],
 ]
 
 /** Decorative items scattered in page backgrounds, per theme. */
-export const THEME_DECOR: Record<'light' | 'dark', IconName[]> = {
+export const THEME_DECOR: Record<'light' | 'dark', string[]> = {
   light: ['pickaxe', 'diamond', 'apple', 'grass', 'diamond', 'pickaxe', 'apple'],
   dark: ['ender_pearl', 'netherite_sword', 'netherite_ingot', 'golden_apple', 'ender_pearl', 'netherite_ingot', 'golden_apple'],
 }
