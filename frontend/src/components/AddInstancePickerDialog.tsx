@@ -77,7 +77,7 @@ export default function AddInstancePickerDialog({ result, filters, onClose }: Pr
             {!modpack && <p className="m-0 text-muted">{t.content.pickHint}</p>}
             {detected.choices.map((instance) => (
               <button key={instance.id} type="button" onClick={() => pick(instance.id)}
-                className="flex items-center gap-4 w-full text-left cursor-pointer rounded-md border-0 px-4 py-3 bg-idle text-ink shadow-neu hover:bg-green hover:text-white transition-all duration-150 ease-in-out focus-visible:outline-2 focus-visible:outline-green">
+                className="flex items-center gap-4 w-full text-left cursor-pointer rounded-md border-0 px-4 py-3 bg-idle text-text shadow-neu hover:bg-primary hover:text-white transition-all duration-150 ease-in-out focus-visible:outline-2 focus-visible:outline-primary">
                 <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold">{instance.name}</span>
                 <span className="tag bg-green-soft">{instance.version}</span>
                 <span className="tag bg-gold-soft">{instance.loaderLabel}</span>

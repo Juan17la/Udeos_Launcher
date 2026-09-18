@@ -81,7 +81,7 @@ function toReact(node: Node, key: number): ReactNode {
 export default function Markdown({ text, className = '' }: { text: string; className?: string }) {
   const doc = new DOMParser().parseFromString(markdownToHtml(text), 'text/html')
   return (
-    <div className={`text-sm leading-relaxed break-words [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h4]:text-base [&_h1]:mt-6 [&_h2]:mt-6 [&_h3]:mt-4 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_li]:mb-1 [&_blockquote]:border-l-3 [&_blockquote]:border-green [&_blockquote]:pl-4 [&_blockquote]:text-muted [&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:bg-panel [&_code]:text-[13px] [&_img]:inline-block [&_img]:rounded-md [&_img]:my-2 [&_hr]:my-4 [&_hr]:border-glass-border [&_table]:block [&_table]:overflow-x-auto [&_th]:text-left [&_th]:pr-4 [&_td]:pr-4 [&_td]:py-1 [&_summary]:cursor-pointer ${className}`}>
+    <div className={`text-sm leading-relaxed break-words [&_h1]:text-2xl [&_h2]:text-xl [&_h3]:text-lg [&_h4]:text-base [&_h1]:mt-6 [&_h2]:mt-6 [&_h3]:mt-4 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-6 [&_ol]:pl-6 [&_li]:mb-1 [&_blockquote]:border-l-3 [&_blockquote]:border-primary [&_blockquote]:pl-4 [&_blockquote]:text-muted [&_pre]:overflow-x-auto [&_pre]:p-4 [&_pre]:rounded-md [&_pre]:bg-panel [&_code]:text-[13px] [&_img]:inline-block [&_img]:rounded-md [&_img]:my-2 [&_hr]:my-4 [&_hr]:border-glass-border [&_table]:block [&_table]:overflow-x-auto [&_th]:text-left [&_th]:pr-4 [&_td]:pr-4 [&_td]:py-1 [&_summary]:cursor-pointer ${className}`}>
       {Array.from(doc.body.childNodes).map(toReact)}
     </div>
   )

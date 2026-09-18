@@ -33,7 +33,7 @@ export default function SegmentedControl<V extends string>({ options, value, onC
   return (
     <div role="radiogroup" className={`relative inline-flex flex-wrap w-fit gap-1 p-1 rounded-md bg-idle shadow-neu-inset ${className}`} {...aria}>
       {thumb && (
-        <span aria-hidden className="absolute rounded-md bg-green shadow-neu transition-all duration-150 ease-in-out"
+        <span aria-hidden className="absolute rounded-md bg-primary shadow-neu transition-all duration-150 ease-in-out"
           style={{ left: thumb.left, top: thumb.top, width: thumb.width, height: thumb.height }} />
       )}
       {options.map((o) => (
@@ -41,7 +41,7 @@ export default function SegmentedControl<V extends string>({ options, value, onC
           key={o.value} type="button" role="radio" aria-checked={o.value === value}
           ref={(el) => { if (el) refs.current.set(o.value, el); else refs.current.delete(o.value) }}
           onClick={() => onChange(o.value)}
-          className={`relative z-1 px-4 py-2 text-[13px] font-bold leading-[1.2] whitespace-nowrap rounded-md border-0 bg-transparent cursor-pointer transition-all duration-150 ease-in-out ${o.value === value ? 'text-white' : 'text-ink hover:text-green-hover active:scale-97'}`}
+          className={`relative z-1 px-4 py-2 text-[13px] font-bold leading-[1.2] whitespace-nowrap rounded-md border-0 bg-transparent cursor-pointer transition-all duration-150 ease-in-out ${o.value === value ? 'text-white' : 'text-text hover:text-primary-hover active:scale-97'}`}
         >
           {o.label}
         </button>
