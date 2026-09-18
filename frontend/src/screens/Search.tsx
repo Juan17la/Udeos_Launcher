@@ -3,34 +3,22 @@ import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { ChevronLeft } from '../ui/icons'
-import Button from '../ui/atoms/Button'
-import Tag from '../ui/atoms/Tag'
-import { Input, Select } from '../ui/atoms/Field'
-import StatusMessage from '../ui/atoms/Status'
-import { AutoLoader } from '../ui/atoms/Loader'
-import Card from '../ui/molecules/Card'
-import SegmentedControl from '../ui/molecules/SegmentedControl'
-import { errorHeadline, messageOf } from '../lib/errors'
-import { useAddAction } from '../components/AddInstancePickerDialog'
+import Button from '../ui/Button'
+import Tag from '../ui/Tag'
+import { Input, Select } from '../ui/Field'
+import { Panel } from '../ui/Panel'
+import Empty from '../ui/Empty'
+import StatusMessage from '../ui/StatusMessage'
+import AutoLoader from '../ui/Loader'
+import SegmentedControl from '../ui/SegmentedControl'
+import { errorHeadline, messageOf } from '../utils/errors'
+import { allowedTypes, loadSearchVersions } from '../utils/search'
+import { useAddAction } from '../hooks/useAddAction'
 import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
-const TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack']
-/** With an instance in context only what can go into it is offered: no
- *  modpacks, and a Vanilla instance takes resource packs only (its page has
- *  no Mods/Shaders tab either). */
-const INSTANCE_TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader']
-const VANILLA_TYPES: ProjectType[] = ['resourcepack']
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
 const SORTS: SortBy[] = ['relevance', 'downloads', 'newest', 'updated']
 const PAGE_SIZE = 30
-
-// Fetched once per app run and shared by every mount of this screen: Go
-// already memoizes the list, this skips the bridge round-trip too.
-let versionsPromise: Promise<SearchGameVersion[]> | null = null
-function loadVersions() {
-  if (!versionsPromise) versionsPromise = api.ListSearchGameVersions().catch(() => { versionsPromise = null; return [] as SearchGameVersion[] })
-  return versionsPromise
-}
 
 type Props = { instanceId?: string; type?: ProjectType }
 
@@ -46,7 +34,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
   const { jobs } = useContent()
   // A deleted instance (id no longer listed) falls back to unrestricted browsing.
   const inst = instanceId ? instances.find((i) => i.id === instanceId) : undefined
-  const types = inst ? (inst.loader === 'Vanilla' ? VANILLA_TYPES : INSTANCE_TYPES) : TYPES
+  const types = allowedTypes(inst)
   const [rawType, setType] = useState<ProjectType>(initialType ?? 'mod')
   const type = types.includes(rawType) ? rawType : types[0]
   const [text, setText] = useState('')
@@ -65,7 +53,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
   // one); only the latest one issued is allowed to update the page.
   const seq = useRef(0)
 
-  useEffect(() => { let live = true; loadVersions().then((v) => { if (live) setVersions(v) }); return () => { live = false } }, [])
+  useEffect(() => { let live = true; loadSearchVersions().then((v) => { if (live) setVersions(v) }); return () => { live = false } }, [])
 
   useEffect(() => {
     const id = setTimeout(() => setDebouncedText(text), 350)
@@ -159,7 +147,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
 
       {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
       <AutoLoader active={loading} label={t.common.loading} />
-      {page && page.results.length === 0 && <div className="text-muted text-center px-5 py-10"><p className="m-0 text-sm">{t.search.empty}</p></div>}
+      {page?.results.length === 0 && <Empty text={t.search.empty} />}
 
       <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${loading ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
         {page?.results.map((r) => (
@@ -190,7 +178,7 @@ type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd?: () =>
 const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
-    <Card hover>
+    <Panel hover className="flex flex-col gap-4 p-5">
       <div className="flex items-center gap-4">
         {result.iconUrl && (
           <img src={result.iconUrl} alt="" loading="lazy" decoding="async" width={44} height={44}
@@ -217,6 +205,6 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
         )}
         <Button variant="idle" className="flex-1" onClick={onDetails}>{t.search.details}</Button>
       </div>
-    </Card>
+    </Panel>
   )
 })
