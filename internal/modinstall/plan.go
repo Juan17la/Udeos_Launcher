@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"udeos/launcher/internal/download"
@@ -163,7 +165,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 		ids[o] = true
 	}
 	delete(ids, "")
-	names, err := m.projectNames(ctx, keys(ids))
+	names, err := m.projectNames(ctx, slices.Collect(maps.Keys(ids)))
 	if err != nil {
 		return Plan{}, err
 	}
@@ -336,18 +338,5 @@ func loaderSuffix(inst instance.Instance) string {
 }
 
 func contains(list []string, s string) bool {
-	for _, x := range list {
-		if strings.EqualFold(x, s) {
-			return true
-		}
-	}
-	return false
-}
-
-func keys(set map[string]bool) []string {
-	out := make([]string, 0, len(set))
-	for k := range set {
-		out = append(out, k)
-	}
-	return out
+	return slices.ContainsFunc(list, func(x string) bool { return strings.EqualFold(x, s) })
 }

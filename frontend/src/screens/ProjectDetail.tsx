@@ -4,9 +4,7 @@ import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { ChevronLeft } from '../ui/icons'
 import Button from '../ui/Button'
-import Tag from '../ui/Tag'
 import AutoLoader from '../ui/Loader'
-import ListRow from '../ui/ListRow'
 import { useAddAction } from '../hooks/useAddAction'
 import { computeCompat } from '../utils/compat'
 import type { ProjectDetail as ProjectDetailData, SearchResult } from '../api/types'
@@ -48,7 +46,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
             onError={(e) => { e.currentTarget.style.display = 'none' }} />
         )}
         <div className="flex flex-col gap-2">
-          <div><Tag tone="gray">{t.search.types[result.projectType]}</Tag></div>
+          <div><span className="tag bg-tag-gray">{t.search.types[result.projectType]}</span></div>
           <h1 className="m-0">{result.title}</h1>
           <div className="text-[13px] text-muted">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })} · {result.author}</div>
         </div>
@@ -62,13 +60,13 @@ export default function ProjectDetail({ result, instanceId }: Props) {
           <div className="flex flex-col gap-4">
             <h6 className="m-0">{t.detail.versionsHeading}</h6>
             <div className="flex gap-2 flex-wrap max-w-[360px]">
-              {detail.gameVersions.map((v) => <Tag key={v} tone="gray">{v}</Tag>)}
+              {detail.gameVersions.map((v) => <span key={v} className="tag bg-tag-gray">{v}</span>)}
             </div>
           </div>
           <div className="flex flex-col gap-4">
             <h6 className="m-0">{t.detail.loadersHeading}</h6>
             <div className="flex gap-2 flex-wrap">
-              {detail.loaders.map((l) => <Tag key={l} tone="gold">{l}</Tag>)}
+              {detail.loaders.map((l) => <span key={l} className="tag bg-gold-soft">{l}</span>)}
             </div>
           </div>
         </div>
@@ -79,9 +77,13 @@ export default function ProjectDetail({ result, instanceId }: Props) {
           <h4 className="m-0">{t.detail.instancesHeading}</h4>
           {instances.length === 0 && <p className="m-0 text-sm text-muted">{t.detail.noInstances}</p>}
           {compat.map(({ instance, ok, reason }) => (
-            <ListRow key={instance.id} title={instance.name} meta={`${instance.version} · ${instance.loaderLabel}`}>
-              <Tag tone={ok ? 'green' : 'gray'}>{ok ? t.compat.ok : reason}</Tag>
-            </ListRow>
+            <div key={instance.id} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+              <div className="flex-1 min-w-0 flex flex-col gap-1">
+                <div className="text-[15px] font-bold truncate">{instance.name}</div>
+                <div className="text-xs text-muted">{instance.version} · {instance.loaderLabel}</div>
+              </div>
+              <span className={`tag ${ok ? 'bg-green-soft' : 'bg-tag-gray'}`}>{ok ? t.compat.ok : reason}</span>
+            </div>
           ))}
           <div>
             <Button variant="primary" size="lg" disabled={!detail} onClick={() => add(result)}>{t.detail.add}</Button>

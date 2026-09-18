@@ -12,8 +12,10 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
+	"udeos/launcher/internal/cache"
 	"udeos/launcher/internal/download"
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/paths"
@@ -109,24 +111,10 @@ func (i *Installer) loadOne(ctx context.Context, id string) (*mojang.Version, er
 // Manifest fetches the version list, caching it at versions/manifest.json so
 // the launcher still lists versions when offline.
 func (i *Installer) Manifest(ctx context.Context) (*mojang.Manifest, error) {
-	cache := filepath.Join(i.Dirs.Versions, "manifest.json")
-	m, err := i.Client.FetchManifest(ctx)
-	if err == nil {
-		if raw, mErr := json.Marshal(m); mErr == nil {
-			_ = os.MkdirAll(i.Dirs.Versions, 0o755)
-			_ = os.WriteFile(cache, raw, 0o644)
-		}
-		return m, nil
-	}
-	raw, readErr := os.ReadFile(cache)
-	if readErr != nil {
-		return nil, fmt.Errorf("cannot reach Mojang (%v) and no cached version list", err)
-	}
-	var cached mojang.Manifest
-	if err := json.Unmarshal(raw, &cached); err != nil {
-		return nil, err
-	}
-	return &cached, nil
+	return cache.Fetch(filepath.Join(i.Dirs.Versions, "manifest.json"), "Mojang", func() (*mojang.Manifest, error) {
+		var m mojang.Manifest
+		return &m, i.Client.GetJSON(ctx, mojang.ManifestURL, &m)
+	})
 }
 
 // IsInstalled is a fast check used by the UI: version json and client jar
@@ -225,7 +213,7 @@ func (i *Installer) libraryTasks(v *mojang.Version) ([]download.Task, []nativeJa
 		}
 		// Old-style natives: a classifier chosen by OS.
 		if lib.Natives != nil && lib.Downloads != nil {
-			key, ok := lib.Natives[i.Env.NativeKey()]
+			key, ok := lib.Natives[i.Env.OS]
 			if !ok {
 				continue
 			}
@@ -359,12 +347,7 @@ func unzipNatives(jar, dir string, exclude []string) error {
 }
 
 func excluded(name string, exclude []string) bool {
-	for _, e := range exclude {
-		if strings.HasPrefix(name, e) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(exclude, func(e string) bool { return strings.HasPrefix(name, e) })
 }
 
 func writeZipEntry(f *zip.File, dst string) error {

@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"udeos/launcher/internal/cache"
 	"udeos/launcher/internal/download"
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/paths"
@@ -89,32 +90,12 @@ func Label(kind, mc, version string) string {
 // Options lists the Minecraft versions the loader supports. The result is
 // cached at cache/loaders/<kind>.json so the create form works offline.
 func (m *Manager) Options(ctx context.Context, kind string) ([]Option, error) {
-	var opts []Option
-	var err error
-	switch kind {
-	case Fabric:
-		opts, err = m.fabricOptions(ctx)
-	case Forge:
-		opts, err = m.forgeOptions(ctx)
-	default:
+	fetch := map[string]func(context.Context) ([]Option, error){Fabric: m.fabricOptions, Forge: m.forgeOptions}[kind]
+	if fetch == nil {
 		return nil, ErrUnknown
 	}
-	cache := filepath.Join(m.Dirs.Root, "cache", "loaders", strings.ToLower(kind)+".json")
-	if err == nil {
-		if raw, mErr := json.Marshal(opts); mErr == nil {
-			_ = os.MkdirAll(filepath.Dir(cache), 0o755)
-			_ = os.WriteFile(cache, raw, 0o644)
-		}
-		return opts, nil
-	}
-	raw, readErr := os.ReadFile(cache)
-	if readErr != nil {
-		return nil, fmt.Errorf("cannot reach the %s servers (%v) and no cached list", kind, err)
-	}
-	if err := json.Unmarshal(raw, &opts); err != nil {
-		return nil, err
-	}
-	return opts, nil
+	path := filepath.Join(m.Dirs.Root, "cache", "loaders", strings.ToLower(kind)+".json")
+	return cache.Fetch(path, "the "+kind+" servers", func() ([]Option, error) { return fetch(ctx) })
 }
 
 // IsInstalled reports whether a readable loader profile has been written.

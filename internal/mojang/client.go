@@ -19,15 +19,6 @@ func NewClient() *Client {
 	return &Client{HTTP: &http.Client{Timeout: 60 * time.Second}}
 }
 
-// FetchManifest downloads the list of all versions.
-func (c *Client) FetchManifest(ctx context.Context) (*Manifest, error) {
-	var m Manifest
-	if err := c.GetJSON(ctx, ManifestURL, &m); err != nil {
-		return nil, err
-	}
-	return &m, nil
-}
-
 // FetchVersion downloads one version JSON from the URL given in the manifest.
 func (c *Client) FetchVersion(ctx context.Context, url string) (*Version, []byte, error) {
 	raw, err := c.GetBytes(ctx, url)

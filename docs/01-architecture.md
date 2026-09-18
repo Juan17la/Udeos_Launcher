@@ -66,8 +66,9 @@ content). `main.go` only configures the window.
   `instance/` (the instance page and its tabs).
 - **components/** — the navigation bar, the account menu, dialogs, the
   notification stack.
-- **ui/** — the reusable building blocks (Button, Field, Tag, Panel, ListRow,
-  Dialog, Toast, …), the pixel-art icon renderer and the SVG icons.
+- **ui/** — the reusable building blocks (Button, Field, Dialog, StatusMessage, …),
+  the pixel-art icon renderer and the SVG icons. Surfaces that are look only
+  (panel, glass, tag) are CSS utilities in `theme/tokens.css`, not components.
 - **hooks/** — `useFileList` (what every instance tab does) and `useAddAction`
   (the shared Add-to-instance flow).
 - **utils/** — plain logic with no React in it: validation rules, formatting,

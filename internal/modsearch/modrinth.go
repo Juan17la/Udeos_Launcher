@@ -2,6 +2,7 @@ package modsearch
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strings"
@@ -22,15 +23,14 @@ type Modrinth struct {
 	Client *mojang.Client
 }
 
-// NewModrinth wires a Modrinth client with sensible timeouts.
+// NewModrinth wires a Modrinth client. Its 15s timeout is shorter than the
+// download client's: a browse query that takes longer should fail over to
+// the cache instead of freezing the page.
 func NewModrinth() *Modrinth {
-	return &Modrinth{Client: mojang.NewClient()}
+	c := mojang.NewClient()
+	c.HTTP.Timeout = 15 * time.Second
+	return &Modrinth{Client: c}
 }
-
-// requestTimeout bounds one search/version-list request. The shared client's
-// 60s timeout is sized for file downloads; a browse query that takes longer
-// than this should fail over to the cache instead of freezing the page.
-const requestTimeout = 15 * time.Second
 
 func (m *Modrinth) Name() string { return "Modrinth" }
 
@@ -67,8 +67,6 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 		limit = 50
 	}
 	u := searchURL(q, limit)
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
 	var raw modrinthSearchResponse
 	if err := m.Client.GetJSON(ctx, u, &raw); err != nil {
 		return Page{}, err
@@ -105,18 +103,15 @@ func searchURL(q Query, limit int) string {
 // buildFacets turns a Query into Modrinth's facets syntax: a JSON array of
 // OR-groups, ANDed together (each inner array is an OR, the outer array is an AND).
 func buildFacets(q Query) string {
-	groups := [][]string{{fmt.Sprintf(`"project_type:%s"`, q.Type)}}
+	groups := [][]string{{"project_type:" + string(q.Type)}}
 	if q.GameVersion != "" {
-		groups = append(groups, []string{fmt.Sprintf(`"versions:%s"`, q.GameVersion)})
+		groups = append(groups, []string{"versions:" + q.GameVersion})
 	}
 	if q.Loader != "" {
-		groups = append(groups, []string{fmt.Sprintf(`"categories:%s"`, strings.ToLower(q.Loader))})
+		groups = append(groups, []string{"categories:" + strings.ToLower(q.Loader)})
 	}
-	parts := make([]string, len(groups))
-	for i, g := range groups {
-		parts[i] = "[" + strings.Join(g, ",") + "]"
-	}
-	return "[" + strings.Join(parts, ",") + "]"
+	raw, _ := json.Marshal(groups)
+	return string(raw)
 }
 
 // truncateDescription cuts s to at most max runes, breaking on the last
@@ -153,8 +148,6 @@ type modrinthGameVersion struct {
 
 // GameVersions lists the Minecraft versions Modrinth has content for.
 func (m *Modrinth) GameVersions(ctx context.Context) ([]GameVersion, error) {
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
 	var raw []modrinthGameVersion
 	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/tag/game_version", &raw); err != nil {
 		return nil, err
@@ -233,10 +226,10 @@ func versionsURL(projectID, gameVersion, loader string) string {
 	u := fmt.Sprintf("%s/project/%s/version", ModrinthBaseURL, url.PathEscape(projectID))
 	params := url.Values{}
 	if gameVersion != "" {
-		params.Set("game_versions", fmt.Sprintf(`["%s"]`, gameVersion))
+		params.Set("game_versions", jsonList(gameVersion))
 	}
 	if loader != "" {
-		params.Set("loaders", fmt.Sprintf(`["%s"]`, strings.ToLower(loader)))
+		params.Set("loaders", jsonList(strings.ToLower(loader)))
 	}
 	if len(params) > 0 {
 		u += "?" + params.Encode()
@@ -244,10 +237,14 @@ func versionsURL(projectID, gameVersion, loader string) string {
 	return u
 }
 
+// jsonList is the JSON array Modrinth expects for list parameters.
+func jsonList(items ...string) string {
+	raw, _ := json.Marshal(items)
+	return string(raw)
+}
+
 // Versions lists the project's versions for the game version / loader pair.
 func (m *Modrinth) Versions(ctx context.Context, projectID, gameVersion, loader string) ([]Version, error) {
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
 	var raw []modrinthVersion
 	if err := m.Client.GetJSON(ctx, versionsURL(projectID, gameVersion, loader), &raw); err != nil {
 		return nil, err
@@ -261,8 +258,6 @@ func (m *Modrinth) Versions(ctx context.Context, projectID, gameVersion, loader 
 
 // VersionByID fetches one version.
 func (m *Modrinth) VersionByID(ctx context.Context, id string) (Version, error) {
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
 	var raw modrinthVersion
 	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/version/"+url.PathEscape(id), &raw); err != nil {
 		return Version{}, err
@@ -275,13 +270,7 @@ func (m *Modrinth) Projects(ctx context.Context, ids []string) ([]ProjectInfo, e
 	if len(ids) == 0 {
 		return []ProjectInfo{}, nil
 	}
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
-	quoted := make([]string, len(ids))
-	for i, id := range ids {
-		quoted[i] = `"` + id + `"`
-	}
-	u := ModrinthBaseURL + "/projects?ids=" + url.QueryEscape("["+strings.Join(quoted, ",")+"]")
+	u := ModrinthBaseURL + "/projects?ids=" + url.QueryEscape(jsonList(ids...))
 	var raw []modrinthProject
 	if err := m.Client.GetJSON(ctx, u, &raw); err != nil {
 		return nil, err
@@ -315,8 +304,6 @@ func (raw modrinthProjectDetail) toProjectDetail() ProjectDetail {
 // ProjectDetail fetches the whole project (GET /project/{id}): its full
 // description and the game versions/loaders aggregated across every version.
 func (m *Modrinth) ProjectDetail(ctx context.Context, id string) (ProjectDetail, error) {
-	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
-	defer cancel()
 	var raw modrinthProjectDetail
 	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/project/"+url.PathEscape(id), &raw); err != nil {
 		return ProjectDetail{}, err
