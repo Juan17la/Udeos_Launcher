@@ -1,16 +1,15 @@
 const en = {
   app: { name: 'Udeos Launcher' },
   nav: {
-    dashboard: 'Instances', search: 'Addons', skin: 'Skin', newInstance: 'New Instance',
-    comingSoon: 'Coming soon', privacy: 'Privacy & Terms', theme: 'Theme',
+    dashboard: 'Instances', search: 'Addons', newInstance: 'New Instance', privacy: 'Privacy & Terms',
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
   },
-  common: { cancel: 'Cancel', done: 'Done', gotIt: 'Got it', back: 'Back', close: 'Close', play: 'Play', delete: 'Delete', save: 'Save', ok: 'OK', or: 'or', running: 'Running…', loading: 'Loading' },
+  common: { cancel: 'Cancel', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
   privacy: {
     title: 'Privacy & Terms',
     body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded — the launcher only connects out to download game files, mods, and updates.',
   },
-  language: { title: 'Language', choose: 'Choose your language' },
+  language: { choose: 'Choose your language' },
   login: {
     continue: 'Continue', nickname: 'Nickname', placeholder: 'e.g. CraftyFox',
     agree: 'I agree to the', and: 'and', privacyPolicy: 'Privacy Policy', terms: 'Terms of Use',
@@ -27,7 +26,6 @@ const en = {
     manage: 'Manage', mods: 'mods', packs: 'packs', worlds: 'worlds',
     lastPlayed: 'Last played', openInstance: 'Open instance', neverPlayed: 'Never played', playedAgo: 'Last played {when} · {hours}h total',
     empty: 'No instances yet. Create one to start playing.', createFirst: 'Create your first instance',
-    justNow: 'just now', daysAgo: '{n} days ago', hoursAgo: '{n} hours ago', minutesAgo: '{n} minutes ago', today: 'today', yesterday: 'yesterday',
   },
   create: {
     title: 'Create New Instance', subtitle: 'Give it a name, pick a version and choose a block for its icon.',
@@ -47,7 +45,7 @@ const en = {
     saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
     removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
     worldAdded: 'Added world "{name}"', fileAdded: 'Added {name}',
-    dropHere: 'Drag a {kind} file here', browse: 'Browse files', browseModrinth: 'Add from Modrinth', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
+    dropHere: 'Drag a {kind} file here', browse: 'Browse files', browseModrinth: 'Search in Addons', kinds: { mods: '.jar mod', resourcepacks: 'resource pack (.zip)', shaders: 'shader pack', worlds: 'world (.zip or folder)' },
     empty: {
       mods: 'No mods installed yet. Drag a .jar file here.', resourcepacks: 'No resource packs installed yet. Drag a .zip file here or use Browse.', shaders: 'No shaders installed yet. Drag a shader pack here.',
       worlds: 'No worlds yet. Play the instance to create one, or drag a world folder or .zip here.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',
@@ -60,17 +58,16 @@ const en = {
     types: { mod: 'Mods', resourcepack: 'Resource Packs', shader: 'Shaders', modpack: 'Modpacks' },
     downloads: '{n} downloads', empty: 'No results found.',
     previous: 'Previous', next: 'Next', pageOf: 'Page {page} of {total}',
-    error: 'Could not reach Modrinth and no cached results are available. Check your connection.',
     add: 'Add', details: 'Details', createInstance: 'Create instance',
     added: 'Added', adding: 'Adding…',
     sort: { relevance: 'Relevance', downloads: 'Most downloaded', newest: 'Newest', updated: 'Recently updated' },
-    forInstance: 'Adding to {name}', backToInstance: 'Back to {name}', lockedTo: 'Version and loader are locked to {name}.',
+    forInstance: 'Adding to {name}', backToInstance: 'Back to {name}',
   },
   compat: {
     vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
   },
   detail: {
-    back: 'Back to Search', loading: 'Loading…',
+    back: 'Back to Search',
     versionsHeading: 'Available versions', loadersHeading: 'Loaders', instancesHeading: 'Your instances',
     noInstances: 'You have no instances yet.', add: 'Add to an instance',
   },
@@ -79,7 +76,7 @@ const en = {
     noCompatible: 'No instance can use this yet. Create a {loaders} instance for {versions} to install it.',
     noInstancesTitle: 'No instances yet', noInstancesBody: 'Create an instance first, then add {title} to it.',
     planning: 'Checking versions…',
-    installingTo: 'Adding {title} to {name}', queued: 'Waiting…', failed: 'Could not add {title} to {name}',
+    installingTo: 'Adding {title} to {name}', queued: 'Waiting…',
     alreadyInstalled: '{title} is already in {name}.', done: 'Added {n} file(s) to {name}.', doneOne: 'Added {title} to {name}.',
   },
   launch: {
@@ -87,7 +84,7 @@ const en = {
     phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', loader: 'Installing the mod loader', done: 'Launching' },
     loaderTakesAWhile: 'Forge patches the game files on first install; this can take a couple of minutes.',
     firstTime: 'The first launch of a version downloads a few hundred MB. Later launches are instant.',
-    errorTitle: 'Could not start the game', exitedTitle: 'The game closed unexpectedly', exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
+    exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
   },
 }
 export default en
