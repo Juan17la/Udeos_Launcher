@@ -1,10 +1,10 @@
 // The launcher's art: Minecraft block and item textures (16×16 PNGs in
 // icons/, one file per icon key) used for instance icons, the background
-// decorations and, until a real mark lands, the brand logo.
+// decorations, the brand logo (ui/Logo: ender pearl + mace) and the stone
+// block that stands in for projects without an icon.
 //
 // To add an icon: drop <key>.png into icons/ and, if players may pick it
-// for an instance, list it in ICON_CHOICES. To ship a logo: drop the file
-// here, import it and set ASSETS.logo for its theme.
+// for an instance, list it in ICON_CHOICES.
 
 export type Theme = 'light' | 'dark'
 
@@ -50,8 +50,3 @@ export const THEME_DECOR: Record<Theme, string[]> = {
   light: ['diamond_pickaxe', 'diamond', 'apple', 'grass_block_side', 'emerald', 'iron_sword', 'golden_apple'],
   dark: ['ender_pearl', 'netherite_sword', 'netherite_ingot', 'golden_apple', 'end_crystal', 'nether_star', 'obsidian'],
 }
-
-export const ASSETS: {
-  /** Brand mark (top bar, login): one image per theme; empty = the ender pearl / grass block icon. */
-  logo: Record<Theme, string | undefined>
-} = { logo: { light: undefined, dark: undefined } }
