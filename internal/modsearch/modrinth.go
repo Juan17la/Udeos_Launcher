@@ -203,6 +203,8 @@ type modrinthProject struct {
 	Slug        string `json:"slug"`
 	Title       string `json:"title"`
 	ProjectType string `json:"project_type"`
+	Description string `json:"description"`
+	IconURL     string `json:"icon_url"`
 }
 
 func (raw modrinthVersion) toVersion() Version {
@@ -277,7 +279,7 @@ func (m *Modrinth) Projects(ctx context.Context, ids []string) ([]ProjectInfo, e
 	}
 	out := make([]ProjectInfo, 0, len(raw))
 	for _, p := range raw {
-		out = append(out, ProjectInfo{ID: p.ID, Slug: p.Slug, Title: p.Title, ProjectType: ProjectType(p.ProjectType)})
+		out = append(out, ProjectInfo{ID: p.ID, Slug: p.Slug, Title: p.Title, ProjectType: ProjectType(p.ProjectType), Description: truncateDescription(p.Description, maxDescriptionLen), IconURL: p.IconURL})
 	}
 	return out, nil
 }

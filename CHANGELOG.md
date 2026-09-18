@@ -3,6 +3,28 @@
 All notable changes to Udeos Launcher are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **NeoForge** instances, installed like Forge on first Play. Most 1.21+ mods
+  (Create, JEI, …) only publish NeoForge builds, which a Forge instance could
+  not install; the refusal now also names the loaders the mod does ship for
+  that version.
+- **Launch settings** per instance (Settings tab): memory, Java executable,
+  extra JVM arguments.
+- **Cards / Compact** views on the Mods, Resource Packs and Shaders tabs;
+  cards show the Modrinth icon, version and description of what was added
+  from Addons.
+- **Back to …** above every page title (except the dashboard), returning to
+  the exact screen the player came from.
+
+### Fixed
+
+- Side panels (instance page, dashboard's Last played) no longer grow with
+  the list next to them.
+- The checked checkbox and the selected icon no longer fade into a gradient.
+
 ## [1.0.0-alpha] — 2026-09-17
 
 First public release. Installers for Windows, macOS and Linux are on the

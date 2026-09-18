@@ -30,6 +30,8 @@ type AppState = {
   language: Language; setLanguage: (l: Language) => void
   t: Dict
   screen: Screen; go: (s: Screen) => void
+  /** The screen Back returns to (the one before the current), or null on the first screen. */
+  previous: Screen | null; back: () => void
   profile: Profile | null; saveProfile: (p: Profile) => Promise<void>
   nickname: string
   instances: Instance[]; refreshInstances: () => Promise<void>
@@ -49,7 +51,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setThemeState] = useState<Theme>('dark')
   const [language, setLanguageState] = useState<Language>('en')
-  const [screen, go] = useState<Screen>({ name: 'login' })
+  // The screen on stage plus where the player came from (newest last), so
+  // Back lands exactly where they were: an instance's page, or Addons with
+  // its instance lock. Login and the dashboard are roots: nothing behind
+  // them, and Back never returns to the login screen.
+  const [nav, setNav] = useState<{ screen: Screen; history: Screen[] }>({ screen: { name: 'login' }, history: [] })
+  const { screen, history } = nav
+  const go = useCallback((next: Screen) => setNav((cur) => {
+    if (JSON.stringify(cur.screen) === JSON.stringify(next)) return cur
+    if (next.name === 'login' || next.name === 'dashboard') return { screen: next, history: [] }
+    return { screen: next, history: cur.screen.name === 'login' ? cur.history : [...cur.history, cur.screen].slice(-20) }
+  }), [])
+  const back = useCallback(() => setNav(({ history }) => ({ screen: history[history.length - 1] ?? { name: 'dashboard' }, history: history.slice(0, -1) })), [])
   const [instances, setInstances] = useState<Instance[]>([])
   const [privacyOpen, setPrivacyOpen] = useState(false)
 
@@ -106,10 +119,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppState>(() => ({
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
-    screen, go, profile, saveProfile, nickname: profile?.nickname ?? '',
+    screen, go, previous: history[history.length - 1] ?? null, back, profile, saveProfile, nickname: profile?.nickname ?? '',
     instances, refreshInstances,
     privacyOpen, setPrivacyOpen,
-  }), [ready, theme, language, screen, profile, instances, privacyOpen, refreshInstances, saveProfile]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, language, screen, history, profile, instances, privacyOpen, refreshInstances, saveProfile]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppCtx.Provider value={value}>

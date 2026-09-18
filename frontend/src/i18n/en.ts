@@ -4,7 +4,7 @@ const en = {
     dashboard: 'Instances', search: 'Addons', newInstance: 'New Instance', privacy: 'Privacy & Terms',
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
   },
-  common: { cancel: 'Cancel', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
+  common: { back: 'Back to {name}', cancel: 'Cancel', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
   privacy: {
     title: 'Privacy & Terms',
     body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded — the launcher only connects out to download game files, mods, and updates.',
@@ -41,7 +41,8 @@ const en = {
   instance: {
     deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
     notInstalled: 'Not downloaded yet — Play will download it first.', installed: 'Ready to play',
-    tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', worlds: 'Worlds', screenshots: 'Screenshots' },
+    tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', worlds: 'Worlds', screenshots: 'Screenshots', settings: 'Settings' },
+    views: { card: 'Cards', compact: 'Compact' }, addedByHand: 'Added by hand',
     saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
     removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
     worldAdded: 'Added world "{name}"', fileAdded: 'Added {name}',
@@ -51,6 +52,13 @@ const en = {
       worlds: 'No worlds yet. Play the instance to create one, or drag a world folder or .zip here.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',
     },
     worldMeta: 'Played {when} • {size}', savedTo: 'Saved to {path}',
+    settings: {
+      title: 'Launch settings', subtitle: 'How the game is started for this instance. Leave a field empty to use the default.',
+      memory: 'Memory (MB)', memoryHint: 'Maximum heap for the game (-Xmx). Default {mb} MB. Modpacks usually want 4096–8192.',
+      java: 'Java executable', javaHint: 'Empty: the Java runtime Mojang recommends for this version is downloaded and used.', javaPlaceholder: 'Managed runtime', pickJava: 'Choose…',
+      jvmArgs: 'Extra JVM arguments', jvmArgsHint: 'Added after the launcher\'s defaults, so yours win. Space separated.', jvmArgsPlaceholder: 'e.g. -XX:+UseZGC -Dfml.earlyWindowControl=false',
+      save: 'Save', saved: 'Settings saved',
+    },
   },
   search: {
     title: 'Search', subtitle: 'Browse mods, resource packs, shaders and modpacks from Modrinth.',
@@ -61,13 +69,12 @@ const en = {
     add: 'Add', details: 'Details', createInstance: 'Create instance',
     added: 'Added', adding: 'Adding…',
     sort: { relevance: 'Relevance', downloads: 'Most downloaded', newest: 'Newest', updated: 'Recently updated' },
-    forInstance: 'Adding to {name}', backToInstance: 'Back to {name}',
+    forInstance: 'Adding to {name}',
   },
   compat: {
     vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
   },
   detail: {
-    back: 'Back to Search',
     versionsHeading: 'Available versions', loadersHeading: 'Loaders', instancesHeading: 'Your instances',
     noInstances: 'You have no instances yet.', add: 'Add to an instance',
   },
@@ -82,7 +89,7 @@ const en = {
   launch: {
     preparing: 'Getting {name} ready', starting: 'Starting the game…',
     phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', loader: 'Installing the mod loader', done: 'Launching' },
-    loaderTakesAWhile: 'Forge patches the game files on first install; this can take a couple of minutes.',
+    loaderTakesAWhile: '{loader} patches the game files on first install; this can take a couple of minutes.',
     firstTime: 'The first launch of a version downloads a few hundred MB. Later launches are instant.',
     exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
   },

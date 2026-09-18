@@ -24,12 +24,21 @@ type Instance struct {
 	ID            string     `json:"id"`
 	Name          string     `json:"name"`
 	Version       string     `json:"version"`                 // Minecraft version, e.g. "1.20.1"
-	Loader        string     `json:"loader"`                  // "Vanilla" | "Fabric" | "Forge"
+	Loader        string     `json:"loader"`                  // "Vanilla" | "Fabric" | "Forge" | "NeoForge"
 	LoaderVersion string     `json:"loaderVersion,omitempty"` // loader build, e.g. "0.16.9" or "1.20.1-47.4.10"
 	Icon          string     `json:"icon"`                    // pixel icon key, e.g. "grass"
 	CreatedAt     time.Time  `json:"createdAt"`
 	LastPlayed    *time.Time `json:"lastPlayed,omitempty"`
 	PlayTimeSec   int64      `json:"playTimeSec"`
+	Launch        Launch     `json:"launch"`
+}
+
+// Launch is the instance's own JVM settings; a zero value means "use the
+// profile's default" (memory) or "nothing extra" (java, arguments).
+type Launch struct {
+	MaxMemoryMB int    `json:"maxMemoryMB,omitempty"`
+	JavaPath    string `json:"javaPath,omitempty"` // "" = the profile's Java, else the managed runtime
+	JvmArgs     string `json:"jvmArgs,omitempty"`  // extra flags, space separated
 }
 
 // Store persists instances.json and owns the instance directories.
@@ -94,7 +103,7 @@ func (s *Store) Get(id string) (Instance, error) {
 var slugRe = regexp.MustCompile(`[^a-z0-9]+`)
 
 // Create validates the input, creates the folders and saves the list. loader
-// is "Vanilla" (loaderVersion empty) or "Fabric"/"Forge" with the build to install.
+// is "Vanilla" (loaderVersion empty) or "Fabric"/"Forge"/"NeoForge" with the build to install.
 func (s *Store) Create(name, version, loader, loaderVersion, icon string) (Instance, error) {
 	name = strings.TrimSpace(name)
 	if name == "" || version == "" {
@@ -137,6 +146,22 @@ func (s *Store) Delete(id string) error {
 	}
 	s.items = slices.Delete(s.items, idx, idx+1)
 	return s.saveLocked()
+}
+
+// SetLaunch stores the instance's JVM settings.
+func (s *Store) SetLaunch(id string, l Launch) error {
+	if l.MaxMemoryMB != 0 && l.MaxMemoryMB < 512 {
+		return errors.New("memory must be at least 512 MB")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.items {
+		if s.items[i].ID == id {
+			s.items[i].Launch = l
+			return s.saveLocked()
+		}
+	}
+	return ErrNotFound
 }
 
 // Touch records a play session.
