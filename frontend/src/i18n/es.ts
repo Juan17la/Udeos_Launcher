@@ -6,7 +6,7 @@ const es: Dict = {
     dashboard: 'Instancias', search: 'Complementos', newInstance: 'Nueva instancia', privacy: 'Privacidad y términos',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
-  common: { cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
+  common: { back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   privacy: {
     title: 'Privacidad y términos',
     body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben — el launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
@@ -42,7 +42,8 @@ const es: Dict = {
   instance: {
     deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
     notInstalled: 'Aún no descargada — Jugar la descargará primero.', installed: 'Lista para jugar',
-    tabs: { mods: 'Mods', resourcepacks: 'Paquetes de recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas' },
+    tabs: { mods: 'Mods', resourcepacks: 'Paquetes de recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas', settings: 'Ajustes' },
+    views: { card: 'Tarjetas', compact: 'Compacto' }, addedByHand: 'Añadido a mano',
     saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta', view: 'Ver',
     removeWorld: 'Eliminar mundo', confirmDeleteWorldTitle: '¿Eliminar este mundo?', confirmDeleteWorld: '"{name}" y todo lo construido en él se borrará de esta instancia. Guárdalo en tu equipo antes si quieres conservar una copia.',
     worldAdded: 'Mundo "{name}" añadido', fileAdded: '{name} añadido',
@@ -52,6 +53,13 @@ const es: Dict = {
       worlds: 'Aún no hay mundos. Juega la instancia para crear uno, o arrastra aquí una carpeta o .zip de un mundo.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',
     },
     worldMeta: 'Jugado {when} • {size}', savedTo: 'Guardado en {path}',
+    settings: {
+      title: 'Ajustes de lanzamiento', subtitle: 'Cómo se inicia el juego en esta instancia. Deja un campo vacío para usar el valor por defecto.',
+      memory: 'Memoria (MB)', memoryHint: 'Memoria máxima para el juego (-Xmx). Por defecto {mb} MB. Los modpacks suelen necesitar 4096–8192.',
+      java: 'Ejecutable de Java', javaHint: 'Vacío: se descarga y usa el Java que Mojang recomienda para esta versión.', javaPlaceholder: 'Runtime gestionado', pickJava: 'Elegir…',
+      jvmArgs: 'Argumentos extra de la JVM', jvmArgsHint: 'Se añaden después de los del launcher, así que los tuyos mandan. Separados por espacios.', jvmArgsPlaceholder: 'p. ej. -XX:+UseZGC -Dfml.earlyWindowControl=false',
+      save: 'Guardar', saved: 'Ajustes guardados',
+    },
   },
   search: {
     title: 'Buscar', subtitle: 'Explora mods, paquetes de recursos, shaders y modpacks de Modrinth.',
@@ -62,13 +70,12 @@ const es: Dict = {
     add: 'Añadir', details: 'Detalles', createInstance: 'Crear instancia',
     added: 'Añadido', adding: 'Añadiendo…',
     sort: { relevance: 'Relevancia', downloads: 'Más descargados', newest: 'Más nuevos', updated: 'Actualizados recientemente' },
-    forInstance: 'Añadiendo a {name}', backToInstance: 'Volver a {name}',
+    forInstance: 'Añadiendo a {name}',
   },
   compat: {
     vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
   },
   detail: {
-    back: 'Volver a Buscar',
     versionsHeading: 'Versiones disponibles', loadersHeading: 'Cargadores', instancesHeading: 'Tus instancias',
     noInstances: 'Todavía no tienes instancias.', add: 'Añadir a una instancia',
   },
@@ -83,7 +90,7 @@ const es: Dict = {
   launch: {
     preparing: 'Preparando {name}', starting: 'Iniciando el juego…',
     phases: { version: 'Leyendo la versión', libraries: 'Descargando librerías del juego', assets: 'Descargando sonidos y texturas', client: 'Descargando el juego', natives: 'Desempaquetando librerías nativas', java: 'Descargando Java', loader: 'Instalando el cargador de mods', done: 'Lanzando' },
-    loaderTakesAWhile: 'Forge parchea los archivos del juego en la primera instalación; puede tardar un par de minutos.',
+    loaderTakesAWhile: '{loader} parchea los archivos del juego en la primera instalación; puede tardar un par de minutos.',
     firstTime: 'La primera vez que juegas una versión se descargan unos cientos de MB. Las siguientes veces es instantáneo.',
     exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',
   },

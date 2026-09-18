@@ -47,7 +47,7 @@ function LaunchToast() {
     <StatusMessage className={slide} headline={fmt(t.launch.preparing, { name: inst?.name ?? '' })} aside={`${pct}%`} percent={pct} detail={<>
       <div>{label}{counts}</div>
       {p?.current && <div className="overflow-hidden text-ellipsis whitespace-nowrap">{p.current}</div>}
-      <div>{phase === 'loader' && inst?.loader === 'Forge' ? t.launch.loaderTakesAWhile : t.launch.firstTime}</div>
+      <div>{phase === 'loader' && (inst?.loader === 'Forge' || inst?.loader === 'NeoForge') ? fmt(t.launch.loaderTakesAWhile, { loader: inst.loader }) : t.launch.firstTime}</div>
     </>} />
   )
 }
