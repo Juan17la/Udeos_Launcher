@@ -226,11 +226,12 @@ func (a *App) OpenInstanceFolder(id, sub string) error {
 	return sysopen.Dir(dir)
 }
 
-// mediaHandler serves /media/<instance>/screenshots/<file> from disk so the
-// UI can show screenshot thumbnails without embedding them as base64.
+// mediaHandler serves /media/<instance>/screenshots/<file> (screenshot
+// thumbnails) and /media/<instance>/icon (the icon of an instance made from
+// a modpack) from disk, so the UI shows them without embedding base64.
 func (a *App) mediaHandler(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(strings.TrimPrefix(r.URL.Path, "/media/"), "/")
-	if a.launcher == nil || len(parts) != 3 || parts[1] != "screenshots" {
+	if a.launcher == nil || len(parts) < 2 {
 		http.NotFound(w, r)
 		return
 	}
@@ -239,8 +240,17 @@ func (a *App) mediaHandler(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	path := filepath.Join(dir, "screenshots", filepath.Base(parts[2]))
-	if st, err := os.Stat(path); err != nil || st.IsDir() || !strings.HasSuffix(strings.ToLower(path), ".png") {
+	var path string
+	switch {
+	case len(parts) == 2 && parts[1] == "icon":
+		path = filepath.Join(a.launcher.Dirs.InstanceDir(filepath.Base(parts[0])), "icon")
+	case len(parts) == 3 && parts[1] == "screenshots" && strings.HasSuffix(strings.ToLower(parts[2]), ".png"):
+		path = filepath.Join(dir, "screenshots", filepath.Base(parts[2]))
+	default:
+		http.NotFound(w, r)
+		return
+	}
+	if st, err := os.Stat(path); err != nil || st.IsDir() {
 		http.NotFound(w, r)
 		return
 	}
