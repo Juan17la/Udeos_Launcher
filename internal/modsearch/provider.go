@@ -228,6 +228,9 @@ type Provider interface {
 	Versions(ctx context.Context, projectID, gameVersion, loader string) ([]Version, error)
 	// VersionByID fetches one version (used for dependencies pinned to a version).
 	VersionByID(ctx context.Context, id string) (Version, error)
+	// VersionsByHashes finds the versions behind files by SHA-1 (modpack
+	// indexes list files by hash, not by project); unknown hashes are left out.
+	VersionsByHashes(ctx context.Context, sha1s []string) (map[string]Version, error)
 	// Projects names several projects at once (titles for the plan dialog).
 	Projects(ctx context.Context, ids []string) ([]ProjectInfo, error)
 	// ProjectDetail is the full project view for the Details page.

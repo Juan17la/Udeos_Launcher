@@ -54,6 +54,9 @@ func (f *fakeProvider) VersionByID(_ context.Context, id string) (modsearch.Vers
 	}
 	return v, nil
 }
+func (f *fakeProvider) VersionsByHashes(context.Context, []string) (map[string]modsearch.Version, error) {
+	return map[string]modsearch.Version{}, nil
+}
 func (f *fakeProvider) Projects(_ context.Context, ids []string) ([]modsearch.ProjectInfo, error) {
 	if f.err != nil {
 		return nil, f.err
@@ -303,5 +306,29 @@ func TestApplyDownloadsValidatesAndRecords(t *testing.T) {
 	_, err = m.Add(context.Background(), inst, "modm", modsearch.TypeMod)
 	if err == nil || !strings.Contains(err.Error(), "not a Fabric mod") {
 		t.Errorf("got %v", err)
+	}
+}
+
+func TestInstalledBackfillsIconAndDescription(t *testing.T) {
+	dirs := paths.FromRoot(t.TempDir())
+	inst := fabricInstance(t, dirs)
+	fake := newFake()
+	fake.projects["sodium"] = modsearch.ProjectInfo{ID: "sodium", Title: "Sodium", Description: "Fast", IconURL: "http://x/s.png"}
+	m := &Manager{Dirs: dirs, Provider: fake}
+	os.WriteFile(filepath.Join(dirs.GameDir(inst.ID), "mods", "sodium.jar"), []byte("x"), 0o644)
+	// An entry from before the launcher recorded descriptions and icons.
+	Append(dirs.ContentFile(inst.ID), []Entry{{ProjectID: "sodium", Title: "Sodium", Type: "mod", File: "sodium.jar"}})
+	got, err := m.Installed(context.Background(), inst)
+	if err != nil || len(got) != 1 || got[0].IconURL != "http://x/s.png" || got[0].Description != "Fast" {
+		t.Fatalf("got %+v err %v", got, err)
+	}
+	saved, _ := Load(dirs.ContentFile(inst.ID))
+	if saved[0].IconURL == "" {
+		t.Error("backfill not saved to content.json")
+	}
+	// Once completed the provider is not asked again this run.
+	fake.err = errors.New("offline")
+	if got, err := m.Installed(context.Background(), inst); err != nil || got[0].IconURL == "" {
+		t.Errorf("second call: %+v %v", got, err)
 	}
 }

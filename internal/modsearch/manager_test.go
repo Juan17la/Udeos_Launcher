@@ -38,6 +38,9 @@ func (f *fakeProvider) Versions(context.Context, string, string, string) ([]Vers
 func (f *fakeProvider) VersionByID(context.Context, string) (Version, error) {
 	return Version{}, errors.New("not implemented")
 }
+func (f *fakeProvider) VersionsByHashes(context.Context, []string) (map[string]Version, error) {
+	return map[string]Version{}, nil
+}
 func (f *fakeProvider) Projects(context.Context, []string) ([]ProjectInfo, error) {
 	return nil, errors.New("not implemented")
 }

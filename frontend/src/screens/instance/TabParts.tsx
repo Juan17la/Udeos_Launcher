@@ -11,15 +11,18 @@ import type { ProjectType } from '../../api/types'
 
 /** The pieces every file tab is built from, so the tabs read as a list. */
 
-/** Drop target plus Browse and, for kinds Modrinth carries, "Add from Modrinth"
- *  (opens Search locked to this instance on the matching content tab). */
+/** Drop target plus Browse and, for kinds Modrinth carries, "Search in Addons"
+ *  (opens Search locked to this instance on the matching content tab).
+ *  Worlds have no Modrinth counterpart, so their tab gets no such button. */
 export function AddZone({ id, kind, onPick, modrinth }: { id: string; kind: string; onPick: () => void; modrinth?: ProjectType }) {
   const { t, go } = useApp()
   return (
     <>
-      <Button variant="primary" size="lg" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}>
-        <SearchIcon size={13} /> {t.instance.browseModrinth}
-      </Button>
+      {modrinth && (
+        <Button variant="primary" size="lg" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}>
+          <SearchIcon size={13} /> {t.instance.browseModrinth}
+        </Button>
+      )}
       <DropZone text={fmt(t.instance.dropHere, { kind })}>
         <span className="text-[13px]">{t.common.or}</span>
         <Button variant="ghost" className='w-fit' onClick={onPick}>{t.instance.browse}</Button>

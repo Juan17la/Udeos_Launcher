@@ -17,14 +17,16 @@ export function loaderNames(loader: string): string[] {
 
 export function computeCompat(detail: ProjectDetail, instances: Instance[], t: { vanilla: string; needsLoader: string; noBuild: string }): InstanceCompat[] {
   const type: ProjectType = detail.projectType
+  // A modpack needs a loader like a mod does (its files are mods).
+  const modded = type === 'mod' || type === 'modpack'
   const results = instances.map((instance) => {
-    if (type === 'mod' && instance.loader === 'Vanilla') {
+    if (modded && instance.loader === 'Vanilla') {
       return { instance, ok: false, reason: t.vanilla }
     }
     if (!detail.gameVersions.includes(instance.version)) {
       return { instance, ok: false, reason: fmt(t.noBuild, { version: instance.version }) }
     }
-    if (type === 'mod' && !loaderNames(instance.loader).some((l) => detail.loaders.includes(l))) {
+    if (modded && !loaderNames(instance.loader).some((l) => detail.loaders.includes(l))) {
       return { instance, ok: false, reason: fmt(t.needsLoader, { loaders: detail.loaders.join('/') }) }
     }
     return { instance, ok: true, reason: '' }
