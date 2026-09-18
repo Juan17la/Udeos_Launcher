@@ -173,7 +173,7 @@ export function createMock() {
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock', totalMemoryMB: 16384 } },
     async GetProfile() {
-      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'dark' as const, agreed: false, maxMemoryMB: 2048 } }
+      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'light' as const, agreed: false, maxMemoryMB: 2048 } }
     },
     async SaveProfile(p: Profile) { profile = { ...p, uuid: 'mock-uuid', nicknames: [p.nickname, ...p.nicknames.filter((n) => n !== p.nickname)] }; localStorage.setItem('mock:profile', JSON.stringify(profile)); return profile },
     async ListInstances() { return instances.map((i) => ({ ...i })) },

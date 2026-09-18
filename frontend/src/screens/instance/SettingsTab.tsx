@@ -55,7 +55,7 @@ export default function SettingsTab({ inst }: { inst: Instance }) {
           </div>
           {/* Native range: the track/thumb take the accent colour, red inside the danger zone. */}
           <input id="launch-memory" type="range" min={512} max={maxMB} step={256} value={mb} onChange={(e) => setMemory(Number(e.target.value))}
-            className={`w-full h-2 cursor-pointer ${danger ? 'accent-error' : 'accent-green'}`} />
+            className={`w-full h-2 cursor-pointer ${danger ? 'accent-error' : 'accent-primary'}`} />
           <div className="flex justify-between text-[11px] text-muted"><span>512 MB</span><span>{maxMB} MB</span></div>
           <div className="flex items-center justify-between gap-4 mt-4">
             <p className={`m-0 text-sm ${danger ? 'text-error-soft' : 'text-muted'}`}>

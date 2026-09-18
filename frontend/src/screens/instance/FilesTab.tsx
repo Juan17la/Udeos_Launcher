@@ -3,6 +3,7 @@ import { X } from '../../ui/icons'
 import Button from '../../ui/Button'
 import AutoLoader from '../../ui/Loader'
 import SegmentedControl from '../../ui/SegmentedControl'
+import ProjectIcon from '../../components/ProjectIcon'
 import { useApp, useContent } from '../../state'
 import { api } from '../../api/bridge'
 import { useFileList } from '../../hooks/useFileList'
@@ -79,9 +80,7 @@ function FileCard({ file, entry, onRemove }: ItemProps) {
   return (
     <div className="panel flex flex-col gap-4 p-5">
       <div className="flex items-center gap-4">
-        {entry?.iconUrl
-          ? <img src={entry.iconUrl} alt="" loading="lazy" decoding="async" width={44} height={44} className="rounded-md object-cover shrink-0" onError={(e) => { e.currentTarget.style.visibility = 'hidden' }} />
-          : <div className="w-11 h-11 rounded-md bg-idle shrink-0" aria-hidden />}
+        <ProjectIcon url={entry?.iconUrl} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="font-bold text-base leading-[1.2] truncate" title={file.name}>{entry?.title ?? file.name}</div>
           <div className="text-xs text-muted truncate">{entry ? entry.versionNumber : t.instance.addedByHand}</div>

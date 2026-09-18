@@ -17,7 +17,7 @@ type ProfileState struct {
 func (a *App) GetProfile() (ProfileState, error) {
 	p, err := a.launcher.Profile()
 	if errors.Is(err, os.ErrNotExist) {
-		p.Language, p.Theme, p.MaxMemoryMB = "en", "dark", profile.DefaultMaxMemoryMB
+		p.Language, p.Theme, p.MaxMemoryMB = "en", "light", profile.DefaultMaxMemoryMB
 		return ProfileState{Exists: false, Profile: p}, nil
 	}
 	if err != nil {

@@ -7,7 +7,7 @@ import { LANGUAGES } from '../i18n'
 import { NICKNAME } from '../utils/validation'
 
 /** Nickname button in the nav that opens a glass popover with the saved
- *  profiles (switch, add, remove — the active one cannot be removed),
+ *  profiles (switch, add, remove — removing the active one hands over to the next),
  *  theme, language and the privacy & terms dialog. */
 export default function AccountMenu() {
   const { t, theme, setTheme, language, setLanguage, nickname, profile, setNickname, removeNickname, setPrivacyOpen } = useApp()
@@ -50,7 +50,7 @@ export default function AccountMenu() {
                 <span className="w-3.5 flex-none inline-flex">{n === nickname && <Check size={12} />}</span>
                 <span className="truncate">{n}</span>
               </Button>
-              {n !== nickname && <Button variant="ghost" size="sm" square title={t.nav.removeProfile} onClick={() => removeNickname(n)}><X size={12} /></Button>}
+              {nicknames.length > 1 && <Button variant="ghost" size="sm" square title={t.nav.removeProfile} onClick={() => removeNickname(n)}><X size={12} /></Button>}
             </div>
           ))}
           {adding ? (
