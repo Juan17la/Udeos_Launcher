@@ -182,6 +182,7 @@ jobs:
     env:
       VERSION: ${{ needs.version.outputs.version }}
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v8
         with:
           path: dist
@@ -197,7 +198,11 @@ jobs:
         run: |
           title="Udeos Launcher $(echo "$VERSION" | sed -E 's/-alpha/ Alpha/; s/-beta/ Beta/; s/-rc/ RC /')"
           echo "title=$title" >> "$GITHUB_OUTPUT"
-          cat > notes.md <<EOT
+          # Plain-language notes for players, written per release; the
+          # download table is appended below them.
+          notes="docs/releases/${VERSION}.md"
+          [ -f "$notes" ] && cat "$notes" > notes.md || : > notes.md
+          cat >> notes.md <<EOT
           ## Downloads
 
           | OS | File | Notes |
@@ -216,6 +221,5 @@ jobs:
         with:
           name: ${{ steps.notes.outputs.title }}
           body_path: notes.md
-          generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, '-') }}
           files: dist/*
