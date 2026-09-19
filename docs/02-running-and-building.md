@@ -90,10 +90,14 @@ To publish a version:
 1. Set `productVersion` in `wails.json` to the plain number (`1.0.0`). It must
    stay numeric: the Windows installer script feeds it to NSIS as
    `X.Y.Z.0`, which rejects `-alpha` suffixes. The frontend `package.json`
-   may carry the full string (`1.0.0-alpha`).
-2. Commit, then tag the commit with a `v` prefix and push the tag:
-   `git tag -a v1.0.0-alpha -m "Udeos Launcher 1.0 Alpha"` followed by
-   `git push origin v1.0.0-alpha`.
+   carries the full string (`0.10.0-beta`), which is what the login screen
+   shows.
+2. Write the release notes for players in `docs/releases/<version>.md`
+   (plain language, no technical terms); the release job puts them above the
+   download table. Move the changelog's *Unreleased* section under the version.
+3. Commit, then tag the commit with a `v` prefix and push the tag:
+   `git tag -a v0.10.0-beta -m "Udeos Launcher 0.10 Beta"` followed by
+   `git push origin v0.10.0-beta`.
 
 The tag starts three build jobs, one per OS, and a fourth that creates the
 GitHub Release with everything attached plus a `SHA256SUMS.txt`. A tag
