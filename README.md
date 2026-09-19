@@ -39,8 +39,8 @@ CDN install and the offline launch work, and where data lives. Start with
 
 ## Download
 
-Installers for every release are on the
-[Releases page](https://github.com/Juan17la/minecraft_launcher/releases):
+Installers for every release (currently **0.10 Beta**) are on the
+[Releases page](https://github.com/Juan17la/Udeos_Launcher/releases):
 
 | OS | File |
 |----|------|
