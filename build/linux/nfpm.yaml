@@ -12,9 +12,9 @@ priority: optional
 maintainer: Juan Diego López Arias
 description: |
   A Minecraft launcher that runs without a Microsoft account.
-  Pick a nickname, create a vanilla, Forge or Fabric instance and play.
+  Pick a nickname, create a vanilla, Fabric, Forge, NeoForge or Quilt instance and play.
 vendor: Udeos
-homepage: https://github.com/Juan17la/minecraft_launcher
+homepage: https://github.com/Juan17la/Udeos_Launcher
 license: MIT
 
 contents:
