@@ -4,10 +4,15 @@ const es: Dict = {
   app: { name: 'Udeos Launcher' },
   nav: {
     dashboard: 'Instancias', search: 'Complementos', newInstance: 'Nueva instancia', privacy: 'Privacidad y términos',
-    profiles: 'Perfiles', addProfile: 'Añadir perfil', removeProfile: 'Quitar perfil',
+    addProfile: 'Añadir perfil', removeProfile: 'Quitar perfil',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
   common: { save: 'Guardar', back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
+  profiles: {
+    title: 'Perfiles', active: 'Activo', instances: '{n} instancia(s)', switch: 'Cambiar de perfil',
+    hint: 'Cada perfil es un nombre de jugador con sus propias instancias. Al cambiar solo verás las de ese perfil.',
+    removeTitle: '¿Quitar {name}?', removeBody: 'Sus {n} instancia(s) pasarán a {name}. No se borra nada.',
+  },
   privacy: {
     title: 'Privacidad y términos',
     body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben — el launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
