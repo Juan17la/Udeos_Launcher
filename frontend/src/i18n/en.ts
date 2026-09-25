@@ -40,7 +40,7 @@ const en = {
     loaderUnsupported: '{loader} has no build for {version}.',
   },
   instance: {
-    edit: 'Edit name and icon', deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
+    editShort: 'Edit', folder: 'Folder', playTime: 'Play time', edit: 'Edit name and icon', deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
     notInstalled: 'Not downloaded yet — Play will download it first.', installed: 'Ready to play',
     tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', worlds: 'Worlds', screenshots: 'Screenshots', settings: 'Settings' },
     views: { card: 'Cards', compact: 'Compact' }, addedByHand: 'Added by hand',
@@ -67,7 +67,7 @@ const en = {
     subtitle: 'Browse mods, resource packs, shaders and modpacks from Modrinth.',
     searchPlaceholder: 'Search…', anyVersion: 'Any version', anyLoader: 'Any loader',
     types: { mod: 'Mods', resourcepack: 'Resource Packs', shader: 'Shaders', modpack: 'Modpacks' },
-    downloads: '{n} downloads', empty: 'No results found.',
+    downloadsWord: 'downloads', empty: 'No results found.',
     pages: 'Pages', goTo: 'Page…', showing: '{from}–{to} of {total}',
     previous: 'Previous', next: 'Next',
     add: 'Add', details: 'Details', createInstance: 'Create instance',
