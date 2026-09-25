@@ -90,6 +90,8 @@ type Backend = {
   /** The current world is backed up first. */
   RestoreBackup(id: string, name: string): Promise<void>
   RemoveBackup(id: string, name: string): Promise<void>
+  /** Saves and stops every server, then closes the launcher (the answer to 'app:close'). */
+  QuitLauncher(): Promise<void>
 }
 
 type Events = {
@@ -99,6 +101,8 @@ type Events = {
   'files:dropped': string[]
   'server:log': { id: string; line: string }
   'server:state': { id: string }
+  /** The window was closed while servers run: confirm, then QuitLauncher. */
+  'app:close': { running: number }
 }
 
 declare global {

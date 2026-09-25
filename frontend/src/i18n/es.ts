@@ -76,7 +76,12 @@ const es: Dict = {
     status: { stopped: 'Detenido', starting: 'Iniciando…', online: 'En línea' }, playersOf: '{n}/{max} jugadores',
     address: 'Dirección', copy: 'Copiar', copied: 'Copiado', port: 'Puerto', memory: 'Memoria', runTime: 'Tiempo activo', playersStat: 'Jugadores',
     startFailed: 'No inició',
+    manyTitle: '¿Iniciar otro servidor?', startAnyway: 'Iniciar igualmente',
+    many: 'Ya hay {n} servidores en marcha. Cada uno usa su propia memoria y CPU, así que este equipo, el juego y todos los servidores pueden ir más lentos.',
     deleteServer: 'Eliminar servidor', confirmDeleteTitle: '¿Eliminar este servidor?', confirmDelete: 'Se borran el servidor, su mundo y todas las copias. No se puede deshacer.',
+    confirmDeleteRunning: 'Está en marcha: primero se guarda y se detiene, y se desconecta a quien esté jugando.',
+    saveStop: { title: '¿Guardar y detener el servidor?', body: 'El servidor lee sus ajustes al iniciar, así que se guardará y se detendrá ahora. Inícialo de nuevo para jugar con los cambios.', confirm: 'Guardar y detener' },
+    close: { title: '¿Cerrar el launcher?', body: '{n} servidor(es) en marcha. Al cerrar se guardan y se detienen, y se desconecta a quien esté jugando en ellos.', confirm: 'Cerrar igualmente' },
     tabs: { console: 'Consola', players: 'Jugadores', internet: 'Internet', backups: 'Copias', mods: 'Mods', settings: 'Ajustes' },
     console: {
       placeholder: 'Escribe un comando, p. ej. time set day', off: 'Inicia el servidor para usar la consola.', send: 'Enviar', empty: 'Aún no hay nada. Inicia el servidor para ver su consola.',
