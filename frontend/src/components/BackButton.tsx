@@ -4,8 +4,13 @@ import { useApp } from '../state'
 import { fmt } from '../i18n/format'
 
 /** "Back to …" above a page title: returns to the exact screen the player
- *  came from (see `previous`/`back` in state), the dashboard when there is none. */
-export default function BackButton() {
+ *  came from (see `previous`/`back` in state), the dashboard when there is none.
+ *  It sticks under the nav on a strip of canvas, tucked 2px under it (the nav is 72px plus a fraction, which left a hairline), so it is in reach
+ *  however far the page scrolls: place it straight inside the page's <main>,
+ *  since a sticky element only sticks within its parent. The strip's padding
+ *  is taken back by negative margins, so it adds no height to the page;
+ *  panels that stick below it use top-30 (72 + 48). */
+export default function BackButton({ className = '' }: { className?: string }) {
   const { t, previous, back, instances, servers } = useApp()
   const name = (() => {
     switch (previous?.name) {
@@ -20,7 +25,7 @@ export default function BackButton() {
     }
   })()
   return (
-    <div>
+    <div className={`sticky top-[70px] z-40 -my-2 py-2 bg-bg ${className}`}>
       <Button variant="ghost" size="sm" className="-ml-4" onClick={back}><ChevronLeft /> {fmt(t.common.back, { name })}</Button>
     </div>
   )
