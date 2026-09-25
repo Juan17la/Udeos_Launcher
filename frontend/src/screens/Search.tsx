@@ -12,6 +12,7 @@ import { allowedTypes, loadSearchVersions, pageList } from '../utils/search'
 import { useAddAction } from '../hooks/useAddAction'
 import BackButton from '../components/BackButton'
 import ProjectIcon from '../components/ProjectIcon'
+import { DownloadsTag, InstanceTags, LoaderTags, VersionTag } from '../components/Tags'
 import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
@@ -136,8 +137,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
       {inst && (
         <div className="flex items-center gap-4 flex-wrap">
           <span className="font-bold text-lg">{fmt(t.search.forInstance, { name: inst.name })}</span>
-          <span className="tag bg-green-soft">{inst.version}</span>
-          <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
+          <InstanceTags inst={inst} />
         </div>
       )}
 
@@ -215,13 +215,16 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
         <ProjectIcon url={result.iconUrl} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="font-bold text-base leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{result.title}</div>
-          <div className="text-xs text-muted">{result.author}</div>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-xs text-muted truncate">{result.author}</span>
+            <DownloadsTag n={result.downloads} />
+          </div>
         </div>
       </div>
       <p className="m-0 text-[13px] text-muted line-clamp-2">{result.description}</p>
       <div className="flex gap-2 flex-wrap">
-        {result.loaders.map((l) => <span key={l} className="tag bg-gold-soft">{l}</span>)}
-        <span className="tag bg-tag-gray">{fmt(t.search.downloads, { n: result.downloads.toLocaleString() })}</span>
+        <VersionTag versions={result.gameVersions ?? []} />
+        <LoaderTags loaders={result.loaders} max={2} />
       </div>
       {/* Two big, equal-weight actions: Add installs (directly, or after a
          one-click instance pick), Details is a full page. */}

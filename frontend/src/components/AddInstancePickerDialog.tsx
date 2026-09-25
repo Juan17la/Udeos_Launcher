@@ -4,6 +4,7 @@ import Button from '../ui/Button'
 import { Input, Label } from '../ui/Field'
 import StatusMessage from '../ui/StatusMessage'
 import AutoLoader from '../ui/Loader'
+import { InstanceTags } from './Tags'
 import { useApp, useContent } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
@@ -79,8 +80,7 @@ export default function AddInstancePickerDialog({ result, filters, onClose }: Pr
               <button key={instance.id} type="button" onClick={() => pick(instance.id)}
                 className="flex items-center gap-4 w-full text-left cursor-pointer rounded-md border-0 px-4 py-3 bg-idle text-text shadow-neu hover:bg-primary hover:text-white transition-all duration-150 ease-in-out focus-visible:outline-2 focus-visible:outline-primary">
                 <span className="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-base font-bold">{instance.name}</span>
-                <span className="tag bg-green-soft">{instance.version}</span>
-                <span className="tag bg-gold-soft">{instance.loaderLabel}</span>
+                <InstanceTags inst={instance} className="shrink-0" />
               </button>
             ))}
           </>
