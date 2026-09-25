@@ -1,5 +1,7 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, SortBy, World } from './types'
+import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, Skin, SkinModel, SortBy, World } from './types'
+import { SkinTexture, boxes, faces } from '../utils/skin'
+import { DEFAULT_SKINS } from '../assets'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -23,12 +25,14 @@ export function createMock() {
   const newServer = (id: string, name: string, version: string, loader: Loader, loaderVersion: string, icon: string, port: number): Server => ({
     id, name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`, icon,
     createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: true, running: false,
-    server: true, public: false, internet: {}, addressName: defaultAddressName(name),
+    server: true, public: false, internet: {}, addressName: defaultAddressName(name), udeosLogin: true,
     state: { starting: false, running: false, ready: false, stopping: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
   })
   instances.push(newServer('s1', 'Friends SMP', '1.21.1', 'Vanilla', '', 'grass_block_side', 25565), newServer('s2', 'Modded Realm', '1.20.1', 'Fabric', '0.16.9', 'diamond', 25566))
   const serverOf = (id: string) => { const s = instances.find((x) => x.id === id && x.server) as Server | undefined; if (!s) throw new Error('instance not found'); return s }
-  const serverProps: Record<string, Record<string, string>> = { s1: { motd: 'Friends SMP', 'server-port': '25565', 'online-mode': 'false' }, s2: { motd: 'Modded Realm', 'server-port': '25566', 'online-mode': 'false' } }
+  // s2 predates Udeos logins: it stays open to any launcher.
+  const serverProps: Record<string, Record<string, string>> = { s1: { motd: 'Friends SMP', 'server-port': '25565', 'online-mode': 'true', login: 'udeos' }, s2: { motd: 'Modded Realm', 'server-port': '25566', 'online-mode': 'false', login: 'offline' } }
+  instances[instances.length - 1].udeosLogin = false
   const serverLogs: Record<string, string[]> = {}
   const playerLists: Record<string, Record<PlayerList, string[]>> = {}
   const listsOf = (id: string) => (playerLists[id] ??= { whitelist: ['Steve'], ops: [], banned: [] })
@@ -319,7 +323,7 @@ export function createMock() {
       const used = new Set(instances.filter((i) => i.server).map((i) => (i as Server).port))
       let port = 25565; while (used.has(port)) port++
       const s = newServer('s' + Date.now(), name, version, loader, loaderVersion, icon, port)
-      serverProps[s.id] = { motd: name, 'server-port': String(port), 'online-mode': 'false' }
+      serverProps[s.id] = { motd: name, 'server-port': String(port), 'online-mode': 'true', login: 'udeos' }
       instances.push(s); return structuredClone(s)
     },
     async SetServerIcon() {},
@@ -358,7 +362,8 @@ export function createMock() {
       const clash = instances.find((i) => i.server && i.id !== id && (i as Server).port === Number(port))
       if (clash) throw new Error(`the server "${clash.name}" already uses port ${port}: pick another one`)
       serverProps[id] = { ...(serverProps[id] ?? {}), ...props }
-      const s = serverOf(id); s.port = Number(serverProps[id]['server-port'] ?? s.port); s.maxPlayers = Number(serverProps[id]['max-players'] ?? s.maxPlayers)
+      if (props.login) serverProps[id]['online-mode'] = String(props.login !== 'offline')
+      const s = serverOf(id); s.udeosLogin = serverProps[id].login === 'udeos'; s.port = Number(serverProps[id]['server-port'] ?? s.port); s.maxPlayers = Number(serverProps[id]['max-players'] ?? s.maxPlayers)
     },
     async GetServerPlayers(id: string) { return { online: [...serverOf(id).state.players], ...structuredClone(listsOf(id)) } },
     async SetServerPlayer(id: string, list: PlayerList, name: string, add: boolean) {
@@ -390,7 +395,45 @@ export function createMock() {
     },
     async RestoreBackup(id: string) { if (serverOf(id).state.running) throw new Error('stop the server before restoring a backup'); await backend.BackupServer(id) },
     async RemoveBackup(id: string, name: string) { backups[id] = (backups[id] ?? []).filter((b) => b.name !== name) },
+    async ListSkins() { await samples; return { skins: structuredClone(skins), equipped: { ...equipped } } },
+    async SaveSkin(id: string, name: string, model: SkinModel, png: string) {
+      if (!name.trim()) throw new Error('the skin name must be 1-32 characters')
+      let s = skins.find((x) => x.id === id)
+      if (id && !s) throw new Error('skin not found')
+      if (!s) { s = { id: 'k' + Date.now(), name: '', model, createdAt: new Date().toISOString(), png: '' }; skins.unshift(s) }
+      Object.assign(s, { name: name.trim(), model, png })
+      return { ...s }
+    },
+    async DeleteSkin(id: string) {
+      skins.splice(skins.findIndex((x) => x.id === id), 1)
+      for (const [n, sid] of Object.entries(equipped)) if (sid === id) delete equipped[n]
+    },
+    async EquipSkin(id: string) { if (!profile) return; if (id) equipped[profile.nickname] = id; else delete equipped[profile.nickname] },
+    async ReadSkinFile(path: string) {
+      if (!path.toLowerCase().endsWith('.png')) throw new Error('a skin must be a 64×64 or 64×32 PNG image')
+      return { name: path.split('/').pop()!.replace(/\.png$/i, ''), model: 'slim' as const, png: await sampleSkin('slim', '#c77dba') }
+    },
+    async PickSkinFile() { await sleep(300); return backend.ReadSkinFile('/home/player/Downloads/Cherry Blossom.png') },
   }
+
+  // The mock has no skin files: its skins are Minecraft's Steve and Alex, the shirt of one recoloured.
+  async function sampleSkin(model: SkinModel, shirt?: string) {
+    const tex = new SkinTexture()
+    await tex.load(DEFAULT_SKINS[model])
+    if (shirt) {
+      tex.ctx.fillStyle = shirt
+      for (const f of faces(boxes(model).find((b) => b.part === 'body' && b.layer === 'base')!)) tex.ctx.fillRect(...f.rect)
+    }
+    return tex.toBase64()
+  }
+  const skins: Skin[] = []
+  const samples = Promise.all([sampleSkin('classic', '#b5654a'), sampleSkin('slim')]).then(([explorer, aurora]) => {
+    skins.push(
+      { id: 'k1', name: 'Explorer', model: 'classic', createdAt: new Date(Date.now() - 864e5).toISOString(), png: explorer },
+      { id: 'k2', name: 'Aurora', model: 'slim', createdAt: new Date(Date.now() - 2 * 864e5).toISOString(), png: aurora },
+    )
+  })
+  const equipped: Record<string, string> = {}
 
   async function fakeInstall(loader?: Loader) {
     for (const [phase, total] of [['version', 1], ['libraries', 40], ['assets', 120], ['client', 1], ['java', 60]] as const) {

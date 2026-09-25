@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 import { DICTS, Language } from '../i18n'
 import type { Dict } from '../i18n/en'
 import { api, inWails, on } from '../api/bridge'
-import type { Instance, Profile, ProjectType, SearchResult, Server } from '../api/types'
+import type { Instance, Profile, ProjectType, SearchResult, Server, SkinLibrary } from '../api/types'
 import { useLaunchController, LaunchController } from './useLaunchController'
 import { useContentQueue, ContentQueue } from './useContentQueue'
 
@@ -26,6 +26,9 @@ export type Screen =
   /** Full-page view of one search result; instanceId keeps the instance lock
    *  alive across Details → Back. */
   | { name: 'detail'; result: SearchResult; instanceId?: string }
+  | { name: 'skins' }
+  /** id: the library skin to edit; none paints a new one. */
+  | { name: 'skinEditor'; id?: string }
 
 type Entry = { screen: Screen; scrollY: number }
 
@@ -47,6 +50,8 @@ type AppState = {
   setNickname: (name: string) => Promise<void>; removeNickname: (name: string) => Promise<void>
   /** refreshInstances reloads both lists: game instances and servers. */
   instances: Instance[]; servers: Server[]; refreshInstances: () => Promise<void>
+  /** The skin library and what each profile wears (the nav shows the active one's face). */
+  skins: SkinLibrary | null; refreshSkins: () => Promise<void>
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
 }
 
@@ -95,6 +100,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const [i, s] = await Promise.all([api.ListInstances(), api.ListServers()])
     setInstances(i); setServers(s)
   }, [])
+  const [skins, setSkins] = useState<SkinLibrary | null>(null)
+  const refreshSkins = useCallback(async () => { setSkins(await api.ListSkins()) }, [])
+  useEffect(() => { if (profile) refreshSkins() }, [profile, refreshSkins])
+
   // A server started, stopped, finished loading or someone joined.
   useEffect(() => on('server:state', () => { refreshInstances() }), [refreshInstances])
 
@@ -111,7 +120,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await refreshInstances()
         go({ name: 'dashboard' })
       }
-      // Dev only (vite in a browser): ?screen=login | create | search | instance:<id> jumps straight to a screen.
+      // Dev only (vite in a browser): ?screen=login | create | search | skins | skinEditor[:<id>] | instance:<id> jumps straight to a screen.
       if (!inWails) {
         const want = new URLSearchParams(location.search).get('screen')
         if (want === 'login') {
@@ -119,7 +128,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else if (want) {
           setProfile(st.profile); await refreshInstances()
           const [name, id] = want.split(':')
-          go(name === 'instance' ? { name: 'instance', id } : name === 'server' ? { name: 'server', id } : name === 'servers' ? { name: 'servers' } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' } : { name: 'dashboard' })
+          go(name === 'instance' ? { name: 'instance', id } : name === 'server' ? { name: 'server', id } : name === 'servers' ? { name: 'servers' } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' }
+            : name === 'skins' ? { name: 'skins' } : name === 'skinEditor' ? { name: 'skinEditor', id } : { name: 'dashboard' })
         }
       }
       setReady(true)
@@ -164,9 +174,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(() => ({
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
     screen, go, previous: history[history.length - 1]?.screen ?? null, back, cameBack, profile, saveProfile, nickname: profile?.nickname ?? '', setNickname, removeNickname,
-    instances, servers, refreshInstances,
+    instances, servers, refreshInstances, skins, refreshSkins,
     privacyOpen, setPrivacyOpen,
-  }), [ready, theme, language, screen, history, cameBack, back, profile, instances, servers, privacyOpen, refreshInstances, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, language, screen, history, cameBack, back, profile, instances, servers, skins, privacyOpen, refreshInstances, refreshSkins, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppCtx.Provider value={value}>

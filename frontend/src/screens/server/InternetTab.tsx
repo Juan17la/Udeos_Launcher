@@ -85,6 +85,7 @@ export default function InternetTab({ server }: { server: Server }) {
       </div>
       <p className="m-0 text-sm text-muted">
         {server.loader === 'Vanilla' ? fmt(ti.needs, { version: server.version }) : fmt(ti.needsMods, { version: server.version, loader: server.loader })}
+        {server.udeosLogin && ` ${ti.needsUdeos}`}
       </p>
       {error && <StatusMessage kind="error" headline={t.errors.failed} detail={error} />}
 
