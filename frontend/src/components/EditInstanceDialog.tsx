@@ -9,6 +9,7 @@ import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { INSTANCE_NAME } from '../utils/validation'
 import { errorHeadline, messageOf } from '../utils/errors'
+import { serverIconPNG } from '../utils/serverIcon'
 import type { Instance } from '../api/types'
 
 /** Rename an instance and pick its icon. An instance made from a modpack
@@ -26,6 +27,7 @@ export default function EditInstanceDialog({ inst, onClose }: { inst: Instance; 
     setBusy(true); setError(null)
     try {
       await api.SetInstanceInfo(inst.id, INSTANCE_NAME.normalize(name), icon)
+      if (inst.server) await api.SetServerIcon(inst.id, await serverIconPNG(icon))
       await refreshInstances()
       onClose()
     } catch (e) { setError(messageOf(e)); setBusy(false) }

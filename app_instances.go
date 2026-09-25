@@ -43,7 +43,7 @@ func (a *App) ListInstances() []InstanceView {
 		return out
 	}
 	for _, it := range a.launcher.Instances.List() {
-		if it.Owner == p.Nickname {
+		if it.Owner == p.Nickname && !it.Server {
 			out = append(out, a.view(it))
 		}
 	}
@@ -54,7 +54,9 @@ func (a *App) ListInstances() []InstanceView {
 func (a *App) InstanceCounts() map[string]int {
 	out := map[string]int{}
 	for _, it := range a.launcher.Instances.List() {
-		out[it.Owner]++
+		if !it.Server {
+			out[it.Owner]++
+		}
 	}
 	return out
 }
@@ -105,8 +107,11 @@ func (a *App) PickJava() (string, error) {
 	return a.pick("Choose a Java executable", "*", "Java")
 }
 
-// DeleteInstance removes the instance and all its files.
+// DeleteInstance removes the instance (or server) and all its files.
 func (a *App) DeleteInstance(id string) error {
+	if a.launcher.ServerStatus(id).Running || a.launcher.ServerStatus(id).Starting {
+		return errors.New("stop the server before deleting it")
+	}
 	return a.launcher.Instances.Delete(id)
 }
 
