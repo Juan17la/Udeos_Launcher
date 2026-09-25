@@ -50,6 +50,7 @@ type modrinthHit struct {
 	Downloads   int64    `json:"downloads"`
 	ProjectType string   `json:"project_type"`
 	Categories  []string `json:"categories"`
+	Versions    []string `json:"versions"`
 }
 
 type modrinthSearchResponse struct {
@@ -75,15 +76,16 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 	page := Page{Total: raw.TotalHits, Offset: raw.Offset, Results: make([]Result, 0, len(raw.Hits))}
 	for _, h := range raw.Hits {
 		page.Results = append(page.Results, Result{
-			ID:          h.ProjectID,
-			Slug:        h.Slug,
-			Title:       h.Title,
-			Author:      h.Author,
-			Description: truncateDescription(h.Description, maxDescriptionLen),
-			IconURL:     h.IconURL,
-			Downloads:   h.Downloads,
-			ProjectType: ProjectType(h.ProjectType),
-			Loaders:     loadersFrom(h.Categories),
+			ID:           h.ProjectID,
+			Slug:         h.Slug,
+			Title:        h.Title,
+			Author:       h.Author,
+			Description:  truncateDescription(h.Description, maxDescriptionLen),
+			IconURL:      h.IconURL,
+			Downloads:    h.Downloads,
+			ProjectType:  ProjectType(h.ProjectType),
+			Loaders:      loadersFrom(h.Categories),
+			GameVersions: releasesFrom(h.Versions),
 		})
 	}
 	return page, nil
@@ -140,6 +142,18 @@ func loadersFrom(categories []string) []string {
 	for _, c := range categories {
 		if knownLoaders[strings.ToLower(c)] {
 			out = append(out, c)
+		}
+	}
+	return out
+}
+
+// releasesFrom keeps the plain release numbers ("1.20.1", "26.3") out of a
+// hit's version list, dropping snapshots and pre-releases ("24w14a", "1.21-rc1").
+func releasesFrom(versions []string) []string {
+	out := []string{}
+	for _, v := range versions {
+		if v != "" && strings.Trim(v, "0123456789.") == "" {
+			out = append(out, v)
 		}
 	}
 	return out
