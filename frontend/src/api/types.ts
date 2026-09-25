@@ -52,7 +52,7 @@ export type Instance = {
 
 /** How the internet reaches a server: through a bore relay (default; relay '' = bore.pub) or the router (UPnP).
  *  name '' = derived from the server's name; relayPort is the port the relay gave last time. */
-export type InternetSettings = { mode?: 'relay' | 'router'; name?: string; relay?: string; secret?: string; relayPort?: number }
+export type InternetSettings = { mode?: 'relay' | 'router'; name?: string; relay?: string; secret?: string; relayPort?: number; address?: string }
 /** A server's live state. publicAddress is the named address friends type ("udeoslauncher.x.1-2-3-4.nip.io:41234"),
  *  publicRaw the same place without the name ("bore.pub:41234"); publicError says why it is unreachable. */
 export type ServerState = { starting: boolean; running: boolean; ready: boolean; stopping: boolean; players: string[]; publicAddress?: string; publicRaw?: string; publicError?: string }

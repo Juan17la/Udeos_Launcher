@@ -1,5 +1,5 @@
 import InstanceIcon from '../components/InstanceIcon'
-import ServerButton, { ServerStatus } from '../components/ServerButton'
+import ServerButton, { ServerStatus, shareAddress } from '../components/ServerButton'
 import { InstanceTags } from '../components/Tags'
 import Button from '../ui/Button'
 import { Plus } from '../ui/icons'
@@ -39,7 +39,7 @@ export default function Servers() {
 function ServerCard({ server }: { server: Server }) {
   const { t, go } = useApp()
   const open = () => go({ name: 'server', id: server.id })
-  const address = server.state.publicAddress || server.lanAddress
+  const address = shareAddress(server)
   return (
     <div role="link" tabIndex={0} onClick={open} onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) open() }}
       className="panel panel-hover flex flex-col gap-4 p-5 cursor-pointer">
@@ -52,7 +52,7 @@ function ServerCard({ server }: { server: Server }) {
       </div>
       <div className="flex items-center justify-between gap-4 text-xs text-muted">
         <ServerStatus server={server} />
-        {server.state.ready && address && <span className="truncate" title={t.servers.address}>{address}</span>}
+        {address && <span className="truncate" title={t.servers.address}>{address}</span>}
       </div>
       <div className="flex gap-4 mt-auto" onClick={(e) => e.stopPropagation()}>
         <ServerButton server={server} className="flex-1" />
