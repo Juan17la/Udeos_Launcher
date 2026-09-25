@@ -49,7 +49,19 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("open launcher data: %v", err)
 	}
+	a.launcher.OnServer = func(id, line string) {
+		if line == "" {
+			wailsrt.EventsEmit(a.ctx, EventServerState, map[string]string{"id": id})
+		} else {
+			wailsrt.EventsEmit(a.ctx, EventServerLog, map[string]string{"id": id, "line": line})
+		}
+	}
 	wailsrt.OnFileDrop(ctx, a.onFileDrop)
+}
+
+// shutdown lets running servers save their worlds before the launcher exits.
+func (a *App) shutdown(context.Context) {
+	a.launcher.StopServers()
 }
 
 // AppInfo is static information about this build.
