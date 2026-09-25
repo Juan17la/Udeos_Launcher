@@ -61,6 +61,9 @@ type Internet struct {
 	// RelayPort is the public port the relay gave last time; it is asked for
 	// again so the address friends saved keeps working.
 	RelayPort int `json:"relayPort,omitempty"`
+	// Address is the named address the server had the last time it was open,
+	// shown while it is stopped ("" = never open with these settings).
+	Address string `json:"address,omitempty"`
 }
 
 // Internet modes: through a public relay (works behind any router, the
