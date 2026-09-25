@@ -53,7 +53,7 @@ export type Instance = {
 export type InternetSettings = { mode?: 'relay' | 'router'; name?: string; relay?: string; secret?: string; relayPort?: number }
 /** A server's live state. publicAddress is the named address friends type ("udeoslauncher.x.1-2-3-4.nip.io:41234"),
  *  publicRaw the same place without the name ("bore.pub:41234"); publicError says why it is unreachable. */
-export type ServerState = { starting: boolean; running: boolean; ready: boolean; players: string[]; publicAddress?: string; publicRaw?: string; publicError?: string }
+export type ServerState = { starting: boolean; running: boolean; ready: boolean; stopping: boolean; players: string[]; publicAddress?: string; publicRaw?: string; publicError?: string }
 /** A server instance; `running` is true from Start (files being prepared) until it stops.
  *  addressName starts its internet address (the saved name or the default). */
 export type Server = Instance & { state: ServerState; port: number; maxPlayers: number; lanAddress: string; addressName: string }
