@@ -137,7 +137,7 @@ func (m *Manager) installForge(ctx context.Context, id, mc, java string, install
 	if v.InheritsFrom == "" {
 		v.InheritsFrom = mc
 	}
-	if err := m.runForgeInstaller(ctx, jar, java); err != nil {
+	if err := m.runForgeInstaller(ctx, jar, java, "--installClient", m.Dirs.Root); err != nil {
 		return err
 	}
 	for _, rel := range forgeOutputs(profile, v) {
@@ -194,19 +194,20 @@ func forgeOutputs(profile *installProfile, v *mojang.Version) []string {
 	return paths
 }
 
-// runForgeInstaller runs "java -jar installer --installClient <root>". The
-// installer insists on a launcher_profiles.json in the target (it adds a
+// runForgeInstaller runs "java -jar installer <mode> <target>" (--installClient
+// into the data folder, or --installServer into a server folder). The client
+// install insists on a launcher_profiles.json in the target (it adds a
 // profile to it, which we ignore). Its console output is streamed to the
 // progress overlay because the processors can take a couple of minutes.
-func (m *Manager) runForgeInstaller(ctx context.Context, jar, java string) error {
-	profiles := filepath.Join(m.Dirs.Root, "launcher_profiles.json")
-	if _, err := os.Stat(profiles); err != nil {
+func (m *Manager) runForgeInstaller(ctx context.Context, jar, java, mode, target string) error {
+	profiles := filepath.Join(target, "launcher_profiles.json")
+	if _, err := os.Stat(profiles); err != nil && mode == "--installClient" {
 		if err := os.WriteFile(profiles, []byte("{\"profiles\":{}}\n"), 0o644); err != nil {
 			return err
 		}
 	}
-	cmd := exec.CommandContext(ctx, consoleJava(java), "-jar", jar, "--installClient", m.Dirs.Root)
-	cmd.Dir = m.Dirs.Root
+	cmd := exec.CommandContext(ctx, ConsoleJava(java), "-jar", jar, mode, target)
+	cmd.Dir = target
 	launch.HideConsole(cmd)
 	out, err := cmd.StdoutPipe()
 	if err != nil {
@@ -239,9 +240,9 @@ func (m *Manager) runForgeInstaller(ctx context.Context, jar, java string) error
 	return nil
 }
 
-// consoleJava swaps javaw.exe for java.exe so the installer's output can be
+// ConsoleJava swaps javaw.exe for java.exe so the process's output can be
 // captured; the launcher's own runtime always has both.
-func consoleJava(java string) string {
+func ConsoleJava(java string) string {
 	if runtime.GOOS == "windows" && strings.EqualFold(filepath.Base(java), "javaw.exe") {
 		if alt := filepath.Join(filepath.Dir(java), "java.exe"); fileExists(alt) {
 			return alt
