@@ -29,13 +29,15 @@ export default function Notifications() {
 
 /** The minimized launch modal: instance name, percentage and bar. */
 function LaunchToast() {
+  const { t } = useApp()
+  const { cancelLaunch } = useLaunch()
   const { inst, pct } = useLaunchProgress()
-  return <StatusMessage className={slide} headline={inst?.name ?? ''} aside={`${pct}%`} percent={pct} />
+  return <StatusMessage className={slide} headline={inst?.name ?? ''} aside={`${pct}%`} percent={pct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />
 }
 
 function JobToast({ job }: { job: ContentJob }) {
   const { t, instances, servers } = useApp()
-  const { dismiss } = useContent()
+  const { dismiss, cancel } = useContent()
   const name = job.create ? job.create.name || job.result.title : [...instances, ...servers].find((i) => i.id === job.instanceId)?.name ?? ''
   const title = job.result.title
   const p = job.progress
@@ -51,6 +53,6 @@ function JobToast({ job }: { job: ContentJob }) {
   return (
     <StatusMessage className={slide} headline={job.create ? fmt(t.content.creating, { name }) : title}
       aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
-      percent={job.status === 'installing' ? pct : 0} />
+      percent={job.status === 'installing' ? pct : 0} onDismiss={() => cancel(job.id)} dismissLabel={t.common.cancel} />
   )
 }

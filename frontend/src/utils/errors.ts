@@ -14,6 +14,9 @@ export function errorHeadline(message: string, t: Dict['errors']): string {
   return t.failed
 }
 
+/** The error a download stopped by CancelDownload ends with: not a failure, nothing to show. */
+export const isCanceled = (message: string) => message.includes('context canceled')
+
 export function messageOf(e: unknown): string {
   return String((e as Error)?.message ?? e)
 }
