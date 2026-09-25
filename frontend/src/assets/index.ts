@@ -4,9 +4,17 @@
 // block that stands in for projects without an icon.
 //
 // To add an icon: drop <key>.png into icons/ and, if players may pick it
-// for an instance, list it in ICON_CHOICES.
+// for an instance, list it in ICON_CHOICES. default_skin.png (Steve) and
+// default_skin_slim.png (Alex) are the default skins.
+
+import steve from './default_skin.png'
+import alex from './default_skin_slim.png'
 
 export type Theme = 'light' | 'dark'
+
+/** Minecraft's own skins (64×64): Steve is what a profile wears until it
+ *  picks one (the game gets it too); a new skin starts from Steve or Alex. */
+export const DEFAULT_SKINS = { classic: steve, slim: alex } as const
 
 const files = import.meta.glob('./icons/*.png', { eager: true, import: 'default' }) as Record<string, string>
 /** Icon key → image URL, for every file in icons/. */
