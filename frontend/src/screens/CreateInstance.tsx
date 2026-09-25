@@ -93,9 +93,10 @@ export default function CreateInstance({ server = false }: { server?: boolean })
 
   return (
     <main className="flex-1 flex flex-col items-center gap-6 pt-8 px-10 pb-12">
+      {/* Full width so the form scrolls under canvas, the button lined up with the centred 560px column. */}
+      <BackButton className="self-stretch -mb-4 px-[max(0px,calc(50%-280px))]" />
       {/* Heading on the canvas, the form in the panel. */}
       <div className="w-[min(560px,100%)] flex flex-col gap-4">
-        <BackButton />
         <h2 className="mb-2">{s.title}</h2>
         <p className="m-0 text-muted">{s.subtitle}</p>
       </div>

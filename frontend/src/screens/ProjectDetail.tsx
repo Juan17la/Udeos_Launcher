@@ -51,7 +51,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
       <AutoLoader active={!detail} label={t.common.loading} />
       {detail && (
         <div className="grid gap-8 items-start" style={{ gridTemplateColumns: '320px minmax(0,1fr)' }}>
-          <aside className="flex flex-col gap-6 sticky top-24">
+          <aside className="flex flex-col gap-6 sticky top-30">
             <section className="panel flex flex-col gap-4 p-5">
               <h6 className="m-0">{t.detail.versionsHeading}</h6>
               <div className="flex gap-2 flex-wrap">
