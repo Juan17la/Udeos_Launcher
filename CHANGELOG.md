@@ -26,6 +26,9 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **Gentle page transitions** — a new page fades in while rising 6px
+  (0.2 s); instance tabs cross-fade (0.15 s). With reduced motion turned on
+  in the system, only the fade remains.
 - **One tag style on every card** — Minecraft version(s) in green behind a
   grass block ("1.20.1–1.21.1" on Addons), loaders in gold with proper names
   (NeoForge, not "neoforge") and at most two plus "+N", downloads as a gray
@@ -41,6 +44,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- Profiles modal: the rows' shadow was cut off into a flat border that did
+  not match the row; the keyboard focus ring now surrounds the whole row.
 - A white flash on a quick hover in and out of the instance cards
   and buttons (both now keep their own compositing layer).
 - Progress bars no longer crawl behind the percentage.
