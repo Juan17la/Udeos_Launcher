@@ -18,11 +18,13 @@ export function createMock() {
     { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'diamond_pickaxe', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
     { id: 'i4', name: 'Fabric Fun', version: '1.20.1', loader: 'Fabric', loaderVersion: '0.16.9', loaderLabel: 'Fabric 0.16.9', icon: 'diamond', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
   ]
+  const defaultAddressName = (name: string) => 'udeoslauncher.' + (name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'server')
   // Servers are instances with `server` set, like in the backend; the extra Server fields live on the same object.
   const newServer = (id: string, name: string, version: string, loader: Loader, loaderVersion: string, icon: string, port: number): Server => ({
     id, name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`, icon,
     createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: true, running: false,
-    server: true, public: false, state: { starting: false, running: false, ready: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
+    server: true, public: false, internet: {}, addressName: defaultAddressName(name),
+    state: { starting: false, running: false, ready: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
   })
   instances.push(newServer('s1', 'Friends SMP', '1.21.1', 'Vanilla', '', 'grass_block_side', 25565), newServer('s2', 'Modded Realm', '1.20.1', 'Fabric', '0.16.9', 'diamond', 25566))
   const serverOf = (id: string) => { const s = instances.find((x) => x.id === id && x.server) as Server | undefined; if (!s) throw new Error('instance not found'); return s }
@@ -34,7 +36,16 @@ export function createMock() {
   const logLine = (id: string, line: string) => { (serverLogs[id] ??= []).push(line); emit('server:log', { id, line }) }
   const stamp = () => `[${new Date().toTimeString().slice(0, 8)}] [Server thread/INFO]:`
   const serverState = (id: string) => emit('server:state', { id })
-  const openPublic = (s: Server) => { s.state.publicAddress = `203.0.113.7:${s.port}`; logLine(s.id, `[Udeos] Open to the internet at ${s.state.publicAddress}`) }
+  // Like the backend: through the relay (bore.pub, a remembered port) or the router (UPnP, the server's own port).
+  const openPublic = (s: Server) => {
+    const router = s.internet?.mode === 'router'
+    const port = router ? s.port : (s.internet!.relayPort ??= 41000 + Math.floor(Math.random() * 20000))
+    const ip = router ? '203.0.113.7' : '159.223.171.199'
+    s.state.publicAddress = `${s.addressName}.${ip.replace(/\./g, '-')}.nip.io${port === 25565 ? '' : `:${port}`}`
+    s.state.publicRaw = router ? `${ip}:${port}` : `${s.internet?.relay || 'bore.pub'}:${port}`
+    s.state.publicError = undefined
+    logLine(s.id, `[Udeos] Open to the internet at ${s.state.publicAddress} (also ${s.state.publicRaw})`)
+  }
   const loaderOptions: Record<string, Array<[string, string]>> = {
     Fabric: [['24w33a', '0.16.9'], ['1.21.1', '0.16.9'], ['1.20.4', '0.16.9'], ['1.19.2', '0.16.9']],
     Forge: [['1.21.1', '1.21.1-52.1.0'], ['1.20.4', '1.20.4-49.2.0'], ['1.19.2', '1.19.2-43.5.0'], ['1.12.2', '1.12.2-14.23.5.2859']],
@@ -350,7 +361,15 @@ export function createMock() {
     },
     async SetServerPublic(id: string, on: boolean) {
       const s = serverOf(id); s.public = on
-      if (!on) { s.state.publicAddress = undefined; s.state.publicError = undefined } else if (s.state.ready) { await sleep(600); openPublic(s) }
+      if (!on) { s.state.publicAddress = s.state.publicRaw = s.state.publicError = undefined } else if (s.state.ready) { await sleep(600); openPublic(s) }
+      serverState(id)
+    },
+    async SetServerInternet(id: string, mode: 'relay' | 'router', name: string, relay: string, secret: string) {
+      if (name && !/^([a-z0-9]([a-z0-9-]*[a-z0-9])?)(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/.test(name)) throw new Error('the address name can use a-z, 0-9, dots and dashes (60 characters at most, each part with a letter)')
+      const s = serverOf(id)
+      s.internet = { mode, name, relay, secret, relayPort: relay === (s.internet?.relay ?? '') ? s.internet?.relayPort : undefined }
+      s.addressName = name || defaultAddressName(s.name)
+      if (s.public && s.state.ready) { await sleep(500); openPublic(s) }
       serverState(id)
     },
     async ListBackups(id: string) { return [...(backups[id] ?? [])].sort((a, b) => b.modTime.localeCompare(a.modTime)) },

@@ -83,6 +83,8 @@ type Backend = {
   GetServerPlayers(id: string): Promise<ServerPlayers>
   SetServerPlayer(id: string, list: PlayerList, name: string, add: boolean): Promise<ServerPlayers>
   SetServerPublic(id: string, on: boolean): Promise<void>
+  /** mode relay|router; name '' = default; relay '' = bore.pub. An open server reconnects with them. */
+  SetServerInternet(id: string, mode: 'relay' | 'router', name: string, relay: string, secret: string): Promise<void>
   ListBackups(id: string): Promise<FileEntry[]>
   BackupServer(id: string): Promise<FileEntry>
   /** The current world is backed up first. */
