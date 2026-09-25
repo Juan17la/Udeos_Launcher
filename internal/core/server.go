@@ -188,6 +188,9 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 	if port == 0 {
 		port = 25565
 	}
+	if port, err = l.serverPort(id, dir, port); err != nil {
+		return fail(err)
+	}
 
 	mem := inst.Launch.MaxMemoryMB
 	if mem == 0 {
@@ -290,7 +293,7 @@ func (l *Launcher) ServerCommand(id, line string) error {
 }
 
 // StopServer asks the server to save and stop; it is killed if it has not
-// exited 60 seconds later.
+// exited 60 seconds later, or at once when its console is broken.
 func (l *Launcher) StopServer(id string) error {
 	l.mu.Lock()
 	p := l.servers[id]
@@ -300,7 +303,15 @@ func (l *Launcher) StopServer(id string) error {
 		return errors.New("the server is still getting its files ready: stop it once it has started")
 	}
 	if err := l.ServerCommand(id, "stop"); err != nil {
-		return err
+		if p == nil || p.cmd == nil {
+			return err
+		}
+		// The console no longer takes commands: end the process instead.
+		l.note(id, "The console did not take the stop command ("+err.Error()+"), so the server process is killed.")
+		if err := p.cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+			return err
+		}
+		return nil
 	}
 	l.mu.Lock()
 	p = l.servers[id]
@@ -392,6 +403,9 @@ func (l *Launcher) SetServerInternet(id string, in instance.Internet) error {
 		if in.Relay == i.Internet.Relay {
 			in.RelayPort = i.Internet.RelayPort
 		}
+		if in.Relay == i.Internet.Relay && in.Mode == i.Internet.Mode && in.Name == i.Internet.Name {
+			in.Address = i.Internet.Address
+		}
 		i.Internet, public = in, i.Public
 	}); err != nil {
 		return err
@@ -450,13 +464,17 @@ func (l *Launcher) stopPublic(id string) {
 }
 
 // setPublic records where the internet reaches the server (or why it
-// cannot), unless access was closed meanwhile.
+// cannot), unless access was closed meanwhile. The address is also saved,
+// so it shows while the server is stopped.
 func (l *Launcher) setPublic(ctx context.Context, id, address, raw, problem string) {
 	l.mu.Lock()
 	if p := l.servers[id]; p != nil && ctx.Err() == nil {
 		p.state.PublicAddress, p.state.PublicRaw, p.state.PublicError = address, raw, problem
 	}
 	l.mu.Unlock()
+	if address != "" && ctx.Err() == nil {
+		_ = l.Instances.Update(id, func(i *instance.Instance) { i.Internet.Address = address })
+	}
 	l.serverEmit(id, "")
 }
 

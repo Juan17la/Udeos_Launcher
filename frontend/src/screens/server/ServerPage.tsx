@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import InstanceIcon from '../../components/InstanceIcon'
-import ServerButton, { ServerStatus } from '../../components/ServerButton'
+import ServerButton, { ServerStatus, shareAddress } from '../../components/ServerButton'
 import { InstanceTags } from '../../components/Tags'
 import BackButton from '../../components/BackButton'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
@@ -57,7 +57,7 @@ export default function ServerPage({ id }: { id: string }) {
     [t.servers.memory, `${server.launch.maxMemoryMB || profile?.maxMemoryMB || 2048} MB`],
     [t.servers.runTime, `${hours(server.playTimeSec)} h`],
   ]
-  const address = server.state.publicAddress || server.lanAddress
+  const address = shareAddress(server)
 
   return (
     <main className="flex-1 grid grid-cols-[minmax(300px,340px)_minmax(0,1fr)] items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12">

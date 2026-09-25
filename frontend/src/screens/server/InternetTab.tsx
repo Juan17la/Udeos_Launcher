@@ -51,6 +51,8 @@ export default function InternetTab({ server }: { server: Server }) {
   }
 
   const status = !server.public ? ti.closed : !running ? ti.whenStarts : publicError ? ti.failed : ti.opening
+  // Stopped (or reconnecting), the address saved from the last time it was open still shows.
+  const address = publicAddress || saved.address
   const lanIP = server.lanAddress.split(':')[0]
 
   return (
@@ -66,9 +68,10 @@ export default function InternetTab({ server }: { server: Server }) {
         </div>
         <div className="flex flex-col gap-3">
           <p className="m-0 text-sm text-muted">{ti.publicHint}</p>
-          {server.public && publicAddress
-            ? <CopyAddress label={ti.public} address={publicAddress} />
+          {server.public && address
+            ? <CopyAddress label={ti.public} address={address} />
             : <div className="px-4 py-2 rounded-md bg-panel-2 shadow-neu flex flex-col"><span className="text-[11px] text-muted">{ti.public}</span><span className="text-sm font-bold">{status}</span></div>}
+          {server.public && address && !publicAddress && <p className="m-0 text-xs text-muted">{status}</p>}
           {server.public && publicAddress && publicRaw && publicRaw !== publicAddress && (
             <p className="m-0 text-xs text-muted select-text">{fmt(ti.raw, { raw: publicRaw })}</p>
           )}

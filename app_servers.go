@@ -77,16 +77,16 @@ func (a *App) ListServers() []ServerView {
 
 // CreateServer makes a server folder: the EULA accepted (the form asks),
 // the name as its MOTD, players joining through Udeos Launcher so skins
-// show (Udeos players have no Microsoft account; see Instance.UdeosLogin)
-// and the first port no other server uses. iconPNG is the 64×64
+// show (Udeos players have no Microsoft account; see Instance.UdeosLogin),
+// open to the internet, and the first port no other server or program uses. iconPNG is the 64×64
 // server-icon.png, base64. Nothing is downloaded until the first start.
 func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG string) (ServerView, error) {
 	if !loader.Valid(ldr) || ldr == loader.Quilt {
 		return ServerView{}, errors.New("servers run Vanilla, Fabric, Forge or NeoForge")
 	}
-	used := a.serverPorts("")
+	used := a.launcher.ServerPorts("")
 	port := 25565
-	for used[strconv.Itoa(port)] != "" {
+	for used[strconv.Itoa(port)] != "" || !core.PortFree(port) {
 		port++
 	}
 	inst, err := a.launcher.Instances.Create(name, version, ldr, loaderVersion, icon)
@@ -101,7 +101,7 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 	err = errors.Join(
 		// The address name is fixed now, so renaming the server later does not change the address friends saved.
 		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) {
-			i.Server, i.Internet.Name, i.UdeosLogin = true, server.DefaultAddressName(inst.Name), true
+			i.Server, i.Public, i.Internet.Name, i.UdeosLogin = true, true, server.DefaultAddressName(inst.Name), true
 		}),
 		os.WriteFile(filepath.Join(dir, "eula.txt"), []byte("# Accepted in Udeos Launcher: https://aka.ms/MinecraftEULA\neula=true\n"), 0o644),
 		server.WriteProperties(dir, map[string]string{"motd": inst.Name, "online-mode": "true", "enforce-secure-profile": "false", "server-port": strconv.Itoa(port)}),
@@ -115,23 +115,6 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 	}
 	inst, _ = a.launcher.Instances.Get(inst.ID)
 	return a.serverView(inst), nil
-}
-
-// serverPorts maps each port a server uses (every profile's) to its name,
-// leaving out the server skip.
-func (a *App) serverPorts(skip string) map[string]string {
-	used := map[string]string{}
-	for _, it := range a.launcher.Instances.List() {
-		if it.Server && it.ID != skip {
-			props, _ := server.ReadProperties(a.launcher.Dirs.GameDir(it.ID))
-			port := props["server-port"]
-			if port == "" {
-				port = "25565"
-			}
-			used[port] = it.Name
-		}
-	}
-	return used
 }
 
 // SetServerIcon writes server-icon.png (base64 PNG, 64×64): the picture
@@ -210,7 +193,7 @@ func (a *App) SetServerProperties(id string, props map[string]string) error {
 			}
 		}
 	}
-	if other := a.serverPorts(id)[props["server-port"]]; other != "" {
+	if other := a.launcher.ServerPorts(id)[props["server-port"]]; other != "" {
 		return fmt.Errorf("the server %q already uses port %s: pick another one", other, props["server-port"])
 	}
 	for k, v := range props {

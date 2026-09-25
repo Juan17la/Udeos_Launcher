@@ -142,6 +142,7 @@ const en = {
       title: 'Create New Server', subtitle: 'Give it a name, pick a version and choose a block for its icon.',
       name: 'Server name', namePlaceholder: 'e.g. Friends SMP', icon: 'Server icon', submit: 'Create Server',
       eula: 'I accept the', eulaLink: 'Minecraft EULA',
+      publicNote: 'It opens to the internet whenever it runs, so friends anywhere can join. Close it in the Internet tab.',
       loaderHint: '{loader} {version} is installed on the first start. Only versions {loader} supports are listed.',
     },
   },
