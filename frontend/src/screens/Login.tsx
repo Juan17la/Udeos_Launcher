@@ -32,7 +32,7 @@ export default function Login() {
   const openPrivacy = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPrivacyOpen(true) }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 p-6 relative overflow-hidden animate-[page-in_0.2s_ease-out]">
       <Decor slots={LOGIN_DECOR} opacity={0.12} />
 
       {/* Heading on the canvas, never inside the panel. */}
