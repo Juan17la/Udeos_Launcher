@@ -11,6 +11,7 @@ const VANILLA_TYPES: ProjectType[] = ['resourcepack']
  *  modpacks, whose mods are poured into it. */
 export function allowedTypes(inst: Instance | undefined): ProjectType[] {
   if (!inst) return ALL_TYPES
+  if (inst.server) return ['mod'] // a server has no use for packs or shaders
   return inst.loader === 'Vanilla' ? VANILLA_TYPES : INSTANCE_TYPES
 }
 

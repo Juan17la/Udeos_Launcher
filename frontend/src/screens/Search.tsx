@@ -38,11 +38,11 @@ let saved: Saved | null = null
  *  instance shows as Added. Either way nothing is fetched per card: the
  *  compatibility check happens once, when Add is actually clicked. */
 export default function Search({ instanceId, type: initialType }: Props) {
-  const { t, go, instances, cameBack } = useApp()
+  const { t, go, instances, servers, cameBack } = useApp()
   const [init] = useState(() => (cameBack && saved?.instanceId === instanceId ? saved : null))
   const { jobs } = useContent()
   // A deleted instance (id no longer listed) falls back to unrestricted browsing.
-  const inst = instanceId ? instances.find((i) => i.id === instanceId) : undefined
+  const inst = instanceId ? instances.find((i) => i.id === instanceId) ?? servers.find((s) => s.id === instanceId) : undefined
   const types = allowedTypes(inst)
   const [rawType, setType] = useState<ProjectType>(init?.type ?? initialType ?? 'mod')
   const type = types.includes(rawType) ? rawType : types[0]
