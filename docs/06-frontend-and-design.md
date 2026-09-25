@@ -71,10 +71,13 @@ How it is built:
   supports are offered and a note names the build that will be installed)
   and the icon grid.
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
-  Open folder, Delete with confirmation) and the tabs. The card is the
-  viewport's height (`h-[calc(100vh-9.5rem)]`), never the list's, so a long
-  mods list scrolls past it; the dashboard's Last played panel works the
-  same way. A vanilla instance shows Resource Packs, Worlds, Screenshots and
+  Open folder, Delete with confirmation) and the tabs. The card is
+  `components/SidePanel` (shared with a server's page): exactly the window's
+  height under the back button (`h-[calc(100vh-12.5rem)]`), never the
+  list's, so the page does not scroll because of it and a long mods list
+  scrolls past it. In a short window the details scroll inside the card;
+  Play and the other actions stay at its bottom. The dashboard's Last played
+  panel is sized the same way (it has no back button: `9.5rem`). A vanilla instance shows Resource Packs, Worlds, Screenshots and
   Settings; Mods and Shaders appear only for modded instances. Worlds,
   Resource Packs, Mods and Shaders share the same drop zone pattern (drag a
   file onto the window, or Browse) and a Remove button per item; worlds also
@@ -88,7 +91,11 @@ How it is built:
   JVM arguments. Every file tab has an "Open folder" link.
 
 Every page but the dashboard starts with a **Back to …** button above its
-title (`components/BackButton`). It is dynamic: the app state keeps the
+title (`components/BackButton`). It sticks under the nav on a strip of
+canvas (`sticky top-[70px]`, tucked 2px under the 72px nav so no hairline shows), so it is in reach however far the page
+scrolls; it must sit straight inside the page's `<main>` (a sticky element
+only sticks within its parent), and its padding is taken back by negative
+margins so it adds no height. It is dynamic: the app state keeps the
 screens the player came through (`previous`/`back` in `state/`), so Back
 from a project's Details returns to Addons with its instance lock intact,
 and from there to the instance page. Login and the dashboard are roots —
@@ -97,7 +104,8 @@ nothing behind them, and Back never returns to the login screen.
 The navigation bar carries Instances, Addons, the account menu (theme,
 language, Privacy & Terms) and New Instance. It is `sticky top-0` on the
 canvas colour, so the main options stay in view while a page scrolls; the
-sticky side panels sit under it (`top-24`).
+sticky side panels sit under it (`top-24`), or under the back button on
+pages that have one (`top-30`).
 
 - **Project details**: two columns. Left, in panels: every Minecraft
   version the project ever published for (the first twelve, "+N more"
