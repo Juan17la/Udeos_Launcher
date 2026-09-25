@@ -9,7 +9,10 @@ type Backend = {
   GetAppInfo(): Promise<AppInfo>
   GetProfile(): Promise<ProfileState>
   SaveProfile(p: Profile): Promise<Profile>
+  /** The active profile's instances only (each launcher profile has its own). */
   ListInstances(): Promise<Instance[]>
+  /** How many instances each profile (nickname) has. */
+  InstanceCounts(): Promise<Record<string, number>>
   GetInstance(id: string): Promise<Instance>
   /** loaderVersion comes from ListLoaderVersions (empty for Vanilla). Nothing is downloaded until Play. */
   CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string): Promise<Instance>
@@ -87,9 +90,11 @@ declare global {
 
 export const inWails = typeof window !== 'undefined' && !!window.go
 
-let mock: { backend: Backend; on: <K extends keyof Events>(n: K, cb: (d: Events[K]) => void) => () => void } | null = null
-async function getMock() {
-  if (!mock) mock = (await import('./mock')).createMock()
+// The promise is cached, not the result: calls made while the import is
+// still loading must share one mock, or its state splits in two.
+let mock: Promise<{ backend: Backend; on: <K extends keyof Events>(n: K, cb: (d: Events[K]) => void) => () => void }> | null = null
+function getMock() {
+  if (!mock) mock = import('./mock').then((m) => m.createMock())
   return mock
 }
 
