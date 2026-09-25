@@ -31,6 +31,10 @@ type Instance struct {
 	LastPlayed    *time.Time `json:"lastPlayed,omitempty"`
 	PlayTimeSec   int64      `json:"playTimeSec"`
 	Launch        Launch     `json:"launch"`
+	// Owner is the launcher profile (nickname) the instance belongs to; each
+	// profile sees only its own. "" = not claimed yet (made before profiles
+	// had instances, or just created): the next Adopt hands it to the active one.
+	Owner string `json:"owner,omitempty"`
 }
 
 // Launch is the instance's own JVM settings; a zero value means "use the
@@ -182,6 +186,24 @@ func (s *Store) SetLaunch(id string, l Launch) error {
 		}
 	}
 	return ErrNotFound
+}
+
+// Adopt gives owner every unclaimed instance and every instance owned by one
+// of `from` (profiles being removed, so nothing they had is hidden or lost).
+func (s *Store) Adopt(owner string, from ...string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	changed := false
+	for i := range s.items {
+		if o := s.items[i].Owner; o != owner && (o == "" || slices.Contains(from, o)) {
+			s.items[i].Owner = owner
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return s.saveLocked()
 }
 
 // Touch records a play session.
