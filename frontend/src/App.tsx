@@ -10,6 +10,8 @@ import CreateInstance from './screens/CreateInstance'
 import InstancePage from './screens/instance/InstancePage'
 import Search from './screens/Search'
 import ProjectDetail from './screens/ProjectDetail'
+import Servers from './screens/Servers'
+import ServerPage from './screens/server/ServerPage'
 
 function Shell() {
   const { ready, screen } = useApp()
@@ -20,9 +22,11 @@ function Shell() {
       {screen.name !== 'login' && <Nav />}
       {screen.name === 'login' && <Login />}
       {screen.name === 'dashboard' && <Dashboard />}
-      {screen.name === 'create' && <CreateInstance />}
+      {screen.name === 'create' && <CreateInstance key={String(!!screen.server)} server={screen.server} />}
       {screen.name === 'instance' && <InstancePage id={screen.id} />}
       {screen.name === 'search' && <Search instanceId={screen.instanceId} type={screen.type} />}
+      {screen.name === 'servers' && <Servers />}
+      {screen.name === 'server' && <ServerPage id={screen.id} />}
       {screen.name === 'detail' && <ProjectDetail result={screen.result} instanceId={screen.instanceId} />}
       <LaunchDialog />
       <Notifications />

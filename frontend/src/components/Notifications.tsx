@@ -34,9 +34,9 @@ function LaunchToast() {
 }
 
 function JobToast({ job }: { job: ContentJob }) {
-  const { t, instances } = useApp()
+  const { t, instances, servers } = useApp()
   const { dismiss } = useContent()
-  const name = job.create ? job.create.name || job.result.title : instances.find((i) => i.id === job.instanceId)?.name ?? ''
+  const name = job.create ? job.create.name || job.result.title : [...instances, ...servers].find((i) => i.id === job.instanceId)?.name ?? ''
   const title = job.result.title
   const p = job.progress
   const pct = p && p.total > 0 ? Math.round((p.done / p.total) * 100) : 0

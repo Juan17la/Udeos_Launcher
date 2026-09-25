@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, SortBy, VersionList, World } from './types'
+import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, SortBy, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -68,6 +68,26 @@ type Backend = {
   ListContent(instanceId: string): Promise<ContentEntry[]>
   /** The whole project (full description, aggregated versions/loaders) for the Details page. */
   GetProjectDetail(projectId: string): Promise<ProjectDetail>
+  /** The active profile's servers (servers are instances with `server` set, never in ListInstances). */
+  ListServers(): Promise<Server[]>
+  /** EULA accepted by the caller; iconPNG = 64×64 PNG, base64 (utils/serverIcon). Nothing downloads until Start. */
+  CreateServer(name: string, version: string, loader: Loader, loaderVersion: string, icon: string, iconPNG: string): Promise<Server>
+  SetServerIcon(id: string, iconPNG: string): Promise<void>
+  /** Resolves once the process runs (after any download); state on 'server:state', console on 'server:log'. */
+  StartServer(id: string): Promise<void>
+  StopServer(id: string): Promise<void>
+  ServerCommand(id: string, line: string): Promise<void>
+  ServerLog(id: string): Promise<string[]>
+  ServerProperties(id: string): Promise<Record<string, string>>
+  SetServerProperties(id: string, props: Record<string, string>): Promise<void>
+  GetServerPlayers(id: string): Promise<ServerPlayers>
+  SetServerPlayer(id: string, list: PlayerList, name: string, add: boolean): Promise<ServerPlayers>
+  SetServerPublic(id: string, on: boolean): Promise<void>
+  ListBackups(id: string): Promise<FileEntry[]>
+  BackupServer(id: string): Promise<FileEntry>
+  /** The current world is backed up first. */
+  RestoreBackup(id: string, name: string): Promise<void>
+  RemoveBackup(id: string, name: string): Promise<void>
 }
 
 type Events = {
@@ -75,6 +95,8 @@ type Events = {
   'content:progress': Progress
   'game:state': GameEvent
   'files:dropped': string[]
+  'server:log': { id: string; line: string }
+  'server:state': { id: string }
 }
 
 declare global {
@@ -84,6 +106,7 @@ declare global {
       EventsOn(name: string, cb: (data: unknown) => void): () => void
       EventsOff(name: string): void
       BrowserOpenURL(url: string): void
+      ClipboardSetText(text: string): Promise<boolean>
     }
   }
 }
@@ -115,6 +138,12 @@ export const api: Backend = new Proxy({} as Backend, {
 export function openExternal(url: string) {
   if (inWails && window.runtime) window.runtime.BrowserOpenURL(url)
   else window.open(url, '_blank', 'noopener')
+}
+
+/** Copy to the system clipboard (the webview's navigator.clipboard is not always allowed). */
+export function copyText(text: string) {
+  if (inWails && window.runtime) window.runtime.ClipboardSetText(text)
+  else navigator.clipboard?.writeText(text)
 }
 
 /** Subscribe to a backend event; returns the unsubscribe function. */

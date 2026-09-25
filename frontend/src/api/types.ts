@@ -38,10 +38,21 @@ export type Instance = {
   launch: LaunchSettings
   /** The launcher profile (nickname) it belongs to. */
   owner?: string
+  /** A dedicated server (Servers page), not a game instance. */
+  server?: boolean
+  /** Server only: open to the internet (router port forward) whenever it runs. */
+  public?: boolean
   counts: Counts
   installed: boolean
   running: boolean
 }
+
+/** A server's live state; publicAddress is ip:port once the router forwards the port, publicError says why not. */
+export type ServerState = { starting: boolean; running: boolean; ready: boolean; players: string[]; publicAddress?: string; publicError?: string }
+/** A server instance; `running` is true from Start (files being prepared) until it stops. */
+export type Server = Instance & { state: ServerState; port: number; maxPlayers: number; lanAddress: string }
+export type PlayerList = 'whitelist' | 'ops' | 'banned'
+export type ServerPlayers = { online: string[] } & Record<PlayerList, string[]>
 
 export type VersionOption = { id: string; type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha'; releaseTime: string }
 export type VersionList = { latestRelease: string; latestSnapshot: string; versions: VersionOption[] }

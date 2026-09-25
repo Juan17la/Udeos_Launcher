@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, SortBy, World } from './types'
+import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, SortBy, World } from './types'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -18,6 +18,23 @@ export function createMock() {
     { id: 'i3', name: 'Modded Fun', version: '1.20.1', loader: 'Forge', loaderVersion: '1.20.1-47.4.10', loaderLabel: 'Forge 47.4.10', icon: 'diamond_pickaxe', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 2, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
     { id: 'i4', name: 'Fabric Fun', version: '1.20.1', loader: 'Fabric', loaderVersion: '0.16.9', loaderLabel: 'Fabric 0.16.9', icon: 'diamond', createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false },
   ]
+  // Servers are instances with `server` set, like in the backend; the extra Server fields live on the same object.
+  const newServer = (id: string, name: string, version: string, loader: Loader, loaderVersion: string, icon: string, port: number): Server => ({
+    id, name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`, icon,
+    createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: true, running: false,
+    server: true, public: false, state: { starting: false, running: false, ready: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
+  })
+  instances.push(newServer('s1', 'Friends SMP', '1.21.1', 'Vanilla', '', 'grass_block_side', 25565), newServer('s2', 'Modded Realm', '1.20.1', 'Fabric', '0.16.9', 'diamond', 25566))
+  const serverOf = (id: string) => { const s = instances.find((x) => x.id === id && x.server) as Server | undefined; if (!s) throw new Error('instance not found'); return s }
+  const serverProps: Record<string, Record<string, string>> = { s1: { motd: 'Friends SMP', 'server-port': '25565', 'online-mode': 'false' }, s2: { motd: 'Modded Realm', 'server-port': '25566', 'online-mode': 'false' } }
+  const serverLogs: Record<string, string[]> = {}
+  const playerLists: Record<string, Record<PlayerList, string[]>> = {}
+  const listsOf = (id: string) => (playerLists[id] ??= { whitelist: ['Steve'], ops: [], banned: [] })
+  const backups: Record<string, FileEntry[]> = { s1: [{ name: 'world-2026-09-20_18-30-00.zip', sizeBytes: 48_000_000, modTime: new Date(Date.now() - 5 * 864e5).toISOString(), isDir: false }] }
+  const logLine = (id: string, line: string) => { (serverLogs[id] ??= []).push(line); emit('server:log', { id, line }) }
+  const stamp = () => `[${new Date().toTimeString().slice(0, 8)}] [Server thread/INFO]:`
+  const serverState = (id: string) => emit('server:state', { id })
+  const openPublic = (s: Server) => { s.state.publicAddress = `203.0.113.7:${s.port}`; logLine(s.id, `[Udeos] Open to the internet at ${s.state.publicAddress}`) }
   const loaderOptions: Record<string, Array<[string, string]>> = {
     Fabric: [['24w33a', '0.16.9'], ['1.21.1', '0.16.9'], ['1.20.4', '0.16.9'], ['1.19.2', '0.16.9']],
     Forge: [['1.21.1', '1.21.1-52.1.0'], ['1.20.4', '1.20.4-49.2.0'], ['1.19.2', '1.19.2-43.5.0'], ['1.12.2', '1.12.2-14.23.5.2859']],
@@ -185,8 +202,9 @@ export function createMock() {
       return profile
     },
     // Like the backend: each profile sees its own instances; unclaimed ones go to the active profile.
-    async ListInstances() { if (!profile) return []; const me = profile.nickname; adopt(me, []); return instances.filter((i) => i.owner === me).map((i) => ({ ...i })) },
-    async InstanceCounts() { const out: Record<string, number> = {}; for (const i of instances) out[i.owner ?? ''] = (out[i.owner ?? ''] ?? 0) + 1; return out },
+    async ListInstances() { if (!profile) return []; const me = profile.nickname; adopt(me, []); return instances.filter((i) => i.owner === me && !i.server).map((i) => ({ ...i })) },
+    async ListServers() { if (!profile) return []; const me = profile.nickname; adopt(me, []); return instances.filter((i) => i.owner === me && i.server).map((i) => structuredClone(i as Server)) },
+    async InstanceCounts() { const out: Record<string, number> = {}; for (const i of instances.filter((x) => !x.server)) out[i.owner ?? ''] = (out[i.owner ?? ''] ?? 0) + 1; return out },
     async GetInstance(id: string) { const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); return { ...i } },
     async CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string) {
       const label = loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`
@@ -280,6 +298,70 @@ export function createMock() {
     async ListInstalledProjects(instanceId: string) { return (installed[instanceId] ?? []).map((e) => e.projectId) },
     async ListContent(instanceId: string) { return (installed[instanceId] ?? []).map((e) => ({ ...e })) },
     async GetProjectDetail(projectId: string) { await sleep(300); return projectDetail(projectId) },
+    async CreateServer(name: string, version: string, loader: Loader, loaderVersion: string, icon: string) {
+      const used = new Set(instances.filter((i) => i.server).map((i) => (i as Server).port))
+      let port = 25565; while (used.has(port)) port++
+      const s = newServer('s' + Date.now(), name, version, loader, loaderVersion, icon, port)
+      serverProps[s.id] = { motd: name, 'server-port': String(port), 'online-mode': 'false' }
+      instances.push(s); return structuredClone(s)
+    },
+    async SetServerIcon() {},
+    async StartServer(id: string) {
+      const s = serverOf(id)
+      if (s.state.running || s.state.starting) throw new Error('this server is already running')
+      s.state = { starting: true, running: false, ready: false, players: [] }; s.running = true; serverState(id)
+      logLine(id, '[Udeos] Getting the server files and Java ready…')
+      await sleep(800)
+      s.state.running = true; logLine(id, `[Udeos] Started with 2048 MB of memory on port ${s.port}.`); serverState(id)
+      for (const l of ['Starting minecraft server version ' + s.version, `Starting Minecraft server on *:${s.port}`, '**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!', 'Preparing level "world"']) { await sleep(250); logLine(id, `${stamp()} ${l}`) }
+      setTimeout(() => {
+        logLine(id, `${stamp()} Done (2.104s)! For help, type "help"`); s.state.starting = false; s.state.ready = true
+        if (s.public) openPublic(s)
+        serverState(id)
+        setTimeout(() => { if (s.state.ready) { s.state.players.push('Steve'); logLine(id, `${stamp()} Steve joined the game`); serverState(id) } }, 2500)
+      }, 1200)
+    },
+    async StopServer(id: string) {
+      const s = serverOf(id); logLine(id, '> stop'); logLine(id, `${stamp()} Stopping the server`)
+      setTimeout(() => { s.state = { starting: false, running: false, ready: false, players: [] }; s.running = false; s.playTimeSec += 600; logLine(id, '[Udeos] Server stopped (exit code 0).'); serverState(id) }, 1200)
+    },
+    async ServerCommand(id: string, line: string) {
+      const s = serverOf(id); if (!s.state.running) throw new Error('the server is not running')
+      const cmd = line.replace(/^\//, ''); logLine(id, `> ${cmd}`)
+      const kick = cmd.match(/^kick (\w+)/)
+      if (kick) { s.state.players = s.state.players.filter((p) => p !== kick[1]); logLine(id, `${stamp()} ${kick[1]} left the game`); serverState(id) }
+      else logLine(id, `${stamp()} ${cmd.startsWith('time') ? 'Set the time to 1000' : cmd.startsWith('weather') ? 'Changing to clear weather' : cmd.startsWith('save') ? 'Saved the game' : 'Unknown or incomplete command'}`)
+    },
+    async ServerLog(id: string) { return [...(serverLogs[id] ?? [])] },
+    async ServerProperties(id: string) { return { ...(serverProps[id] ?? {}) } },
+    async SetServerProperties(id: string, props: Record<string, string>) {
+      const port = props['server-port']
+      if (port !== undefined && !(Number(port) >= 1024 && Number(port) <= 65535)) throw new Error('the port must be a number from 1024 to 65535')
+      serverProps[id] = { ...(serverProps[id] ?? {}), ...props }
+      const s = serverOf(id); s.port = Number(serverProps[id]['server-port'] ?? s.port); s.maxPlayers = Number(serverProps[id]['max-players'] ?? s.maxPlayers)
+    },
+    async GetServerPlayers(id: string) { return { online: [...serverOf(id).state.players], ...structuredClone(listsOf(id)) } },
+    async SetServerPlayer(id: string, list: PlayerList, name: string, add: boolean) {
+      if (!/^\w{3,16}$/.test(name)) throw new Error('player names are 3-16 letters, digits or _')
+      const l = listsOf(id); l[list] = l[list].filter((n) => n.toLowerCase() !== name.toLowerCase()); if (add) l[list].push(name)
+      const s = serverOf(id)
+      if (add && list === 'banned' && s.state.players.includes(name)) { s.state.players = s.state.players.filter((p) => p !== name); serverState(id) }
+      return backend.GetServerPlayers(id)
+    },
+    async SetServerPublic(id: string, on: boolean) {
+      const s = serverOf(id); s.public = on
+      if (!on) { s.state.publicAddress = undefined; s.state.publicError = undefined } else if (s.state.ready) { await sleep(600); openPublic(s) }
+      serverState(id)
+    },
+    async ListBackups(id: string) { return [...(backups[id] ?? [])].sort((a, b) => b.modTime.localeCompare(a.modTime)) },
+    async BackupServer(id: string) {
+      const s = serverOf(id); if (s.state.running && !s.state.ready) throw new Error('wait until the server has finished starting')
+      await sleep(700)
+      const d = new Date(); const e: FileEntry = { name: `world-${d.toISOString().slice(0, 19).replace('T', '_').replace(/:/g, '-')}.zip`, sizeBytes: 50_000_000, modTime: d.toISOString(), isDir: false }
+      ;(backups[id] ??= []).push(e); return e
+    },
+    async RestoreBackup(id: string) { if (serverOf(id).state.running) throw new Error('stop the server before restoring a backup'); await backend.BackupServer(id) },
+    async RemoveBackup(id: string, name: string) { backups[id] = (backups[id] ?? []).filter((b) => b.name !== name) },
   }
 
   async function fakeInstall(loader?: Loader) {
