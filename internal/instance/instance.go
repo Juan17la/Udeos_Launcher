@@ -35,6 +35,11 @@ type Instance struct {
 	// profile sees only its own. "" = not claimed yet (made before profiles
 	// had instances, or just created): the next Adopt hands it to the active one.
 	Owner string `json:"owner,omitempty"`
+	// Server marks a dedicated server: its .minecraft is the server folder
+	// (server.properties, world/, mods/). Servers live on the Servers page only.
+	Server bool `json:"server,omitempty"`
+	// Public: open the server's port on the router (UPnP) whenever it runs.
+	Public bool `json:"public,omitempty"`
 }
 
 // Launch is the instance's own JVM settings; a zero value means "use the
@@ -182,6 +187,19 @@ func (s *Store) SetLaunch(id string, l Launch) error {
 	for i := range s.items {
 		if s.items[i].ID == id {
 			s.items[i].Launch = l
+			return s.saveLocked()
+		}
+	}
+	return ErrNotFound
+}
+
+// Update applies fn to the instance and saves the list.
+func (s *Store) Update(id string, fn func(*Instance)) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.items {
+		if s.items[i].ID == id {
+			fn(&s.items[i])
 			return s.saveLocked()
 		}
 	}

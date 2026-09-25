@@ -49,9 +49,12 @@ type Launcher struct {
 	Content   *modinstall.Manager
 	Modpacks  *modpack.Manager
 	OnGame    func(GameEvent)
+	// OnServer receives a server's console lines, and line == "" when its state changed.
+	OnServer func(id, line string)
 
 	mu      sync.Mutex
 	running map[string]*exec.Cmd
+	servers map[string]*serverProc
 }
 
 // New opens the data directory and the instance list. report receives the
@@ -73,7 +76,7 @@ func New(dirs paths.Dirs, version string, report, reportContent func(download.Pr
 		Search:   search,
 		Content:  modinstall.New(dirs, search.Provider, reportContent),
 		Modpacks: modpack.New(dirs, search.Provider, store, reportContent),
-		OnGame:   onGame, running: map[string]*exec.Cmd{},
+		OnGame:   onGame, running: map[string]*exec.Cmd{}, servers: map[string]*serverProc{},
 	}, nil
 }
 
