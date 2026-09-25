@@ -5,6 +5,7 @@ import { api } from '../api/bridge'
 import Dialog from '../ui/Dialog'
 import Button from '../ui/Button'
 import InstanceIcon from './InstanceIcon'
+import { InstanceTags } from './Tags'
 
 /** While Play prepares the game: a loading modal (the instance's block
  *  hopping, a striped bar, the percentage), which Hide or Escape shrinks to a
@@ -44,10 +45,7 @@ function LoadingModal() {
           <div className="motion-safe:animate-[block-hop_1.1s_ease-in-out_infinite]"><InstanceIcon inst={inst} size={72} /></div>
           <div className="w-14 h-2 mt-2 rounded-md bg-black/15 motion-safe:animate-[block-shadow_1.1s_ease-in-out_infinite]" />
         </div>
-        <div className="flex gap-2">
-          <span className="tag bg-green-soft">{inst.version}</span>
-          <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
-        </div>
+        <InstanceTags inst={inst} className="justify-center" />
         <div className="w-full flex flex-col gap-2">
           <div className="h-4 rounded-md bg-idle/60 overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
             <div className="h-full rounded-md bg-primary motion-safe:animate-[bar-stripes_0.8s_linear_infinite]"
