@@ -43,6 +43,13 @@ func TestLoadersFrom(t *testing.T) {
 	}
 }
 
+func TestReleasesFrom(t *testing.T) {
+	got := releasesFrom([]string{"1.16.5", "20w14a", "1.21-rc1", "1.21.1", "26.3-rc-1", "26.3"})
+	if strings.Join(got, ",") != "1.16.5,1.21.1,26.3" {
+		t.Fatalf("releasesFrom = %v", got)
+	}
+}
+
 func TestTruncateDescription(t *testing.T) {
 	if got := truncateDescription("short", 160); got != "short" {
 		t.Errorf("got %q", got)
