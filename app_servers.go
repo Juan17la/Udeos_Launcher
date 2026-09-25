@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"maps"
 	"net"
 	"os"
 	"path/filepath"
@@ -75,8 +76,9 @@ func (a *App) ListServers() []ServerView {
 }
 
 // CreateServer makes a server folder: the EULA accepted (the form asks),
-// the name as its MOTD, offline mode (Udeos players have no Microsoft
-// account) and the first port no other server uses. iconPNG is the 64×64
+// the name as its MOTD, players joining through Udeos Launcher so skins
+// show (Udeos players have no Microsoft account; see Instance.UdeosLogin)
+// and the first port no other server uses. iconPNG is the 64×64
 // server-icon.png, base64. Nothing is downloaded until the first start.
 func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG string) (ServerView, error) {
 	if !loader.Valid(ldr) || ldr == loader.Quilt {
@@ -98,9 +100,11 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 	}
 	err = errors.Join(
 		// The address name is fixed now, so renaming the server later does not change the address friends saved.
-		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) { i.Server, i.Internet.Name = true, server.DefaultAddressName(inst.Name) }),
+		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) {
+			i.Server, i.Internet.Name, i.UdeosLogin = true, server.DefaultAddressName(inst.Name), true
+		}),
 		os.WriteFile(filepath.Join(dir, "eula.txt"), []byte("# Accepted in Udeos Launcher: https://aka.ms/MinecraftEULA\neula=true\n"), 0o644),
-		server.WriteProperties(dir, map[string]string{"motd": inst.Name, "online-mode": "false", "server-port": strconv.Itoa(port)}),
+		server.WriteProperties(dir, map[string]string{"motd": inst.Name, "online-mode": "true", "enforce-secure-profile": "false", "server-port": strconv.Itoa(port)}),
 	)
 	if err == nil && iconPNG != "" {
 		err = a.SetServerIcon(inst.ID, iconPNG)
@@ -157,17 +161,40 @@ func (a *App) ServerCommand(id, line string) error { return a.launcher.ServerCom
 // ServerLog returns the latest console lines.
 func (a *App) ServerLog(id string) []string { return a.launcher.ServerLog(id) }
 
-// ServerProperties returns server.properties as key → value.
+// loginKey is who can join, as the settings form shows it: "udeos"
+// (through Udeos Launcher, skins show), "offline" (any launcher, no skins)
+// or "microsoft" (Microsoft accounts only). It is not a server.properties
+// key: it maps to online-mode plus Instance.UdeosLogin.
+const loginKey = "login"
+
+func loginMode(inst instance.Instance, props map[string]string) string {
+	switch {
+	case inst.UdeosLogin:
+		return "udeos"
+	case props["online-mode"] == "true":
+		return "microsoft"
+	}
+	return "offline"
+}
+
+// ServerProperties returns server.properties as key → value, plus "login" (see loginKey).
 func (a *App) ServerProperties(id string) (map[string]string, error) {
 	dir, err := a.gameDir(id)
 	if err != nil {
 		return nil, err
 	}
-	return server.ReadProperties(dir)
+	props, err := server.ReadProperties(dir)
+	if err != nil {
+		return nil, err
+	}
+	inst, err := a.launcher.Instances.Get(id)
+	props[loginKey] = loginMode(inst, props)
+	return props, err
 }
 
-// SetServerProperties saves the given keys; the server reads them on its
-// next start, except the whitelist switch, which a running server applies now.
+// SetServerProperties saves the given keys ("login" included, see
+// loginKey); the server reads them on its next start, except the whitelist
+// switch, which a running server applies now.
 func (a *App) SetServerProperties(id string, props map[string]string) error {
 	dir, err := a.gameDir(id)
 	if err != nil {
@@ -189,6 +216,20 @@ func (a *App) SetServerProperties(id string, props map[string]string) error {
 	for k, v := range props {
 		if strings.ContainsAny(k+v, "\r\n") {
 			return errors.New("settings cannot contain line breaks")
+		}
+	}
+	if mode, ok := props[loginKey]; ok {
+		if mode != "udeos" && mode != "offline" && mode != "microsoft" {
+			return errors.New("unknown login mode " + mode)
+		}
+		props = maps.Clone(props)
+		delete(props, loginKey)
+		props["online-mode"] = strconv.FormatBool(mode != "offline")
+		if mode == "udeos" {
+			props["enforce-secure-profile"] = "false"
+		}
+		if err := a.launcher.Instances.Update(id, func(i *instance.Instance) { i.UdeosLogin = mode == "udeos" }); err != nil {
+			return err
 		}
 	}
 	if err := server.WriteProperties(dir, props); err != nil {
@@ -244,7 +285,7 @@ func (a *App) SetServerPlayer(id, list, name string, add bool) (ServerPlayers, e
 	}
 	uuid := ""
 	if add {
-		if uuid, err = a.playerUUID(dir, name); err != nil {
+		if uuid, err = a.playerUUID(id, dir, name); err != nil {
 			return ServerPlayers{}, err
 		}
 	}
@@ -261,10 +302,12 @@ func (a *App) SetServerPlayer(id, list, name string, add bool) (ServerPlayers, e
 }
 
 // playerUUID is the id the server knows the player by: the offline UUID
-// (what Udeos players get) unless the server checks Microsoft accounts.
-func (a *App) playerUUID(dir, name string) (string, error) {
+// (what Udeos players get, also through the Udeos login) unless the server
+// checks Microsoft accounts.
+func (a *App) playerUUID(id, dir, name string) (string, error) {
+	inst, _ := a.launcher.Instances.Get(id)
 	props, _ := server.ReadProperties(dir)
-	if props["online-mode"] != "true" {
+	if loginMode(inst, props) != "microsoft" {
 		return profile.OfflineUUID(name), nil
 	}
 	var res struct {

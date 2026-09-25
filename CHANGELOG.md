@@ -7,6 +7,22 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Skins** — a new Skins page, like the official launcher's: the skin you
+  wear on a 3D model you can turn, and a library of every skin you saved
+  (use, edit, delete). Drop a `.png` skin (or browse for one) to add it:
+  the launcher guesses Classic (4-pixel arms) or Slim (3-pixel arms) and
+  shows a preview while you pick; old 64×32 skins are upgraded. **New skin**
+  and Edit open an editor: paint on the flat skin or right on the model,
+  with pencil, eraser, fill, color picker, undo/redo and the second layer
+  (hats, jackets, sleeves). Each profile's skin is used in all its instances
+  from the next Play, and its face becomes the profile's avatar. Skins show
+  in singleplayer and on the servers you host; public servers may show a
+  default skin.
+- **Who can join a server** — server Settings now choose between "Udeos
+  players" (players join through Udeos Launcher and skins show; other
+  launchers cannot join), "Anyone" (any launcher, no skins) and "Microsoft
+  accounts". New servers start on "Udeos players"; existing servers keep
+  letting anyone in.
 - **Servers** — a new Servers page hosts Minecraft worlds on this computer
   (Vanilla, Fabric, Forge or NeoForge; accept the EULA when creating). Each
   server has a name, a block icon (shown in the multiplayer list), Start/Stop,

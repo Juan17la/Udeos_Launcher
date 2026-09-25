@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, SortBy, VersionList, World } from './types'
+import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -78,6 +78,7 @@ type Backend = {
   StopServer(id: string): Promise<void>
   ServerCommand(id: string, line: string): Promise<void>
   ServerLog(id: string): Promise<string[]>
+  /** server.properties plus 'login' (ServerLogin), which is not a file key: it maps to online-mode and udeosLogin. */
   ServerProperties(id: string): Promise<Record<string, string>>
   SetServerProperties(id: string, props: Record<string, string>): Promise<void>
   GetServerPlayers(id: string): Promise<ServerPlayers>
@@ -92,6 +93,18 @@ type Backend = {
   RemoveBackup(id: string, name: string): Promise<void>
   /** Saves and stops every server, then closes the launcher (the answer to 'app:close'). */
   QuitLauncher(): Promise<void>
+  /** The skin library (shared by every profile) and what each profile wears. */
+  ListSkins(): Promise<SkinLibrary>
+  /** id '' adds a skin; png is a 64×64 PNG as base64. */
+  SaveSkin(id: string, name: string, model: SkinModel, png: string): Promise<Skin>
+  /** Profiles wearing it go back to Minecraft's default. */
+  DeleteSkin(id: string): Promise<void>
+  /** The active profile wears it in all its instances from the next Play; '' = Minecraft's default. */
+  EquipSkin(id: string): Promise<void>
+  /** A dropped .png, checked and converted to 64×64 (old 64×32 skins are upgraded); not saved yet. */
+  ReadSkinFile(path: string): Promise<SkinFile>
+  /** File chooser, then ReadSkinFile; png '' when cancelled. */
+  PickSkinFile(): Promise<SkinFile>
 }
 
 type Events = {
