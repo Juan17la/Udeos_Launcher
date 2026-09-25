@@ -37,7 +37,9 @@ const VARIANT: Record<ButtonVariant, string> = {
   ghost: 'bg-transparent text-text hover:bg-idle/40 active:bg-idle/60',
 }
 
-const base = 'relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-98 disabled:pointer-events-none disabled:shadow-none'
+/* transform-gpu: a permanent compositing layer, so WebKitGTK does not
+   create/drop one around the hover lift and flash white (see panel-hover in tokens.css). */
+const base = 'transform-gpu relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-98 disabled:pointer-events-none disabled:shadow-none'
 const idleDisabled = 'disabled:opacity-60 disabled:cursor-not-allowed'
 
 export default function Button({ variant = 'idle', size = 'md', block, square, loading, className = '', type = 'button', children, disabled, ...rest }: Props) {

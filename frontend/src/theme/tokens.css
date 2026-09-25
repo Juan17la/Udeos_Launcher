@@ -128,7 +128,8 @@ body {
   -webkit-user-select: none; user-select: none;
 }
 input, textarea { -webkit-user-select: text; user-select: text; }
-input, select, textarea { font: inherit; }
+/* Layered, so the size/weight utilities on a control still win. */
+@layer base { button, input, select, textarea { font: inherit; } }
 #root { display: flex; flex-direction: column; }
 /* Headings sit directly on the canvas, never inside a panel. */
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-mono); font-weight: 700; line-height: 1.15; margin: 0 0 8px; }
@@ -162,9 +163,14 @@ img { display: block; max-width: 100%; }
 /* ── Surfaces (docs/11-design-system.md): look only, no layout, so the
    caller writes its own flex/gap/padding. ───────────────────────────── */
 /* Neumorphic panel: sits on the canvas with soft light-and-shadow. Forms,
-   side panels, cards; `panel-hover` lifts a clickable card. */
+   side panels, cards; `panel-hover` lifts a clickable card. transform-gpu
+   (translateZ(0)) keeps the card on its own compositing layer all the
+   time: WebKitGTK otherwise creates the layer when the hover lift starts
+   and drops it when it ends, painting it blank for a frame (a white flash
+   on a quick hover in and out). will-change-transform was not enough:
+   Tailwind 4 lifts with the separate `translate` property, not `transform`. */
 @utility panel { @apply rounded-md bg-panel shadow-neu transition-all; }
-@utility panel-hover { @apply hover:-translate-y-0.5 hover:shadow-glass; }
+@utility panel-hover { @apply transform-gpu hover:-translate-y-0.5 hover:shadow-glass; }
 /* Glass: translucent and blurred. Dialogs, popovers, toasts, loaders, status messages. */
 @utility glass { @apply rounded-md bg-glass border border-glass-border backdrop-blur-lg shadow-glass; }
 /* Tag: add the fill — bg-tag-gray (neutral metadata), bg-green-soft (active /
