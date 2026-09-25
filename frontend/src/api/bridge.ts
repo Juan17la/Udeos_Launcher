@@ -105,6 +105,9 @@ type Backend = {
   ReadSkinFile(path: string): Promise<SkinFile>
   /** File chooser, then ReadSkinFile; png '' when cancelled. */
   PickSkinFile(): Promise<SkinFile>
+  /** Stops a download: 'launch:<instance id>' (Play installing the game) or 'content' (the running Addons install).
+   *  The call it belongs to rejects with "context canceled" (see isCanceled). */
+  CancelDownload(key: string): Promise<void>
 }
 
 type Events = {

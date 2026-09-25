@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, on } from '../api/bridge'
 import type { GameEvent, Progress } from '../api/types'
-import { messageOf } from '../utils/errors'
+import { isCanceled, messageOf } from '../utils/errors'
 
 /** What the Play button is doing right now. */
 export type LaunchState =
@@ -11,7 +11,7 @@ export type LaunchState =
   | { status: 'exited'; instanceId: string; exitCode: number; logPath: string }
 
 /** minimizeLaunch hides the loading modal; the progress carries on as a notification. */
-export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void; minimizeLaunch: () => void }
+export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void; minimizeLaunch: () => void; cancelLaunch: () => void }
 
 /** Owns the launch state: Play, the install progress ticks while preparing,
  *  and the game process events (running clears it, a bad exit opens the
@@ -40,7 +40,8 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
       await api.LaunchInstance(id)
       await refreshInstances()
     } catch (e) {
-      setLaunch({ status: 'error', instanceId: id, message: messageOf(e) })
+      const message = messageOf(e)
+      setLaunch(isCanceled(message) ? { status: 'idle' } : { status: 'error', instanceId: id, message })
     }
   }, [refreshInstances])
 
@@ -48,5 +49,8 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
 
   const minimizeLaunch = useCallback(() => setLaunch((cur) => (cur.status === 'preparing' ? { ...cur, minimized: true } : cur)), [])
 
-  return { launch, play, dismissLaunch, minimizeLaunch }
+  // Stops the game download; play() then ends quietly (a cancel is not an error).
+  const cancelLaunch = useCallback(() => { if (launch.status === 'preparing') api.CancelDownload('launch:' + launch.instanceId) }, [launch])
+
+  return { launch, play, dismissLaunch, minimizeLaunch, cancelLaunch }
 }
