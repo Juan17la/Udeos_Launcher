@@ -5,7 +5,7 @@ import { compact, loaderName, versionRange } from '../utils/format'
 import type { Instance } from '../api/types'
 
 /** The tags every card uses, formatted one way: the Minecraft version(s) in
- *  green behind a grass block, loaders in gold, downloads in gray. */
+ *  green behind a grass block, loaders in gold. */
 
 export function VersionTag({ versions }: { versions: string[] }) {
   const label = versionRange(versions)
@@ -24,11 +24,12 @@ export function LoaderTags({ loaders, max = 3 }: { loaders: string[]; max?: numb
   )
 }
 
-export function DownloadsTag({ n }: { n: number }) {
+/** Not a tag: a muted line under the author, "↓ 42M downloads" (exact count on hover). */
+export function Downloads({ n, className = '' }: { n: number; className?: string }) {
   const { t, language } = useApp()
   return (
-    <span className="tag bg-tag-gray gap-1 shrink-0" title={`${n.toLocaleString(language)} ${t.search.downloadsWord}`}>
-      <Download size={10} />{compact(n, language)}
+    <span className={`inline-flex items-center gap-1 text-xs text-muted ${className}`} title={n.toLocaleString(language)}>
+      <Download size={11} />{compact(n, language)} {t.search.downloadsWord}
     </span>
   )
 }
