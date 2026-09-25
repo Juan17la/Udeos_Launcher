@@ -81,13 +81,29 @@ through two events: `server:log` (a console line) and `server:state`
    to the instance and the entry is removed.
 
 Typing in the Console tab writes the line to the server's stdin (a leading
-`/` is dropped). **Stop** types `stop` and kills the process if it is still
-alive 60 seconds later. When the launcher closes, every running server gets
-`stop` and the launcher waits up to 30 seconds for them to save.
+`/` is dropped). **Stop** types `stop`, marks the state `Stopping` (the card
+says "Stopping…") and kills the process if it is still alive 60 seconds
+later. `StopServerWait` does the same and returns once the process is gone
+(each server has an `exited` channel, closed after the cleanup above).
 
 **Backups** of a running server pause saving: `save-off`, `save-all flush`,
 wait for the "Saved the game" line, zip the world into `backups/`, `save-on`.
 Restoring needs a stopped server and backs the current world up first.
+
+## Guards and warnings
+
+| When | What happens | Where |
+|------|--------------|-------|
+| Start while 2 other servers run | "Start another server?": each one takes its own RAM and CPU | `components/ServerButton.tsx` (counts the active profile's servers) |
+| Close the window while servers run | Wails `OnBeforeClose` keeps the window open and emits `app:close` {running}; the dialog's "Close anyway" calls `QuitLauncher`, which stops every server (up to 30 s), then quits | `app.go` `beforeClose`/`QuitLauncher`, `components/CloseDialog.tsx` |
+| The launcher exits anyway | `OnShutdown` stops every server and waits up to 30 s for them to save; a server still saving after that finishes on its own (it already got `stop`) | `app.go` `shutdown` |
+| Delete a running server | The confirm says it will be stopped; `DeleteInstance` calls `StopServerWait`, then deletes the folder | `app_instances.go`, `screens/server/ServerPage.tsx` |
+| Save changed settings on a running server | "Save and stop the server?": the server reads `server.properties` and its launch settings only when it starts. After saving, it is stopped. Unchanged forms save without asking | `components/SaveSettingsButton.tsx` (server settings + launch settings) |
+| Save server settings | Refused: a port another server uses (any profile's), port outside 1024–65535, max players outside 1–500, view distance outside 2–32 | `app_servers.go` `SetServerProperties` |
+
+A server still getting its files ready (downloading, running the Forge
+installer) has no process yet and cannot be stopped: deleting it then says to
+wait until it has started.
 
 ## How friends join
 
