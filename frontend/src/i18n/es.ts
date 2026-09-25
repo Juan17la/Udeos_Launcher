@@ -41,7 +41,7 @@ const es: Dict = {
     loaderUnsupported: '{loader} no tiene una versión para {version}.',
   },
   instance: {
-    edit: 'Editar nombre e icono', deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
+    editShort: 'Editar', folder: 'Carpeta', playTime: 'Tiempo jugado', edit: 'Editar nombre e icono', deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
     notInstalled: 'Aún no descargada — Jugar la descargará primero.', installed: 'Lista para jugar',
     tabs: { mods: 'Mods', resourcepacks: 'Paquetes de recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas', settings: 'Ajustes' },
     views: { card: 'Tarjetas', compact: 'Compacto' }, addedByHand: 'Añadido a mano',
@@ -68,7 +68,7 @@ const es: Dict = {
     subtitle: 'Explora mods, paquetes de recursos, shaders y modpacks de Modrinth.',
     searchPlaceholder: 'Buscar…', anyVersion: 'Cualquier versión', anyLoader: 'Cualquier cargador',
     types: { mod: 'Mods', resourcepack: 'Paquetes de recursos', shader: 'Shaders', modpack: 'Modpacks' },
-    downloads: '{n} descargas', empty: 'No se encontraron resultados.',
+    downloadsWord: 'descargas', empty: 'No se encontraron resultados.',
     pages: 'Páginas', goTo: 'Página…', showing: '{from}–{to} de {total}',
     previous: 'Anterior', next: 'Siguiente',
     add: 'Añadir', details: 'Detalles', createInstance: 'Crear instancia',
