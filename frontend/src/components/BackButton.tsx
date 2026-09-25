@@ -12,6 +12,7 @@ export default function BackButton() {
       case 'search': return t.nav.search
       case 'create': return previous.server ? t.servers.create.title : t.create.title
       case 'servers': return t.nav.servers
+      case 'skins': return t.nav.skins
       case 'server': return servers.find((s) => s.id === previous.id)?.name ?? t.nav.servers
       case 'instance': return instances.find((i) => i.id === previous.id)?.name ?? t.nav.dashboard
       case 'detail': return previous.result.title

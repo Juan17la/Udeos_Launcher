@@ -13,6 +13,8 @@ import Search from './screens/Search'
 import ProjectDetail from './screens/ProjectDetail'
 import Servers from './screens/Servers'
 import ServerPage from './screens/server/ServerPage'
+import Skins from './screens/Skins'
+import SkinEditor from './screens/SkinEditor'
 
 function Shell() {
   const { ready, screen } = useApp()
@@ -29,6 +31,8 @@ function Shell() {
       {screen.name === 'servers' && <Servers />}
       {screen.name === 'server' && <ServerPage id={screen.id} />}
       {screen.name === 'detail' && <ProjectDetail result={screen.result} instanceId={screen.instanceId} />}
+      {screen.name === 'skins' && <Skins />}
+      {screen.name === 'skinEditor' && <SkinEditor key={screen.id ?? ''} id={screen.id} />}
       <LaunchDialog />
       <Notifications />
       <PrivacyDialog />
