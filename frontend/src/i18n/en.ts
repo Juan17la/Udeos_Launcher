@@ -75,7 +75,12 @@ const en = {
     status: { stopped: 'Stopped', starting: 'Starting…', online: 'Online' }, playersOf: '{n}/{max} players',
     address: 'Address', copy: 'Copy', copied: 'Copied', port: 'Port', memory: 'Memory', runTime: 'Run time', playersStat: 'Players',
     startFailed: 'Start failed',
+    manyTitle: 'Start another server?', startAnyway: 'Start anyway',
+    many: '{n} servers are already running. Each one takes its own memory and CPU, so this computer, the game and every server may slow down.',
     deleteServer: 'Delete server', confirmDeleteTitle: 'Delete this server?', confirmDelete: 'This removes the server, its world and every backup. This cannot be undone.',
+    confirmDeleteRunning: 'It is running: it will be saved and stopped first, and everyone on it disconnected.',
+    saveStop: { title: 'Save and stop the server?', body: 'The server reads its settings when it starts, so it will be saved and stopped now. Start it again to play with the changes.', confirm: 'Save and stop' },
+    close: { title: 'Close the launcher?', body: '{n} server(s) running. Closing saves and stops them, and everyone playing on them is disconnected.', confirm: 'Close anyway' },
     tabs: { console: 'Console', players: 'Players', internet: 'Internet', backups: 'Backups', mods: 'Mods', settings: 'Settings' },
     console: {
       placeholder: 'Type a command, e.g. time set day', off: 'Start the server to use the console.', send: 'Send', empty: 'Nothing here yet. Start the server to see its console.',

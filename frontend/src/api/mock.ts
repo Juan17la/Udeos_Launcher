@@ -24,7 +24,7 @@ export function createMock() {
     id, name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`, icon,
     createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: true, running: false,
     server: true, public: false, internet: {}, addressName: defaultAddressName(name),
-    state: { starting: false, running: false, ready: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
+    state: { starting: false, running: false, ready: false, stopping: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
   })
   instances.push(newServer('s1', 'Friends SMP', '1.21.1', 'Vanilla', '', 'grass_block_side', 25565), newServer('s2', 'Modded Realm', '1.20.1', 'Fabric', '0.16.9', 'diamond', 25566))
   const serverOf = (id: string) => { const s = instances.find((x) => x.id === id && x.server) as Server | undefined; if (!s) throw new Error('instance not found'); return s }
@@ -222,7 +222,13 @@ export function createMock() {
       const inst: Instance = { id: 'i' + Date.now(), name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: label, icon, createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: false, running: false }
       instances.push(inst); return inst
     },
-    async DeleteInstance(id: string) { const i = instances.findIndex((x) => x.id === id); if (i >= 0) instances.splice(i, 1) },
+    async DeleteInstance(id: string) {
+      // Like the backend: a running server saves and stops first.
+      const s = instances.find((x) => x.id === id && x.server && x.running)
+      if (s) { await backend.StopServer(id); await sleep(1300) }
+      const i = instances.findIndex((x) => x.id === id); if (i >= 0) instances.splice(i, 1)
+    },
+    async QuitLauncher() {},
     async SetInstanceInfo(id: string, name: string, icon: string) {
       const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); i.name = name; if (icon) i.icon = icon; return { ...i }
     },
@@ -320,7 +326,7 @@ export function createMock() {
     async StartServer(id: string) {
       const s = serverOf(id)
       if (s.state.running || s.state.starting) throw new Error('this server is already running')
-      s.state = { starting: true, running: false, ready: false, players: [] }; s.running = true; serverState(id)
+      s.state = { starting: true, running: false, ready: false, stopping: false, players: [] }; s.running = true; serverState(id)
       logLine(id, '[Udeos] Getting the server files and Java ready…')
       await sleep(800)
       s.state.running = true; logLine(id, `[Udeos] Started with 2048 MB of memory on port ${s.port}.`); serverState(id)
@@ -334,7 +340,8 @@ export function createMock() {
     },
     async StopServer(id: string) {
       const s = serverOf(id); logLine(id, '> stop'); logLine(id, `${stamp()} Stopping the server`)
-      setTimeout(() => { s.state = { starting: false, running: false, ready: false, players: [] }; s.running = false; s.playTimeSec += 600; logLine(id, '[Udeos] Server stopped (exit code 0).'); serverState(id) }, 1200)
+      s.state.stopping = true; serverState(id)
+      setTimeout(() => { s.state = { starting: false, running: false, ready: false, stopping: false, players: [] }; s.running = false; s.playTimeSec += 600; logLine(id, '[Udeos] Server stopped (exit code 0).'); serverState(id) }, 1200)
     },
     async ServerCommand(id: string, line: string) {
       const s = serverOf(id); if (!s.state.running) throw new Error('the server is not running')
@@ -348,6 +355,8 @@ export function createMock() {
     async SetServerProperties(id: string, props: Record<string, string>) {
       const port = props['server-port']
       if (port !== undefined && !(Number(port) >= 1024 && Number(port) <= 65535)) throw new Error('the port must be a number from 1024 to 65535')
+      const clash = instances.find((i) => i.server && i.id !== id && (i as Server).port === Number(port))
+      if (clash) throw new Error(`the server "${clash.name}" already uses port ${port}: pick another one`)
       serverProps[id] = { ...(serverProps[id] ?? {}), ...props }
       const s = serverOf(id); s.port = Number(serverProps[id]['server-port'] ?? s.port); s.maxPlayers = Number(serverProps[id]['max-players'] ?? s.maxPlayers)
     },

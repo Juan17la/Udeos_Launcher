@@ -11,6 +11,7 @@ import SegmentedControl from '../../ui/SegmentedControl'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { hours } from '../../utils/format'
+import { messageOf } from '../../utils/errors'
 import FilesTab from '../instance/FilesTab'
 import SettingsTab from '../instance/SettingsTab'
 import ConsoleTab from './ConsoleTab'
@@ -33,15 +34,21 @@ export default function ServerPage({ id }: { id: string }) {
   const [tab, setTabState] = useState<Tab>(() => lastTab.get(id) ?? 'console')
   const setTab = (k: Tab) => { lastTab.set(id, k); setTabState(k) }
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
 
   useEffect(() => { if (!server) go({ name: 'servers' }) }, [server, go])
   if (!server) return null
 
+  // A running server is saved and stopped first (the backend waits for it).
   const remove = async () => {
-    await api.DeleteInstance(server.id)
-    await refreshInstances()
-    go({ name: 'servers' })
+    setDeleting(true); setDeleteError(null)
+    try {
+      await api.DeleteInstance(server.id)
+      await refreshInstances()
+      go({ name: 'servers' })
+    } catch (e) { setDeleteError(messageOf(e)); setDeleting(false) }
   }
 
   const stats: [string, string | number][] = [
@@ -81,7 +88,7 @@ export default function ServerPage({ id }: { id: string }) {
             <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
             <Button variant="idle" onClick={() => api.OpenInstanceFolder(server.id, '')}><Folder /> {t.instance.folder}</Button>
           </div>
-          <Button variant="danger" size="sm" disabled={server.running} onClick={() => setConfirmDelete(true)}>
+          <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>
             <X size={12} /> {t.servers.deleteServer}
           </Button>
         </div>
@@ -106,8 +113,9 @@ export default function ServerPage({ id }: { id: string }) {
 
       {editing && <EditInstanceDialog inst={server} onClose={() => setEditing(false)} />}
       {confirmDelete && (
-        <ConfirmDialog danger title={t.servers.confirmDeleteTitle} body={t.servers.confirmDelete} confirmLabel={t.common.delete}
-          onConfirm={remove} onClose={() => setConfirmDelete(false)} />
+        <ConfirmDialog danger busy={deleting} title={t.servers.confirmDeleteTitle} confirmLabel={t.common.delete}
+          body={deleteError ?? (server.running ? `${t.servers.confirmDelete} ${t.servers.confirmDeleteRunning}` : t.servers.confirmDelete)}
+          onConfirm={remove} onClose={() => { setConfirmDelete(false); setDeleteError(null) }} />
       )}
     </main>
   )

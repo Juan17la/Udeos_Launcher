@@ -23,15 +23,16 @@ export default function Dialog({ title, children, actions, onClose, width = 440 
   )
 }
 
-type ConfirmProps = { title: string; body: string; confirmLabel: string; onConfirm: () => void; onClose: () => void; danger?: boolean }
+type ConfirmProps = { title: string; body: string; confirmLabel: string; onConfirm: () => void; onClose: () => void; danger?: boolean; busy?: boolean }
 
-/** Yes/no question; `danger` paints the confirm button red (deletes). */
-export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onClose, danger }: ConfirmProps) {
+/** Yes/no question; `danger` paints the confirm button red (deletes), `busy`
+ *  spins it while the answer is being carried out. */
+export function ConfirmDialog({ title, body, confirmLabel, onConfirm, onClose, danger, busy }: ConfirmProps) {
   const { t } = useApp()
   return (
     <Dialog title={title} onClose={onClose} actions={<>
-      <Button variant="idle" onClick={onClose}>{t.common.cancel}</Button>
-      <Button variant={danger ? 'danger' : 'primary'} onClick={onConfirm}>{confirmLabel}</Button>
+      <Button variant="idle" disabled={busy} onClick={onClose}>{t.common.cancel}</Button>
+      <Button variant={danger ? 'danger' : 'primary'} loading={busy} onClick={onConfirm}>{confirmLabel}</Button>
     </>}>
       {body}
     </Dialog>
