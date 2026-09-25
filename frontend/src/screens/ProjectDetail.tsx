@@ -6,7 +6,7 @@ import Button from '../ui/Button'
 import AutoLoader from '../ui/Loader'
 import BackButton from '../components/BackButton'
 import ProjectIcon from '../components/ProjectIcon'
-import { DownloadsTag, LoaderTags } from '../components/Tags'
+import { Downloads, LoaderTags } from '../components/Tags'
 import Markdown from '../utils/markdown'
 import { computeCompat } from '../utils/compat'
 import { useAddAction } from '../hooks/useAddAction'
@@ -93,12 +93,14 @@ export default function ProjectDetail({ result, instanceId }: Props) {
               <div className="min-w-0 flex flex-col gap-2">
                 <div className="flex gap-2 flex-wrap">
                   <span className="tag bg-tag-gray">{t.search.types[result.projectType]}</span>
-                  <DownloadsTag n={detail.downloads} />
                   {detail.categories.map((c) => <span key={c} className="tag bg-green-soft">{c}</span>)}
                 </div>
                 <h1 className="m-0">{detail.title}</h1>
                 <p className="m-0 text-muted">{detail.description}</p>
-                {result.author && <div className="text-[13px] text-muted">{result.author}</div>}
+                <div className="flex flex-col gap-1">
+                  {result.author && <span className="text-[13px] text-muted">{result.author}</span>}
+                  <Downloads n={detail.downloads} />
+                </div>
               </div>
             </div>
 
