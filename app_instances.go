@@ -109,8 +109,9 @@ func (a *App) PickJava() (string, error) {
 
 // DeleteInstance removes the instance (or server) and all its files.
 func (a *App) DeleteInstance(id string) error {
-	if a.launcher.ServerStatus(id).Running || a.launcher.ServerStatus(id).Starting {
-		return errors.New("stop the server before deleting it")
+	// A running server saves and stops first, so its files are not in use.
+	if err := a.launcher.StopServerWait(id); err != nil {
+		return err
 	}
 	return a.launcher.Instances.Delete(id)
 }

@@ -82,15 +82,9 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 	if !loader.Valid(ldr) || ldr == loader.Quilt {
 		return ServerView{}, errors.New("servers run Vanilla, Fabric, Forge or NeoForge")
 	}
-	used := map[string]bool{}
-	for _, it := range a.launcher.Instances.List() {
-		if it.Server {
-			props, _ := server.ReadProperties(a.launcher.Dirs.GameDir(it.ID))
-			used[props["server-port"]] = true
-		}
-	}
+	used := a.serverPorts("")
 	port := 25565
-	for used[strconv.Itoa(port)] {
+	for used[strconv.Itoa(port)] != "" {
 		port++
 	}
 	inst, err := a.launcher.Instances.Create(name, version, ldr, loaderVersion, icon)
@@ -117,6 +111,23 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 	}
 	inst, _ = a.launcher.Instances.Get(inst.ID)
 	return a.serverView(inst), nil
+}
+
+// serverPorts maps each port a server uses (every profile's) to its name,
+// leaving out the server skip.
+func (a *App) serverPorts(skip string) map[string]string {
+	used := map[string]string{}
+	for _, it := range a.launcher.Instances.List() {
+		if it.Server && it.ID != skip {
+			props, _ := server.ReadProperties(a.launcher.Dirs.GameDir(it.ID))
+			port := props["server-port"]
+			if port == "" {
+				port = "25565"
+			}
+			used[port] = it.Name
+		}
+	}
+	return used
 }
 
 // SetServerIcon writes server-icon.png (base64 PNG, 64×64): the picture
@@ -162,10 +173,18 @@ func (a *App) SetServerProperties(id string, props map[string]string) error {
 	if err != nil {
 		return err
 	}
-	if p, ok := props["server-port"]; ok {
-		if n, err := strconv.Atoi(p); err != nil || n < 1024 || n > 65535 {
-			return errors.New("the port must be a number from 1024 to 65535")
+	for key, r := range map[string]struct {
+		name     string
+		min, max int
+	}{"server-port": {"the port", 1024, 65535}, "max-players": {"max players", 1, 500}, "view-distance": {"the view distance", 2, 32}} {
+		if v, ok := props[key]; ok {
+			if n, err := strconv.Atoi(v); err != nil || n < r.min || n > r.max {
+				return fmt.Errorf("%s must be a number from %d to %d", r.name, r.min, r.max)
+			}
 		}
+	}
+	if other := a.serverPorts(id)[props["server-port"]]; other != "" {
+		return fmt.Errorf("the server %q already uses port %s: pick another one", other, props["server-port"])
 	}
 	for k, v := range props {
 		if strings.ContainsAny(k+v, "\r\n") {

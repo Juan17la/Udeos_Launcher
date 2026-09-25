@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Button from '../../ui/Button'
+import SaveSettingsButton from '../../components/SaveSettingsButton'
 import { Checkbox, Input, Label, Select } from '../../ui/Field'
 import AutoLoader from '../../ui/Loader'
 import { useApp } from '../../state'
@@ -24,20 +24,24 @@ export default function ServerSettingsTab({ server }: { server: Server }) {
   const { t } = useApp()
   const s = t.servers.settings
   const [props, setProps] = useState<Record<string, string> | null>(null)
+  const [saved, setSaved] = useState<Record<string, string> | null>(null)
   const [busy, setBusy] = useState(false)
   const [note, setNote] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    api.ServerProperties(server.id).then((p) => setProps(Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, p[k] ?? DEFAULTS[k]]))))
-      .catch((e) => setError(messageOf(e)))
+    api.ServerProperties(server.id).then((p) => {
+      const form = Object.fromEntries(Object.keys(DEFAULTS).map((k) => [k, p[k] ?? DEFAULTS[k]]))
+      setProps(form); setSaved(form)
+    }).catch((e) => setError(messageOf(e)))
   }, [server.id])
   if (!props) return <AutoLoader active={!error} label={t.common.loading} />
 
   const set = (k: string, v: string) => setProps({ ...props, [k]: v })
+  const dirty = Object.keys(props).some((k) => props[k] !== saved?.[k])
   const save = async () => {
     setBusy(true); setError(null); setNote(null)
-    try { await api.SetServerProperties(server.id, props); setNote(s.saved) } catch (e) { setError(messageOf(e)) } finally { setBusy(false) }
+    try { await api.SetServerProperties(server.id, props); setSaved(props); setNote(s.saved); return true } catch (e) { setError(messageOf(e)); return false } finally { setBusy(false) }
   }
 
   return (
@@ -93,7 +97,7 @@ export default function ServerSettingsTab({ server }: { server: Server }) {
           <p className="m-0 mt-2 text-sm text-muted">{s.seedHint}</p>
         </div>
         <div className="flex justify-end">
-          <Button variant="primary" loading={busy} onClick={save}>{s.save}</Button>
+          <SaveSettingsButton inst={server} dirty={dirty} busy={busy} label={s.save} onSave={save} />
         </div>
       </div>
       <Feedback error={error} note={note} onClearNote={() => setNote(null)} />

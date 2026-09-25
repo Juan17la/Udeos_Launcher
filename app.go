@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"runtime"
+	"sync/atomic"
 	"udeos/launcher/internal/sysinfo"
 
 	wailsrt "github.com/wailsapp/wails/v2/pkg/runtime"
@@ -21,6 +22,7 @@ const (
 	EventInstallProgress = "install:progress"
 	EventContentProgress = "content:progress"
 	EventGame            = "game:state"
+	EventCloseRequest    = "app:close" // {running}: servers run, the UI asks before QuitLauncher
 )
 
 // App is the single struct bound to the frontend. Every exported method becomes
@@ -29,6 +31,7 @@ const (
 type App struct {
 	ctx      context.Context
 	launcher *core.Launcher
+	quitting atomic.Bool // the player confirmed closing with servers running
 }
 
 func NewApp() *App {
@@ -59,7 +62,26 @@ func (a *App) startup(ctx context.Context) {
 	wailsrt.OnFileDrop(ctx, a.onFileDrop)
 }
 
-// shutdown lets running servers save their worlds before the launcher exits.
+// beforeClose keeps the window open while servers run and asks the UI to
+// confirm; QuitLauncher then closes for real.
+func (a *App) beforeClose(ctx context.Context) (prevent bool) {
+	n := a.launcher.RunningServers()
+	if n == 0 || a.quitting.Load() {
+		return false
+	}
+	wailsrt.EventsEmit(ctx, EventCloseRequest, map[string]int{"running": n})
+	return true
+}
+
+// QuitLauncher saves and stops every server, then closes the launcher.
+func (a *App) QuitLauncher() {
+	a.quitting.Store(true)
+	a.launcher.StopServers()
+	wailsrt.Quit(a.ctx)
+}
+
+// shutdown lets running servers save their worlds before the launcher exits
+// (already done when QuitLauncher closed it).
 func (a *App) shutdown(context.Context) {
 	a.launcher.StopServers()
 }
