@@ -186,6 +186,9 @@ export function createMock() {
     for (const e of have) for (const x of e.incompatible ?? []) if (plan.items.some((i) => i.version.projectId === x)) throw new Error(`${titles[x] ?? x} is incompatible with ${e.title}, which is installed in this instance`)
     return plan
   }
+  // Like the backend's CancelDownload: a key here makes the matching fake download stop with "context canceled".
+  const canceled = new Set<string>()
+  const stopIf = (key: string) => { if (canceled.delete(key)) throw new Error('context canceled') }
   const applyContent = async (instanceId: string, plan: ContentPlan): Promise<ContentEntry[]> => {
     const out: ContentEntry[] = []
     for (let i = 0; i < plan.items.length; i++) {
@@ -193,6 +196,7 @@ export function createMock() {
       const f = it.version.files[0]
       emit('content:progress', { phase: 'content', done: i, total: plan.items.length, bytes: i * f.size, totalBytes: plan.items.length * f.size, current: f.filename } satisfies Progress)
       await sleep(500)
+      stopIf('content')
       const entry: FileEntry = { name: f.filename, sizeBytes: f.size, modTime: new Date().toISOString(), isDir: false }
       if (it.type === 'mod') (mods[instanceId] ??= []).unshift(entry)
       else if (it.type === 'shader') (shaders[instanceId] ??= []).unshift(entry)
@@ -236,6 +240,7 @@ export function createMock() {
       const i = instances.findIndex((x) => x.id === id); if (i >= 0) instances.splice(i, 1)
     },
     async QuitLauncher() {},
+    async CancelDownload(key: string) { canceled.add(key) },
     async SetInstanceInfo(id: string, name: string, icon: string) {
       const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); i.name = name; if (icon) i.icon = icon; return { ...i }
     },
@@ -257,7 +262,8 @@ export function createMock() {
     async InstallInstance(id: string) { await fakeInstall(instances.find((x) => x.id === id)?.loader) },
     async LaunchInstance(id: string) {
       const inst = instances.find((x) => x.id === id)!
-      if (!inst.installed) { await fakeInstall(inst.loader); inst.installed = true }
+      canceled.delete('launch:' + id)
+      if (!inst.installed) { await fakeInstall(inst.loader, 'launch:' + id); inst.installed = true }
       emit('install:progress', { phase: 'done', done: 0, total: 0, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
       inst.running = true
       emit('game:state', { instanceId: id, running: true, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
@@ -309,6 +315,7 @@ export function createMock() {
     async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType as ContentType) },
     // A mock modpack "pours" one mod (JEI) into the instance.
     async AddContent(instanceId: string, projectId: string, projectType: ProjectType) {
+      canceled.delete('content')
       const plan = planContent(instanceId, projectType === 'modpack' ? 'jei' : projectId, projectType === 'modpack' ? 'mod' : projectType)
       return plan.alreadyInstalled ? [] : applyContent(instanceId, plan)
     },
@@ -439,11 +446,12 @@ export function createMock() {
   })
   const equipped: Record<string, string> = {}
 
-  async function fakeInstall(loader?: Loader) {
+  async function fakeInstall(loader?: Loader, key = '') {
     for (const [phase, total] of [['version', 1], ['libraries', 40], ['assets', 120], ['client', 1], ['java', 60]] as const) {
       for (let d = 1; d <= total; d++) {
         emit('install:progress', { phase, done: d, total, bytes: d * 1e6, totalBytes: total * 1e6, current: `${phase}-${d}.jar` } satisfies Progress)
         await sleep(total > 10 ? 15 : 200)
+        stopIf(key)
       }
     }
     if (loader && loader !== 'Vanilla') {

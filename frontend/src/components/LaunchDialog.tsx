@@ -35,11 +35,14 @@ export default function LaunchDialog() {
 
 function LoadingModal() {
   const { t } = useApp()
-  const { minimizeLaunch } = useLaunch()
+  const { minimizeLaunch, cancelLaunch } = useLaunch()
   const { inst, pct, label, slowLoader } = useLaunchProgress()
   if (!inst) return null
   return (
-    <Dialog title={inst.name} onClose={minimizeLaunch} actions={<Button variant="idle" onClick={minimizeLaunch}>{t.launch.hide}</Button>}>
+    <Dialog title={inst.name} onClose={minimizeLaunch} actions={<>
+      <Button variant="danger" onClick={cancelLaunch}>{t.common.cancel}</Button>
+      <Button variant="idle" onClick={minimizeLaunch}>{t.launch.hide}</Button>
+    </>}>
       <div className="flex flex-col items-center gap-6 pt-2">
         <div className="flex flex-col items-center">
           <div className="motion-safe:animate-[block-hop_1.1s_ease-in-out_infinite]"><InstanceIcon inst={inst} size={72} /></div>
