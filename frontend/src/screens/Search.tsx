@@ -12,7 +12,7 @@ import { allowedTypes, loadSearchVersions, pageList } from '../utils/search'
 import { useAddAction } from '../hooks/useAddAction'
 import BackButton from '../components/BackButton'
 import ProjectIcon from '../components/ProjectIcon'
-import { DownloadsTag, InstanceTags, LoaderTags, VersionTag } from '../components/Tags'
+import { Downloads, InstanceTags, LoaderTags, VersionTag } from '../components/Tags'
 import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
@@ -215,10 +215,8 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
         <ProjectIcon url={result.iconUrl} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="font-bold text-base leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{result.title}</div>
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-xs text-muted truncate">{result.author}</span>
-            <DownloadsTag n={result.downloads} />
-          </div>
+          <span className="text-xs text-muted truncate">{result.author}</span>
+          <Downloads n={result.downloads} />
         </div>
       </div>
       <p className="m-0 text-[13px] text-muted line-clamp-2">{result.description}</p>
