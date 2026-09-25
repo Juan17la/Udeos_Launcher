@@ -15,11 +15,11 @@ import type { SearchResult } from '../api/types'
  *  Addons page's version/loader `filters`). Render `dialog` once in the
  *  calling screen. */
 export function useAddAction(instanceId?: string, filters?: SearchFilters): { add: (result: SearchResult) => void; dialog: ReactNode } {
-  const { t, instances, go } = useApp()
+  const { t, instances, servers, go } = useApp()
   const { enqueue } = useContent()
   const [picking, setPicking] = useState<SearchResult | null>(null)
   const [noInstances, setNoInstances] = useState<SearchResult | null>(null)
-  const inst = instanceId ? instances.find((i) => i.id === instanceId) : undefined
+  const inst = instanceId ? instances.find((i) => i.id === instanceId) ?? servers.find((s) => s.id === instanceId) : undefined
 
   const add = (result: SearchResult) => {
     if (inst) enqueue(inst.id, result)
