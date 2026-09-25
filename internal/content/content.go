@@ -223,6 +223,23 @@ func ExportWorld(gameDir, folder, dst string) error {
 	return zipDir(src, dst, filepath.Base(folder))
 }
 
+// ZipWorld zips the world folder src into dst, under a folder named like src.
+func ZipWorld(src, dst string) error {
+	if _, err := os.Stat(filepath.Join(src, "level.dat")); err != nil {
+		return errors.New("world not found")
+	}
+	return zipDir(src, dst, filepath.Base(src))
+}
+
+// UnzipWorld extracts the world in a zip (the folder holding level.dat) into dst.
+func UnzipWorld(archive, dst string) error {
+	prefix, ok := zipWorldPrefix(archive)
+	if !ok {
+		return errors.New("no world in this file")
+	}
+	return unzipInto(archive, prefix, dst)
+}
+
 // ListFiles lists the files with ext (and every folder) in a game
 // sub-folder, newest first.
 func ListFiles(gameDir, sub, ext string) ([]FileEntry, error) {

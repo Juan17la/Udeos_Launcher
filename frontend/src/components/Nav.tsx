@@ -10,8 +10,8 @@ import AccountMenu from './AccountMenu'
  *  page), account menu and the New Instance action. */
 export default function Nav() {
   const { t, screen, go } = useApp()
-  // Which pill is lit: Addons also covers a project's Details page; create/instance light none.
-  const current = screen.name === 'detail' ? 'search' : screen.name === 'dashboard' || screen.name === 'search' ? screen.name : ''
+  // Which pill is lit: Addons also covers a project's Details page, Servers a server's page; create/instance light none.
+  const current = screen.name === 'detail' ? 'search' : screen.name === 'server' ? 'servers' : screen.name === 'dashboard' || screen.name === 'search' || screen.name === 'servers' ? screen.name : ''
   return (
     <nav className="sticky top-0 z-50 bg-bg flex items-center flex-wrap gap-4 py-4 px-6">
       <div className="flex items-center gap-3 font-bold text-xl whitespace-nowrap mr-auto">
@@ -21,8 +21,8 @@ export default function Nav() {
 
       <div className="flex items-center justify-center flex-1">
         <SegmentedControl aria-label={t.app.name}
-          options={[{ value: 'dashboard', label: t.nav.dashboard }, { value: 'search', label: t.nav.search }]}
-          value={current} onChange={(v) => go(v === 'search' ? { name: 'search' } : { name: 'dashboard' })} />
+          options={[{ value: 'dashboard', label: t.nav.dashboard }, { value: 'servers', label: t.nav.servers }, { value: 'search', label: t.nav.search }]}
+          value={current} onChange={(v) => go({ name: v as 'dashboard' | 'servers' | 'search' })} />
       </div>
 
       <div className="flex items-center gap-4 ml-auto">

@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
 import { DICTS, Language } from '../i18n'
 import type { Dict } from '../i18n/en'
-import { api, inWails } from '../api/bridge'
-import type { Instance, Profile, ProjectType, SearchResult } from '../api/types'
+import { api, inWails, on } from '../api/bridge'
+import type { Instance, Profile, ProjectType, SearchResult, Server } from '../api/types'
 import { useLaunchController, LaunchController } from './useLaunchController'
 import { useContentQueue, ContentQueue } from './useContentQueue'
 
@@ -15,8 +15,11 @@ export type Theme = 'light' | 'dark'
 export type Screen =
   | { name: 'login' }
   | { name: 'dashboard' }
-  | { name: 'create' }
+  /** server: the form makes a dedicated server instead of an instance. */
+  | { name: 'create'; server?: boolean }
   | { name: 'instance'; id: string }
+  | { name: 'servers' }
+  | { name: 'server'; id: string }
   /** instanceId (from an instance's Add from Modrinth button) locks the results to
    *  that instance's version/loader and makes Add install with no picker. */
   | { name: 'search'; instanceId?: string; type?: ProjectType }
@@ -42,7 +45,8 @@ type AppState = {
    *  instances; removing one moves its instances to the active profile (the
    *  next one when the active is removed; the last cannot be). Preferences are shared. */
   setNickname: (name: string) => Promise<void>; removeNickname: (name: string) => Promise<void>
-  instances: Instance[]; refreshInstances: () => Promise<void>
+  /** refreshInstances reloads both lists: game instances and servers. */
+  instances: Instance[]; servers: Server[]; refreshInstances: () => Promise<void>
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
 }
 
@@ -84,11 +88,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: last?.scrollY ?? 0 })))
   }, [history])
   const [instances, setInstances] = useState<Instance[]>([])
+  const [servers, setServers] = useState<Server[]>([])
   const [privacyOpen, setPrivacyOpen] = useState(false)
 
   const refreshInstances = useCallback(async () => {
-    setInstances(await api.ListInstances())
+    const [i, s] = await Promise.all([api.ListInstances(), api.ListServers()])
+    setInstances(i); setServers(s)
   }, [])
+  // A server started, stopped, finished loading or someone joined.
+  useEffect(() => on('server:state', () => { refreshInstances() }), [refreshInstances])
 
   const launch = useLaunchController(refreshInstances)
   const content = useContentQueue(refreshInstances)
@@ -111,7 +119,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else if (want) {
           setProfile(st.profile); await refreshInstances()
           const [name, id] = want.split(':')
-          go(name === 'instance' ? { name: 'instance', id } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' } : { name: 'dashboard' })
+          go(name === 'instance' ? { name: 'instance', id } : name === 'server' ? { name: 'server', id } : name === 'servers' ? { name: 'servers' } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' } : { name: 'dashboard' })
         }
       }
       setReady(true)
@@ -156,9 +164,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const value = useMemo<AppState>(() => ({
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
     screen, go, previous: history[history.length - 1]?.screen ?? null, back, cameBack, profile, saveProfile, nickname: profile?.nickname ?? '', setNickname, removeNickname,
-    instances, refreshInstances,
+    instances, servers, refreshInstances,
     privacyOpen, setPrivacyOpen,
-  }), [ready, theme, language, screen, history, cameBack, back, profile, instances, privacyOpen, refreshInstances, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, language, screen, history, cameBack, back, profile, instances, servers, privacyOpen, refreshInstances, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppCtx.Provider value={value}>
