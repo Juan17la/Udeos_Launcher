@@ -249,7 +249,9 @@ export function createMock() {
         (!gameVersion || (mockVersionsById[r.id] ?? []).includes(gameVersion)) &&
         (!ldr || r.loaders.includes(ldr.toLowerCase())))
       if (sortBy === 'downloads') all.sort((a, b) => b.downloads - a.downloads)
-      return { results: all.slice(offset, offset + limit), total: all.length, offset }
+      // Like the backend: the releases each project has builds for, oldest first.
+      const withVersions = (r: SearchResult) => ({ ...r, gameVersions: [...(mockVersionsById[r.id] ?? ['1.21.1', '1.20.4', '1.20.1', '1.19.2'])].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })) })
+      return { results: all.slice(offset, offset + limit).map(withVersions), total: all.length, offset }
     },
     async ListSearchGameVersions() { return gameVersions.map((v) => ({ ...v })) },
     async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType as ContentType) },
