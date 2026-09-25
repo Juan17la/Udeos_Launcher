@@ -128,6 +128,7 @@ body {
   -webkit-user-select: none; user-select: none;
 }
 input, textarea { -webkit-user-select: text; user-select: text; }
+input, select, textarea { font: inherit; }
 #root { display: flex; flex-direction: column; }
 /* Headings sit directly on the canvas, never inside a panel. */
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-mono); font-weight: 700; line-height: 1.15; margin: 0 0 8px; }
@@ -148,6 +149,10 @@ img { display: block; max-width: 100%; }
 @keyframes dialog-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 /* Notifications slide in from the right edge. */
 @keyframes toast-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+/* The launch modal: the instance's block hops, its shadow shrinks under it, the bar's stripes march. */
+@keyframes block-hop { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(-6deg); } }
+@keyframes block-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.6); opacity: 0.5; } }
+@keyframes bar-stripes { from { background-position: 0 0; } to { background-position: 24px 0; } }
 /* Success feedback: one soft pulse in the primary colour (applied as animate-[pulse-primary_0.9s_ease-out]). */
 @keyframes pulse-primary {
   0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 70%, transparent); }
