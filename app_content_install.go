@@ -26,17 +26,21 @@ func (a *App) AddContent(instanceID, projectID, projectType string) ([]modinstal
 	if err != nil {
 		return nil, err
 	}
+	ctx, done := a.job("content")
+	defer done()
 	if projectType == string(modsearch.TypeModpack) {
-		return a.launcher.Modpacks.AddTo(a.ctx, inst, projectID)
+		return a.launcher.Modpacks.AddTo(ctx, inst, projectID)
 	}
-	return a.launcher.Content.Add(a.ctx, inst, projectID, modsearch.ProjectType(projectType))
+	return a.launcher.Content.Add(ctx, inst, projectID, modsearch.ProjectType(projectType))
 }
 
 // CreateInstanceFromModpack makes a new instance out of a modpack: its build
 // for gameVersion/loader ("" = newest), the loader the pack declares, every
 // file it lists and its overrides. name defaults to the pack's name.
 func (a *App) CreateInstanceFromModpack(projectID, name, icon, gameVersion, ldr string) (InstanceView, error) {
-	inst, _, err := a.launcher.Modpacks.Create(a.ctx, projectID, name, icon, gameVersion, ldr)
+	ctx, done := a.job("content")
+	defer done()
+	inst, _, err := a.launcher.Modpacks.Create(ctx, projectID, name, icon, gameVersion, ldr)
 	if err != nil {
 		return InstanceView{}, err
 	}
