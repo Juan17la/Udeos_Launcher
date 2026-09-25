@@ -136,6 +136,7 @@ export default function CreateInstance({ server = false }: { server?: boolean })
           <IconPicker value={icon} onChange={setIcon} />
         </div>
 
+        {server && <p className="m-0 text-sm text-muted">{t.servers.create.publicNote}</p>}
         {server && (
           <Checkbox checked={eula} onChange={(e) => setEula(e.target.checked)} label={<>
             {t.servers.create.eula}{' '}

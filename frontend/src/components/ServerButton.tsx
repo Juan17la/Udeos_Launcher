@@ -9,6 +9,11 @@ import { messageOf } from '../utils/errors'
 import { fmt } from '../i18n/format'
 import type { Server } from '../api/types'
 
+/** The address to share: the internet one for a public server (live, or
+ *  saved from the last time it was open, so it shows while stopped), else
+ *  the local one. */
+export const shareAddress = (s: Server) => (s.public && (s.state.publicAddress || s.internet?.address)) || s.lanAddress
+
 /** Start / Stop for one server: a loading ring while it prepares its files
  *  and loads the world, and while it saves and stops. Starting a third
  *  server at once asks first. A failed start opens a dialog (the console
