@@ -31,6 +31,7 @@ type ServerState struct {
 	Starting bool     `json:"starting"` // preparing files or loading the world
 	Running  bool     `json:"running"`  // the process is alive
 	Ready    bool     `json:"ready"`    // "Done (…)! For help": players can join
+	Stopping bool     `json:"stopping"` // told to stop, saving the world
 	Players  []string `json:"players"`
 	// PublicAddress is the named address friends type once the internet can
 	// reach the server; PublicRaw is the same place without the name, for
@@ -52,6 +53,7 @@ type serverProc struct {
 	started time.Time
 	saved   chan struct{}      // closed on "Saved the game" while a backup waits for it
 	public  context.CancelFunc // closes internet access (relay or router forward); nil when closed
+	exited  chan struct{}      // closed once the server is gone (stopped or failed to start)
 }
 
 var (
@@ -145,7 +147,7 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 		l.mu.Unlock()
 		return errors.New("this server is already running")
 	}
-	p := &serverProc{state: ServerState{Starting: true, Players: []string{}}}
+	p := &serverProc{state: ServerState{Starting: true, Players: []string{}}, exited: make(chan struct{})}
 	l.servers[id] = p
 	l.mu.Unlock()
 	l.serverEmit(id, "")
@@ -155,6 +157,7 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 		l.mu.Lock()
 		delete(l.servers, id)
 		l.mu.Unlock()
+		close(p.exited)
 		l.serverEmit(id, "")
 		return err
 	}
@@ -219,6 +222,7 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 		delete(l.servers, id)
 		l.mu.Unlock()
 		_ = l.Instances.Touch(id, time.Since(p.started))
+		close(p.exited)
 		l.serverEmit(id, "")
 	}()
 	return nil
@@ -275,12 +279,26 @@ func (l *Launcher) ServerCommand(id, line string) error {
 // StopServer asks the server to save and stop; it is killed if it has not
 // exited 60 seconds later.
 func (l *Launcher) StopServer(id string) error {
+	l.mu.Lock()
+	p := l.servers[id]
+	preparing := p != nil && p.stdin == nil
+	l.mu.Unlock()
+	if preparing {
+		return errors.New("the server is still getting its files ready: stop it once it has started")
+	}
 	if err := l.ServerCommand(id, "stop"); err != nil {
 		return err
 	}
 	l.mu.Lock()
-	p := l.servers[id]
+	p = l.servers[id]
+	if p != nil {
+		p.state.Stopping = true
+	}
 	l.mu.Unlock()
+	if p == nil { // exited meanwhile
+		return nil
+	}
+	l.serverEmit(id, "")
 	go func() {
 		time.Sleep(60 * time.Second)
 		l.mu.Lock()
@@ -291,6 +309,29 @@ func (l *Launcher) StopServer(id string) error {
 		}
 	}()
 	return nil
+}
+
+// StopServerWait stops the server and returns once it has exited (at once
+// when it is not running).
+func (l *Launcher) StopServerWait(id string) error {
+	l.mu.Lock()
+	p := l.servers[id]
+	l.mu.Unlock()
+	if p == nil {
+		return nil
+	}
+	if err := l.StopServer(id); err != nil {
+		return err
+	}
+	<-p.exited
+	return nil
+}
+
+// RunningServers is how many servers are starting or running, whoever's profile they belong to.
+func (l *Launcher) RunningServers() int {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return len(l.servers)
 }
 
 // StopServers stops every running server and waits (at most 30 seconds)

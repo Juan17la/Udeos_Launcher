@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Button from '../../ui/Button'
+import SaveSettingsButton from '../../components/SaveSettingsButton'
 import { Input, Label } from '../../ui/Field'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
@@ -32,13 +33,15 @@ export default function SettingsTab({ inst }: { inst: Instance }) {
   const [busy, setBusy] = useState(false)
 
   const pickJava = async () => { const p = await api.PickJava(); if (p) setJava(p) }
+  const dirty = memory !== (inst.launch.maxMemoryMB ?? 0) || java.trim() !== (inst.launch.javaPath ?? '') || jvmArgs.trim() !== (inst.launch.jvmArgs ?? '')
   const save = async () => {
     setBusy(true); setError(null); setNote(null)
     try {
       await api.SetInstanceLaunch(inst.id, { maxMemoryMB: memory, javaPath: java.trim(), jvmArgs: jvmArgs.trim() })
       await refreshInstances()
       setNote(t.instance.settings.saved)
-    } catch (e) { setError(messageOf(e)) } finally { setBusy(false) }
+      return true
+    } catch (e) { setError(messageOf(e)); return false } finally { setBusy(false) }
   }
 
   return (
@@ -78,7 +81,7 @@ export default function SettingsTab({ inst }: { inst: Instance }) {
           <p className="m-0 mt-4 text-sm text-muted">{t.instance.settings.jvmArgsHint}</p>
         </div>
         <div className="flex justify-end">
-          <Button variant="primary" loading={busy} onClick={save}>{t.instance.settings.save}</Button>
+          <SaveSettingsButton inst={inst} dirty={dirty} busy={busy} label={t.instance.settings.save} onSave={save} />
         </div>
       </div>
       <Feedback error={error} note={note} onClearNote={() => setNote(null)} />

@@ -28,6 +28,13 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   fallback. The Router connection (UPnP, less lag) is still there, and
   players with their own bore relay can use it with its secret. The relay
   reconnects on its own if the connection drops.
+- **Server safety checks** — starting a third server at once warns that the
+  computer may slow down; closing the launcher while servers run asks first,
+  then saves and stops them; a running server can now be deleted (it is
+  saved and stopped first); saving changed settings on a running server
+  warns that it will be stopped so the next start uses them. Server settings
+  refuse a port another server already uses, and out-of-range max players or
+  view distance. The server status shows "Stopping…" while it saves.
 - **Profiles keep their own instances** — each launcher profile (a player
   name) sees only its instances. Account menu → Switch profile opens a modal
   listing every profile with its instance count: click to switch, add a new
