@@ -18,3 +18,18 @@ export function bytes(n: number): string {
   if (n < 1073741824) return `${(n / 1048576).toFixed(1)} MB`
   return `${(n / 1073741824).toFixed(2)} GB`
 }
+
+/** 42100000 → "42.1M" (in the UI language); the exact figure goes in a title. */
+export function compact(n: number, lang: string): string {
+  return new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 }).format(n)
+}
+
+/** A project's Minecraft releases (oldest first) as one label: "1.21.1" or "1.16.5–1.21.1". */
+export function versionRange(versions: string[]): string {
+  if (versions.length <= 1) return versions[0] ?? ''
+  return `${versions[0]}–${versions[versions.length - 1]}`
+}
+
+const LOADER_NAMES: Record<string, string> = { fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge', quilt: 'Quilt' }
+/** Modrinth's lowercase loader ids as the launcher writes them ("neoforge" → "NeoForge"). */
+export const loaderName = (l: string) => LOADER_NAMES[l.toLowerCase()] ?? l[0].toUpperCase() + l.slice(1)
