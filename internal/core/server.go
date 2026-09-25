@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +21,7 @@ import (
 	"udeos/launcher/internal/launch"
 	"udeos/launcher/internal/loader"
 	"udeos/launcher/internal/server"
+	"udeos/launcher/internal/tunnel"
 	"udeos/launcher/internal/upnp"
 )
 
@@ -30,8 +32,11 @@ type ServerState struct {
 	Running  bool     `json:"running"`  // the process is alive
 	Ready    bool     `json:"ready"`    // "Done (…)! For help": players can join
 	Players  []string `json:"players"`
-	// PublicAddress is ip:port once the router forwards the port; PublicError says why it does not.
+	// PublicAddress is the named address friends type once the internet can
+	// reach the server; PublicRaw is the same place without the name, for
+	// when the name does not resolve. PublicError says why it is unreachable.
 	PublicAddress string `json:"publicAddress,omitempty"`
+	PublicRaw     string `json:"publicRaw,omitempty"`
 	PublicError   string `json:"publicError,omitempty"`
 }
 
@@ -45,7 +50,8 @@ type serverProc struct {
 	log     []string
 	port    int
 	started time.Time
-	saved   chan struct{} // closed on "Saved the game" while a backup waits for it
+	saved   chan struct{}      // closed on "Saved the game" while a backup waits for it
+	public  context.CancelFunc // closes internet access (relay or router forward); nil when closed
 }
 
 var (
@@ -197,7 +203,7 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 	l.note(id, fmt.Sprintf("Started with %d MB of memory on port %d.", mem, port))
 	l.serverEmit(id, "")
 	if inst.Public {
-		go l.openPublic(id, inst.Name, port)
+		l.startPublic(id)
 	}
 
 	go func() {
@@ -207,12 +213,7 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 			l.serverLine(id, sc.Text())
 		}
 		_ = cmd.Wait()
-		l.mu.Lock()
-		public := p.state.PublicAddress != "" || p.state.PublicError != ""
-		l.mu.Unlock()
-		if public {
-			_ = upnp.Unmap(context.Background(), port)
-		}
+		l.stopPublic(id)
 		l.note(id, fmt.Sprintf("Server stopped (exit code %d).", cmd.ProcessState.ExitCode()))
 		l.mu.Lock()
 		delete(l.servers, id)
@@ -315,55 +316,176 @@ func (l *Launcher) StopServers() {
 }
 
 // SetServerPublic turns internet access on or off; a running server opens
-// or closes its port right away.
+// or closes it right away.
 func (l *Launcher) SetServerPublic(id string, on bool) error {
-	var name string
-	if err := l.Instances.Update(id, func(i *instance.Instance) { i.Public, name = on, i.Name }); err != nil {
+	if err := l.Instances.Update(id, func(i *instance.Instance) { i.Public = on }); err != nil {
 		return err
 	}
-	l.mu.Lock()
-	p := l.servers[id]
-	port := 0
-	if p != nil {
-		port = p.port
-		if !on {
-			p.state.PublicAddress, p.state.PublicError = "", ""
-		}
-	}
-	l.mu.Unlock()
-	if port == 0 {
-		return nil
-	}
 	if on {
-		go l.openPublic(id, name, port)
+		l.startPublic(id)
 	} else {
-		go func() { _ = upnp.Unmap(context.Background(), port) }()
-		l.serverEmit(id, "")
+		l.stopPublic(id)
 	}
 	return nil
 }
 
-func (l *Launcher) openPublic(id, name string, port int) {
-	l.note(id, "Asking the router to open the port to the internet…")
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-	ip, err := upnp.Map(ctx, port, "Udeos "+name)
-	l.mu.Lock()
-	if p := l.servers[id]; p != nil {
-		p.state.PublicAddress, p.state.PublicError = "", ""
-		if err != nil {
-			p.state.PublicError = err.Error()
-		} else {
-			p.state.PublicAddress = ip + ":" + strconv.Itoa(port)
+// SetServerInternet stores how the server is reached from the internet
+// (validated by the caller); a server that is open right now reconnects
+// with the new settings. The relay port is kept unless the relay changed.
+func (l *Launcher) SetServerInternet(id string, in instance.Internet) error {
+	public := false
+	if err := l.Instances.Update(id, func(i *instance.Instance) {
+		if in.Relay == i.Internet.Relay {
+			in.RelayPort = i.Internet.RelayPort
 		}
+		i.Internet, public = in, i.Public
+	}); err != nil {
+		return err
+	}
+	if public {
+		l.stopPublic(id)
+		l.startPublic(id)
+	}
+	return nil
+}
+
+// AddressName is the name that starts a server's internet address.
+func AddressName(inst instance.Instance) string {
+	if inst.Internet.Name != "" {
+		return inst.Internet.Name
+	}
+	return server.DefaultAddressName(inst.Name)
+}
+
+// startPublic makes a running server reachable from the internet the way
+// its Internet settings say; stopPublic closes it again.
+func (l *Launcher) startPublic(id string) {
+	inst, err := l.Instances.Get(id)
+	if err != nil {
+		return
+	}
+	l.mu.Lock()
+	p := l.servers[id]
+	if p == nil || p.cmd == nil || p.public != nil {
+		l.mu.Unlock()
+		return
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	p.public = cancel
+	port := p.port
+	l.mu.Unlock()
+	if inst.Internet.Mode == instance.RouterMode {
+		go l.routerPublic(ctx, id, inst, port)
+	} else {
+		go l.relayPublic(ctx, id, inst, port)
+	}
+}
+
+func (l *Launcher) stopPublic(id string) {
+	l.mu.Lock()
+	p := l.servers[id]
+	if p == nil || p.public == nil {
+		l.mu.Unlock()
+		return
+	}
+	p.public()
+	p.public = nil
+	p.state.PublicAddress, p.state.PublicRaw, p.state.PublicError = "", "", ""
+	l.mu.Unlock()
+	l.serverEmit(id, "")
+}
+
+// setPublic records where the internet reaches the server (or why it
+// cannot), unless access was closed meanwhile.
+func (l *Launcher) setPublic(ctx context.Context, id, address, raw, problem string) {
+	l.mu.Lock()
+	if p := l.servers[id]; p != nil && ctx.Err() == nil {
+		p.state.PublicAddress, p.state.PublicRaw, p.state.PublicError = address, raw, problem
 	}
 	l.mu.Unlock()
+	l.serverEmit(id, "")
+}
+
+// routerPublic asks the router to forward the port (UPnP) and removes the
+// forward when access closes.
+func (l *Launcher) routerPublic(ctx context.Context, id string, inst instance.Instance, port int) {
+	l.note(id, "Asking the router to open the port to the internet…")
+	mctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	ip, err := upnp.Map(mctx, port, "Udeos "+inst.Name)
+	cancel()
 	if err != nil {
 		l.note(id, "Internet access failed: "+err.Error())
+		l.setPublic(ctx, id, "", "", err.Error())
 	} else {
-		l.note(id, "Open to the internet at "+ip+":"+strconv.Itoa(port))
+		addr := server.PublicAddress(AddressName(inst), net.ParseIP(ip), port)
+		l.note(id, "Open to the internet at "+addr)
+		l.setPublic(ctx, id, addr, net.JoinHostPort(ip, strconv.Itoa(port)), "")
 	}
-	l.serverEmit(id, "")
+	<-ctx.Done()
+	if ip != "" { // also after ErrShared: the forward exists even if it is useless
+		_ = upnp.Unmap(context.Background(), port)
+	}
+}
+
+// relayPublic keeps the server registered on the relay until access
+// closes, reconnecting when the connection drops and asking for the same
+// public port each time, so the address friends saved keeps working.
+func (l *Launcher) relayPublic(ctx context.Context, id string, inst instance.Instance, port int) {
+	relay, secret, want := inst.Internet.Relay, inst.Internet.Secret, inst.Internet.RelayPort
+	if relay == "" {
+		relay = tunnel.DefaultRelay
+	}
+	host, _, _ := net.SplitHostPort(tunnel.Addr(relay))
+	local := net.JoinHostPort("127.0.0.1", strconv.Itoa(port))
+	l.note(id, "Connecting to the relay "+host+"…")
+	wait := time.Duration(0)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(wait):
+		}
+		t, err := tunnel.Open(ctx, relay, secret, want, local)
+		if err != nil && want != 0 && strings.HasPrefix(err.Error(), "the relay refused") {
+			// Our old port is taken or outside this relay's range: any port, new address.
+			t, err = tunnel.Open(ctx, relay, secret, 0, local)
+		}
+		if err != nil {
+			if ctx.Err() != nil {
+				return
+			}
+			l.note(id, "Internet access failed: "+err.Error()+" Trying again in 15 s.")
+			l.setPublic(ctx, id, "", "", err.Error())
+			wait = 15 * time.Second
+			continue
+		}
+		if t.Port != want {
+			want = t.Port
+			_ = l.Instances.Update(id, func(i *instance.Instance) { i.Internet.RelayPort = want })
+		}
+		raw := net.JoinHostPort(host, strconv.Itoa(t.Port))
+		addr := raw
+		if ip := net.ParseIP(host); ip != nil {
+			addr = server.PublicAddress(AddressName(inst), ip, t.Port)
+		} else if ips, err := net.DefaultResolver.LookupIP(ctx, "ip4", host); err == nil && len(ips) > 0 {
+			addr = server.PublicAddress(AddressName(inst), ips[0], t.Port)
+		}
+		l.note(id, "Open to the internet at "+addr+" (also "+raw+")")
+		l.setPublic(ctx, id, addr, raw, "")
+		select {
+		case <-ctx.Done():
+			t.Close()
+			return
+		case <-t.Done():
+			problem := "the relay connection dropped"
+			if t.Err() != nil {
+				problem = t.Err().Error()
+			}
+			l.note(id, "Internet access interrupted ("+problem+"). Reconnecting…")
+			l.setPublic(ctx, id, "", "", problem)
+			wait = 3 * time.Second
+		}
+	}
 }
 
 // worldDir is the folder of the server's world (level-name, "world" by default).

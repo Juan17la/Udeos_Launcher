@@ -1,6 +1,7 @@
 package server
 
 import (
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
@@ -55,5 +56,34 @@ func TestPlayerLists(t *testing.T) {
 	}
 	if _, err := Names(dir, "nope"); err == nil {
 		t.Fatal("unknown list accepted")
+	}
+}
+
+func TestAddressNames(t *testing.T) {
+	for in, want := range map[string]string{
+		"Friends SMP":    "udeoslauncher.friends-smp",
+		"  Ñandú  2b2t!": "udeoslauncher.and-2b2t",
+		"1234":           "udeoslauncher.server", // all digits is not a usable label
+		"":               "udeoslauncher.server",
+	} {
+		if got := DefaultAddressName(in); got != want {
+			t.Errorf("DefaultAddressName(%q) = %q, want %q", in, got, want)
+		}
+	}
+	for name, ok := range map[string]bool{"udeoslauncher.friends-smp": true, "juan": true, "a1.b2": true,
+		"Juan": false, "-x": false, "x-": false, "a..b": false, "12.34": false, "ok.34": false, "has space": false} {
+		if ValidAddressName(name) != ok {
+			t.Errorf("ValidAddressName(%q) != %v", name, ok)
+		}
+	}
+	ip := net.ParseIP("159.223.171.199")
+	if got := PublicAddress("udeoslauncher.friends-smp", ip, 41234); got != "udeoslauncher.friends-smp.159-223-171-199.nip.io:41234" {
+		t.Errorf("relay address = %q", got)
+	}
+	if got := PublicAddress("juan", ip, 25565); got != "juan.159-223-171-199.nip.io" {
+		t.Errorf("default port address = %q", got)
+	}
+	if got := PublicAddress("juan", net.ParseIP("2001:db8::1"), 25565); got != "[2001:db8::1]:25565" {
+		t.Errorf("ipv6 address = %q", got)
 	}
 }
