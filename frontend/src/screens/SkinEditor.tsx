@@ -186,7 +186,7 @@ export default function SkinEditor({ id }: { id?: string }) {
           </p>
         </section>
 
-        <aside className="panel sticky top-24 flex flex-col gap-4 p-6 min-w-0">
+        <aside className="panel sticky top-30 flex flex-col gap-4 p-6 min-w-0">
           <div>
             <Label htmlFor="skin-name">{e.name}</Label>
             <Input id="skin-name" type="text" maxLength={32} placeholder={e.namePlaceholder} value={name} onChange={(ev) => { setName(ev.target.value); setDirty(true) }} />

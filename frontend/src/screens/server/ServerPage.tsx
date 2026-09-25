@@ -3,6 +3,7 @@ import InstanceIcon from '../../components/InstanceIcon'
 import ServerButton, { ServerStatus, shareAddress } from '../../components/ServerButton'
 import { InstanceTags } from '../../components/Tags'
 import BackButton from '../../components/BackButton'
+import SidePanel from '../../components/SidePanel'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
 import { Folder, Pencil, X } from '../../ui/icons'
 import Button from '../../ui/Button'
@@ -61,10 +62,19 @@ export default function ServerPage({ id }: { id: string }) {
 
   return (
     <main className="flex-1 grid grid-cols-[minmax(300px,340px)_minmax(0,1fr)] items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12">
-      <div className="col-span-2"><BackButton /></div>
-      <div className="panel flex flex-col gap-4 sticky top-24 p-6 h-[calc(100vh-9.5rem)] overflow-y-auto">
-        <div className="flex flex-col items-center gap-3 text-center w-full min-w-0">
-          <InstanceIcon inst={server} size={80} />
+      <BackButton className="col-span-2" />
+      <SidePanel actions={<>
+        <ServerButton server={server} size="lg" />
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
+          <Button variant="idle" onClick={() => api.OpenInstanceFolder(server.id, '')}><Folder /> {t.instance.folder}</Button>
+        </div>
+        <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>
+          <X size={12} /> {t.servers.deleteServer}
+        </Button>
+      </>}>
+        <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
+          <InstanceIcon inst={server} size={64} />
           <h3 className="m-0 w-full truncate" title={server.name}>{server.name}</h3>
           <InstanceTags inst={server} className="justify-center" />
           <ServerStatus server={server} />
@@ -79,20 +89,7 @@ export default function ServerPage({ id }: { id: string }) {
           ))}
         </dl>
         {address && <CopyAddress label={t.servers.address} address={address} />}
-
-        <div className="flex-1 min-h-2" />
-
-        <div className="flex flex-col gap-3">
-          <ServerButton server={server} size="lg" />
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
-            <Button variant="idle" onClick={() => api.OpenInstanceFolder(server.id, '')}><Folder /> {t.instance.folder}</Button>
-          </div>
-          <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>
-            <X size={12} /> {t.servers.deleteServer}
-          </Button>
-        </div>
-      </div>
+      </SidePanel>
 
       <div className="min-w-0 flex flex-col gap-6">
         <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.servers.tabs[k] }))} value={tabs.includes(tab) ? tab : 'console'} onChange={setTab} />
