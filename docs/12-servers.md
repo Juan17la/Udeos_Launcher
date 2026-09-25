@@ -30,7 +30,8 @@ folder:
 - `eula.txt` with `eula=true` — the create form makes the player accept
   Mojang's EULA first; a server refuses to start without it.
 - `server.properties` with the server's name as `motd`, the first free
-  **port** from 25565 upwards that no other Udeos server uses, and
+  **port** from 25565 upwards that no other Udeos server uses and no other
+  program is listening on, and
   **"Who can join: Udeos players"**: `online-mode=true` checked by the
   launcher's own skin server instead of Microsoft, so skins show and Udeos
   players (who have no Microsoft account) get in; players of other launchers
@@ -38,6 +39,8 @@ folder:
   "Microsoft accounts". Details in [Skins](13-skins.md#server-login-who-can-join).
 - `server-icon.png` (64×64) when an icon was chosen: the picture next to the
   server in the multiplayer list.
+- `Instance.Public` on: a new server is **open to the internet** whenever it
+  runs (the create form says so; the Internet tab closes it).
 
 It also fixes the **address name** (`udeoslauncher.<server name>`) at
 creation, so renaming the server later does not change the address friends
@@ -71,7 +74,23 @@ through two events: `server:log` (a console line) and `server:state`
    (authlib-injector, downloaded once) and rewrite `online-mode=true` and
    `enforce-secure-profile=false`; the start fails if the agent cannot be
    had, since no Udeos player could join without it.
-4. **Read the port** from `server.properties` (25565 when missing).
+4. **Read the port** from `server.properties` (25565 when missing) and make
+   sure it is free (`serverPort` in `internal/core/port.go`):
+   - free → use it;
+   - held by a **Java** process that is not one of this launcher's games or
+     servers (almost always a server left running when the launcher was
+     killed or crashed; it also holds the world's `session.lock`) → it gets
+     SIGTERM, which makes a Minecraft server save and quit, and is killed
+     if it is still there 20 seconds later (Windows: killed at once). The
+     console says which pid;
+   - held by anything else, or the Java process would not go → the server
+     **moves to the next free port** (up to 100 further), saved in
+     `server.properties`, and the console says so. Only when all of those
+     are taken does the start fail.
+
+   Who holds the port comes from the tool each system ships: `ss -ltnp`
+   (Linux), `lsof -iTCP -sTCP:LISTEN` (macOS), `netstat -ano` + `tasklist`
+   (Windows).
 5. **Start Java** from the server folder:
    `java -Xmx<memory>M [-javaagent:…] <jvm flags> <start arguments>`. Memory is the server's
    own setting, else the profile's default, else 2048 MB. On Windows
@@ -90,7 +109,8 @@ through two events: `server:log` (a console line) and `server:state`
 Typing in the Console tab writes the line to the server's stdin (a leading
 `/` is dropped). **Stop** types `stop`, marks the state `Stopping` (the card
 says "Stopping…") and kills the process if it is still alive 60 seconds
-later. `StopServerWait` does the same and returns once the process is gone
+later; if the console does not take `stop` (its pipe is broken) the process
+is killed at once. `StopServerWait` does the same and returns once the process is gone
 (each server has an `exited` channel, closed after the cleanup above).
 
 **Backups** of a running server pause saving: `save-off`, `save-all flush`,
@@ -164,6 +184,11 @@ Messages are JSON followed by a 0 byte, on TCP port 7835:
 - **Same address after restarts**: the public port is saved
   (`Internet.RelayPort`) and asked for again next time; if the relay refuses
   (taken, or outside its range) any port is taken and saved instead.
+- **Shown while stopped**: every address the server opens with is saved
+  (`Internet.Address`), so the card, the side panel and the Internet tab show
+  the custom address even while the server is stopped (under it: "Opens when
+  the server starts."). Changing the mode, name or relay forgets it until
+  the next open. A server that was never open has no address yet.
 - **Reconnects** (`relayPublic`): 3 seconds after the control connection
   drops, 15 seconds after a failed attempt, until access is closed. Players
   already in the game are not affected by a control drop: each one has its
@@ -216,6 +241,8 @@ port by hand or suggests the relay.
 |---------|--------------|
 | "Internet access failed: could not reach the relay…" | No internet, or the relay is down or blocked by a firewall. Retries every 15 s |
 | The address changed after a restart | The old relay port was taken; the new one is saved |
+| "Port 25565 is in use by another program, so this server moves to port …" | Something else listens there; the new port is saved (Settings). Friends on the same Wi-Fi use the new LAN address; the relay address does not change |
+| "Port … is held by a Java process (pid …)" | A server from an earlier run was still going: it is saved and stopped, then this one starts |
 | The named address does not resolve | nip.io unreachable from the friend's network: use the raw address |
 | Friends on the same Wi-Fi cannot join | The OS firewall blocks Java; allow it for private networks |
 | Router mode: "shared" / CGNAT warning | The provider shares the public IP: use Relay mode |
