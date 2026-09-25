@@ -170,13 +170,23 @@ export function createMock() {
     return out
   }
 
+  const adopt = (owner: string, from: string[]) => { for (const i of instances) if (!i.owner || from.includes(i.owner)) i.owner = owner }
+
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock', totalMemoryMB: 16384 } },
     async GetProfile() {
       return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'light' as const, agreed: false, maxMemoryMB: 2048 } }
     },
-    async SaveProfile(p: Profile) { profile = { ...p, uuid: 'mock-uuid', nicknames: [p.nickname, ...p.nicknames.filter((n) => n !== p.nickname)] }; localStorage.setItem('mock:profile', JSON.stringify(profile)); return profile },
-    async ListInstances() { return instances.map((i) => ({ ...i })) },
+    async SaveProfile(p: Profile) {
+      const removed = (profile?.nicknames ?? []).filter((n) => !p.nicknames.includes(n))
+      profile = { ...p, uuid: 'mock-uuid', nicknames: [p.nickname, ...p.nicknames.filter((n) => n !== p.nickname)] }
+      localStorage.setItem('mock:profile', JSON.stringify(profile))
+      adopt(p.nickname, removed)
+      return profile
+    },
+    // Like the backend: each profile sees its own instances; unclaimed ones go to the active profile.
+    async ListInstances() { if (!profile) return []; const me = profile.nickname; adopt(me, []); return instances.filter((i) => i.owner === me).map((i) => ({ ...i })) },
+    async InstanceCounts() { const out: Record<string, number> = {}; for (const i of instances) out[i.owner ?? ''] = (out[i.owner ?? ''] ?? 0) + 1; return out },
     async GetInstance(id: string) { const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); return { ...i } },
     async CreateInstance(name: string, version: string, loader: Loader, loaderVersion: string, icon: string) {
       const label = loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`

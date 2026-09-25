@@ -30,12 +30,31 @@ func (a *App) view(inst instance.Instance) InstanceView {
 	}
 }
 
-// ListInstances returns every instance, most recently played first.
+// ListInstances returns the active profile's instances, most recently played
+// first. Unclaimed ones (older than profiles, or just created by
+// CreateInstance / a modpack) are handed to the active profile first.
 func (a *App) ListInstances() []InstanceView {
-	items := a.launcher.Instances.List()
-	out := make([]InstanceView, 0, len(items))
-	for _, it := range items {
-		out = append(out, a.view(it))
+	out := []InstanceView{}
+	p, err := a.launcher.Profile()
+	if err != nil {
+		return out
+	}
+	if err := a.launcher.Instances.Adopt(p.Nickname); err != nil {
+		return out
+	}
+	for _, it := range a.launcher.Instances.List() {
+		if it.Owner == p.Nickname {
+			out = append(out, a.view(it))
+		}
+	}
+	return out
+}
+
+// InstanceCounts is how many instances each profile has, for the profile switcher.
+func (a *App) InstanceCounts() map[string]int {
+	out := map[string]int{}
+	for _, it := range a.launcher.Instances.List() {
+		out[it.Owner]++
 	}
 	return out
 }

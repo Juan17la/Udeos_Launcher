@@ -36,6 +36,8 @@ export type Instance = {
   lastPlayed?: string
   playTimeSec: number
   launch: LaunchSettings
+  /** The launcher profile (nickname) it belongs to. */
+  owner?: string
   counts: Counts
   installed: boolean
   running: boolean

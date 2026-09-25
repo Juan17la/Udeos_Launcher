@@ -3,9 +3,14 @@ const en = {
   nav: {
     dashboard: 'Instances', search: 'Addons', newInstance: 'New Instance', privacy: 'Privacy & Terms',
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
-    profiles: 'Profiles', addProfile: 'Add profile', removeProfile: 'Remove profile',
+    addProfile: 'Add profile', removeProfile: 'Remove profile',
   },
   common: { back: 'Back to {name}', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
+  profiles: {
+    title: 'Profiles', active: 'Active', instances: '{n} instance(s)', switch: 'Switch profile',
+    hint: 'Each profile is a player name with its own instances. Switching shows only that profile\'s instances.',
+    removeTitle: 'Remove {name}?', removeBody: 'Its {n} instance(s) will move to {name}. Nothing is deleted.',
+  },
   privacy: {
     title: 'Privacy & Terms',
     body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded — the launcher only connects out to download game files, mods, and updates.',
