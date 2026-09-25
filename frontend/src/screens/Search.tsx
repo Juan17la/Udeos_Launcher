@@ -128,8 +128,8 @@ export default function Search({ instanceId, type: initialType }: Props) {
 
   return (
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
+      <BackButton className="-mb-4" />
       <div className="flex flex-col gap-4">
-        <BackButton />
         <h2 className="mb-2">{t.nav.search}</h2>
         <p className="m-0 text-muted">{t.search.subtitle}</p>
       </div>
