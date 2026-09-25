@@ -19,6 +19,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   after a warning about RAM, CPU and upload use; when the router refuses, it
   says how to forward the port by hand. Running servers save and stop when
   the launcher closes.
+- **Servers reachable from anywhere** — "Open to the internet" now goes
+  through a free relay by default (bore.pub), so friends in another city or
+  country can join even when the router has no UPnP or the connection is
+  shared (CGNAT). Each server gets a named address such as
+  `udeoslauncher.friends-smp.<ip>.nip.io:41234` (free, no account; the name is
+  editable) that stays the same across restarts, plus the plain address as a
+  fallback. The Router connection (UPnP, less lag) is still there, and
+  players with their own bore relay can use it with its secret. The relay
+  reconnects on its own if the connection drops.
 - **Profiles keep their own instances** — each launcher profile (a player
   name) sees only its instances. Account menu → Switch profile opens a modal
   listing every profile with its instance count: click to switch, add a new
