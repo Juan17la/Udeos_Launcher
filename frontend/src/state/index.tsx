@@ -38,8 +38,9 @@ type AppState = {
   cameBack: boolean
   profile: Profile | null; saveProfile: (p: Profile) => Promise<void>
   nickname: string
-  /** Switch to, add (a new name) or remove a saved nickname (removing the active one
-   *  hands over to the next; the last one cannot be removed). Preferences stay. */
+  /** Switch to, add (a new name) or remove a launcher profile. Each has its own
+   *  instances; removing one moves its instances to the active profile (the
+   *  next one when the active is removed; the last cannot be). Preferences are shared. */
   setNickname: (name: string) => Promise<void>; removeNickname: (name: string) => Promise<void>
   instances: Instance[]; refreshInstances: () => Promise<void>
   privacyOpen: boolean; setPrivacyOpen: (v: boolean) => void
@@ -130,12 +131,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const setTheme = (t: Theme) => { setThemeState(t); persistPrefs({ theme: t }) }
   const setLanguage = (l: Language) => { setLanguageState(l); persistPrefs({ language: l }) }
 
-  const setNickname = useCallback((name: string) => persistPrefs({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])] }), [persistPrefs, profile])
+  // Each profile has its own instances: after a switch (or a removal, whose
+  // instances move to the active profile) the list is reloaded and the
+  // player lands on the dashboard, since the page they were on may belong
+  // to the other profile.
+  const switchTo = useCallback(async (patch: Partial<Profile>) => {
+    await persistPrefs(patch)
+    await refreshInstances()
+    go({ name: 'dashboard' })
+  }, [persistPrefs, refreshInstances, go])
+  const setNickname = useCallback((name: string) => switchTo({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])] }), [switchTo, profile])
   const removeNickname = useCallback((name: string) => {
     const rest = (profile?.nicknames ?? []).filter((n) => n !== name)
     if (rest.length === 0) return Promise.resolve()
-    return persistPrefs({ nicknames: rest, nickname: name === profile?.nickname ? rest[0] : profile?.nickname })
-  }, [persistPrefs, profile])
+    return switchTo({ nicknames: rest, nickname: name === profile?.nickname ? rest[0] : profile?.nickname })
+  }, [switchTo, profile])
 
   const saveProfile = useCallback(async (p: Profile) => {
     setProfile(await api.SaveProfile(p))
