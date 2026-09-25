@@ -16,12 +16,16 @@ import SettingsTab from './SettingsTab'
 
 type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots' | 'settings'
 
+/** Last tab open per instance, so coming back (from Addons, say) reopens it. */
+const lastTab = new Map<string, Tab>()
+
 export default function InstancePage({ id }: { id: string }) {
   const { t, instances, refreshInstances, go } = useApp()
   const inst = instances.find((i) => i.id === id)
   const vanilla = !inst || inst.loader === 'Vanilla'
   const tabs: Tab[] = vanilla ? ['resourcepacks', 'worlds', 'screenshots', 'settings'] : ['mods', 'resourcepacks', 'shaders', 'worlds', 'screenshots', 'settings']
-  const [tab, setTab] = useState<Tab>(tabs[0])
+  const [tab, setTabState] = useState<Tab>(() => { const last = lastTab.get(id); return last && tabs.includes(last) ? last : tabs[0] })
+  const setTab = (k: Tab) => { lastTab.set(id, k); setTabState(k) }
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [editing, setEditing] = useState(false)
 
