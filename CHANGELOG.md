@@ -5,6 +5,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Back button always in reach** — on every page with "Back to …" (an
+  instance, a server, Addons, a project's details, New instance, the skin
+  editor) the button now stays under the top bar while the page scrolls.
+  Instance and server pages no longer scroll a little when there is little
+  on them, and their Play/Start, Edit, Folder and Delete buttons stay
+  visible in smaller windows (the details above them scroll instead).
+
 ### Added
 
 - **Servers always find a port** — when a server's port is taken, a server

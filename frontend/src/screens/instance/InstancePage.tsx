@@ -9,6 +9,7 @@ import { InstanceTags } from '../../components/Tags'
 import { ago, hours } from '../../utils/format'
 import PlayButton from '../../components/PlayButton'
 import BackButton from '../../components/BackButton'
+import SidePanel from '../../components/SidePanel'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
 import { api } from '../../api/bridge'
 import FilesTab from './FilesTab'
@@ -50,14 +51,21 @@ export default function InstancePage({ id }: { id: string }) {
 
   return (
     <main className="flex-1 grid grid-cols-[minmax(300px,340px)_minmax(0,1fr)] items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12">
-      <div className="col-span-2"><BackButton /></div>
-      {/* The side panel is the viewport's height, not the list's: a long
-         mods list scrolls past it while it stays put. Identity on top,
-         numbers in the middle, actions at the bottom (Play biggest, the
-         irreversible Delete last and quietest). */}
-      <div className="panel flex flex-col gap-4 sticky top-24 p-6 h-[calc(100vh-9.5rem)] overflow-y-auto">
-        <div className="flex flex-col items-center gap-3 text-center w-full min-w-0">
-          <InstanceIcon inst={inst} size={80} />
+      <BackButton className="col-span-2" />
+      {/* Identity on top, numbers under it, actions at the bottom (Play
+         biggest, the irreversible Delete last and quietest). */}
+      <SidePanel actions={<>
+        <PlayButton inst={inst} size="lg" />
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
+          <Button variant="idle" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
+        </div>
+        <Button variant="danger" size="sm" disabled={inst.running} onClick={() => setConfirmDelete(true)}>
+          <X size={12} /> {t.instance.deleteInstance}
+        </Button>
+      </>}>
+        <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
+          <InstanceIcon inst={inst} size={64} />
           {/* w-full: a shrink-to-fit column has no width for the name's truncation to resolve against. */}
           <h3 className="m-0 w-full truncate" title={inst.name}>{inst.name}</h3>
           <InstanceTags inst={inst} className="justify-center" />
@@ -75,20 +83,7 @@ export default function InstancePage({ id }: { id: string }) {
         <p className="m-0 text-xs text-muted text-center">
           {inst.lastPlayed ? `${t.dashboard.lastPlayed}: ${ago(inst.lastPlayed, language)}` : t.dashboard.neverPlayed}
         </p>
-
-        <div className="flex-1 min-h-2" />
-
-        <div className="flex flex-col gap-3">
-          <PlayButton inst={inst} size="lg" />
-          <div className="grid grid-cols-2 gap-3">
-            <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
-            <Button variant="idle" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
-          </div>
-          <Button variant="danger" size="sm" disabled={inst.running} onClick={() => setConfirmDelete(true)}>
-            <X size={12} /> {t.instance.deleteInstance}
-          </Button>
-        </div>
-      </div>
+      </SidePanel>
 
       <div className="min-w-0 flex flex-col gap-6">
         <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.instance.tabs[k] }))} value={tab} onChange={setTab} />
