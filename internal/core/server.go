@@ -167,6 +167,19 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 	if err != nil {
 		return fail(err)
 	}
+	var agent []string
+	if inst.UdeosLogin {
+		if agent, err = l.SkinAgent(ctx); err != nil {
+			return fail(err)
+		}
+		// Online mode, but checked by the launcher's skin server: it lets any
+		// name in (as offline mode would) and hands out the skins. Udeos
+		// players have no Microsoft chat keys, so those are not required.
+		if err := server.WriteProperties(dir, map[string]string{"online-mode": "true", "enforce-secure-profile": "false"}); err != nil {
+			return fail(err)
+		}
+		l.note(id, "Players join through Udeos Launcher, so their skins show. Other launchers cannot join (change it in Settings).")
+	}
 	props, err := server.ReadProperties(dir)
 	if err != nil {
 		return fail(err)
@@ -183,7 +196,7 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 			mem = prof.MaxMemoryMB
 		}
 	}
-	full := append([]string{fmt.Sprintf("-Xmx%dM", mem)}, strings.Fields(inst.Launch.JvmArgs)...)
+	full := append(append([]string{fmt.Sprintf("-Xmx%dM", mem)}, agent...), strings.Fields(inst.Launch.JvmArgs)...)
 	cmd := exec.Command(loader.ConsoleJava(java), append(full, args...)...)
 	cmd.Dir = dir
 	launch.HideConsole(cmd)
