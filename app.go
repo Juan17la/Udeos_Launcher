@@ -52,6 +52,7 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("open launcher data: %v", err)
 	}
+	a.launcher.Skins.Default = defaultSkin
 	a.launcher.OnServer = func(id, line string) {
 		if line == "" {
 			wailsrt.EventsEmit(a.ctx, EventServerState, map[string]string{"id": id})

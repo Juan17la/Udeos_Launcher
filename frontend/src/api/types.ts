@@ -43,6 +43,8 @@ export type Instance = {
   /** Server only: reachable from the internet whenever it runs, the way `internet` says. */
   public?: boolean
   internet?: InternetSettings
+  /** Server only: players join through Udeos Launcher, so skins show (other launchers cannot join). */
+  udeosLogin?: boolean
   counts: Counts
   installed: boolean
   running: boolean
@@ -59,6 +61,17 @@ export type ServerState = { starting: boolean; running: boolean; ready: boolean;
 export type Server = Instance & { state: ServerState; port: number; maxPlayers: number; lanAddress: string; addressName: string }
 export type PlayerList = 'whitelist' | 'ops' | 'banned'
 export type ServerPlayers = { online: string[] } & Record<PlayerList, string[]>
+/** Who can join a server (the "login" key of ServerProperties): through Udeos Launcher with skins, any launcher, or Microsoft accounts only. */
+export type ServerLogin = 'udeos' | 'offline' | 'microsoft'
+
+/** Arm width: 4 pixels (classic, Steve) or 3 (slim, Alex). */
+export type SkinModel = 'classic' | 'slim'
+/** A library skin; png is the 64×64 picture as base64. */
+export type Skin = { id: string; name: string; model: SkinModel; createdAt: string; png: string }
+/** Every saved skin, newest first, and what each profile wears (nickname → skin id; missing = Minecraft's default). */
+export type SkinLibrary = { skins: Skin[]; equipped: Record<string, string> }
+/** A skin file read from disk, not saved yet: its file name and the model its pixels suggest. */
+export type SkinFile = { name: string; model: SkinModel; png: string }
 
 export type VersionOption = { id: string; type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha'; releaseTime: string }
 export type VersionList = { latestRelease: string; latestSnapshot: string; versions: VersionOption[] }

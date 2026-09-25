@@ -41,6 +41,10 @@ type Instance struct {
 	// Public: reachable from the internet whenever it runs, the way Internet says.
 	Public   bool     `json:"public,omitempty"`
 	Internet Internet `json:"internet"`
+	// UdeosLogin: players join through Udeos Launcher (online mode against
+	// the launcher's own skin server), so their skins show; players of other
+	// launchers cannot join. New servers start with it on.
+	UdeosLogin bool `json:"udeosLogin,omitempty"`
 }
 
 // Internet is how a public server is reached from outside the local network.

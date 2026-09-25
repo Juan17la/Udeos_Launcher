@@ -2,18 +2,20 @@ import { useEffect, useState } from 'react'
 import Dialog, { ConfirmDialog } from '../ui/Dialog'
 import Button from '../ui/Button'
 import { Input } from '../ui/Field'
-import { Plus, User, X } from '../ui/icons'
+import { Plus, X } from '../ui/icons'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { NICKNAME } from '../utils/validation'
+import { SkinFace } from './SkinView'
 
 /** The launcher's profiles: each one is a player name with its own
  *  instances. Click one to switch (the dashboard reloads with its
  *  instances), add a new one (it becomes active, with no instances), or
  *  remove one — its instances move to the profile that stays active. */
 export default function ProfileDialog({ onClose }: { onClose: () => void }) {
-  const { t, profile, nickname, setNickname, removeNickname } = useApp()
+  const { t, profile, nickname, setNickname, removeNickname, skins } = useApp()
+  const faceOf = (n: string) => skins?.skins.find((k) => k.id === skins.equipped[n])?.png
   const nicknames = profile?.nicknames ?? []
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [newName, setNewName] = useState('')
@@ -43,7 +45,7 @@ export default function ProfileDialog({ onClose }: { onClose: () => void }) {
                 <button type="button" onClick={() => switchTo(n)} aria-current={active || undefined}
                   className="flex-1 min-w-0 flex items-center gap-4 px-4 py-3 text-left bg-transparent border-0 text-inherit cursor-pointer rounded-md focus-visible:outline-none!">
                   {/* The focus ring is drawn on the whole row (see its has-[…] classes), not on this half of it. */}
-                  <User size={20} />
+                  <SkinFace png={faceOf(n)} size={24} />
                   <span className="flex-1 min-w-0 flex flex-col">
                     <span className="font-bold truncate">{n}</span>
                     <span className={`text-xs ${active ? 'text-white/80' : 'text-muted'}`}>{fmt(t.profiles.instances, { n: counts[n] ?? 0 })}</span>

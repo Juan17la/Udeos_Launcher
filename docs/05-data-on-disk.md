@@ -34,6 +34,8 @@ elsewhere, which is how tests run against a throw-away directory and how a
   mod, pack or shader downloaded from Modrinth, kept so a second instance
   adding the same file does not download it again.
 - `launcher_profiles.json` — an empty stub the Forge/NeoForge installer requires.
+- `libraries/moe/yushi/authlib-injector/` — the Java agent that lets games and
+  servers use the launcher's skins (downloaded on first Play).
 
 Deleting any of these only costs a re-download; nothing the player made lives
 there.
@@ -66,6 +68,10 @@ between them, adds and removes; preferences are shared), language, theme,
 the consent flag, the maximum memory for the game and an optional custom
 Java path. It is the only place personal data exists, and it never leaves
 the machine.
+
+`skins/` holds the skin library: `library.json` (each skin's id, name and
+model, and which skin each nickname wears) and one `<id>.png` per skin. See
+[Skins](13-skins.md).
 
 ## Reading worlds and screenshots
 

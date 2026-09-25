@@ -53,3 +53,18 @@ export const Pencil = ({ size = 14 }: P) => (
 export const Download = ({ size = 12 }: P) => (
   <svg {...base(size, 2.75)}><path d="M12 3.5v12M6.5 10l5.5 5.5 5.5-5.5M4.5 20.5h15" /></svg>
 )
+export const Eraser = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21" /><path d="M22 21H7" /><path d="m5 11 9 9" /></svg>
+)
+export const Bucket = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="m19 11-8-8-8.6 8.6a2 2 0 0 0 0 2.8l5.2 5.2c.8.8 2 .8 2.8 0L19 11Z" /><path d="m5 2 5 5" /><path d="M2 13h15" /><path d="M22 20a2 2 0 1 1-4 0c0-1.6 1.7-2.4 2-4 .3 1.6 2 2.4 2 4Z" /></svg>
+)
+export const Pipette = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="m2 22 1-1h3l9-9" /><path d="M3 21v-3l9-9" /><path d="m15 6 3.4-3.4a2.1 2.1 0 1 1 3 3L18 9l.4.4a2.1 2.1 0 1 1-3 3l-3.8-3.8a2.1 2.1 0 1 1 3-3l.4.4Z" /></svg>
+)
+export const Undo = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></svg>
+)
+export const Redo = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="m15 14 5-5-5-5" /><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13" /></svg>
+)
