@@ -42,9 +42,11 @@ export default function Dashboard() {
           <p className="m-0 text-[13px] text-muted">
             {last.lastPlayed ? fmt(t.dashboard.playedAgo, { when: ago(last.lastPlayed, language), hours: hours(last.playTimeSec) }) : t.dashboard.neverPlayed}
           </p>
-          <div className="flex-1" />
-          <PlayButton inst={last} size="lg" />
-          <Button variant="secondary" block onClick={() => go({ name: 'instance', id: last.id })}>{t.dashboard.openInstance}</Button>
+          {/* Pinned to the panel's bottom, both the same size. */}
+          <div className="mt-auto w-full flex flex-col gap-4">
+            <PlayButton inst={last} size="lg" />
+            <Button variant="secondary" size="lg" block onClick={() => go({ name: 'instance', id: last.id })}>{t.dashboard.openInstance}</Button>
+          </div>
         </div>
       )}
     </main>
@@ -72,7 +74,7 @@ function InstanceCard({ inst }: { inst: Instance }) {
         <span>{inst.counts.worlds} {t.dashboard.worlds}</span>
       </div>
       {/* Play must not also open the card. */}
-      <div className="flex gap-4" onClick={(e) => e.stopPropagation()}>
+      <div className="flex gap-4 mt-auto" onClick={(e) => e.stopPropagation()}>
         <PlayButton inst={inst} className="flex-1" />
         <Button variant="idle" className="flex-1" onClick={open}>{t.dashboard.manage}</Button>
       </div>
