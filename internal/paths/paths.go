@@ -75,6 +75,9 @@ func (d Dirs) GameDir(id string) string { return filepath.Join(d.Instances, id, 
 // ProfileFile stores the local player profile.
 func (d Dirs) ProfileFile() string { return filepath.Join(d.Root, "profile.json") }
 
+// SkinsDir holds the skin library: library.json and one <id>.png per skin.
+func (d Dirs) SkinsDir() string { return filepath.Join(d.Root, "skins") }
+
 // InstancesFile stores the list of instances.
 func (d Dirs) InstancesFile() string { return filepath.Join(d.Root, "instances.json") }
 

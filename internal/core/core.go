@@ -26,6 +26,7 @@ import (
 	"udeos/launcher/internal/paths"
 	"udeos/launcher/internal/profile"
 	"udeos/launcher/internal/rules"
+	"udeos/launcher/internal/skin"
 )
 
 // GameEvent is emitted when a game process starts or stops.
@@ -48,6 +49,7 @@ type Launcher struct {
 	Search    *modsearch.Manager
 	Content   *modinstall.Manager
 	Modpacks  *modpack.Manager
+	Skins     *skin.Library
 	OnGame    func(GameEvent)
 	// OnServer receives a server's console lines, and line == "" when its state changed.
 	OnServer func(id, line string)
@@ -55,6 +57,9 @@ type Launcher struct {
 	mu      sync.Mutex
 	running map[string]*exec.Cmd
 	servers map[string]*serverProc
+	// skinServer starts the local skin server the first time a game or a
+	// server needs it.
+	skinServer func() (*skin.Server, error)
 }
 
 // New opens the data directory and the instance list. report receives the
@@ -69,15 +74,35 @@ func New(dirs paths.Dirs, version string, report, reportContent func(download.Pr
 	if err != nil {
 		return nil, err
 	}
+	skins, err := skin.Open(dirs.SkinsDir())
+	if err != nil {
+		return nil, err
+	}
 	search := modsearch.New(dirs)
-	return &Launcher{
+	l := &Launcher{
 		Dirs: dirs, Version: version, Instances: store,
 		Installer: install.New(dirs, report), JRE: jre.New(dirs, report), Loaders: loader.New(dirs, report),
 		Search:   search,
 		Content:  modinstall.New(dirs, search.Provider, reportContent),
 		Modpacks: modpack.New(dirs, search.Provider, store, reportContent),
+		Skins:    skins,
 		OnGame:   onGame, running: map[string]*exec.Cmd{}, servers: map[string]*serverProc{},
-	}, nil
+	}
+	l.skinServer = sync.OnceValues(func() (*skin.Server, error) {
+		return skin.Start(skins, func() []string { p, _ := l.Profile(); return p.Nicknames })
+	})
+	return l, nil
+}
+
+// SkinAgent returns the JVM flags that load the launcher's skins: games
+// get the skin their profile wears, servers let players join through the
+// launcher (see skin.Server).
+func (l *Launcher) SkinAgent(ctx context.Context) ([]string, error) {
+	s, err := l.skinServer()
+	if err != nil {
+		return nil, err
+	}
+	return s.Agent(ctx, l.Dirs.Libraries)
 }
 
 // Profile loads the local player, or os.ErrNotExist before first login.
@@ -184,9 +209,12 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 	if mem == 0 {
 		mem = p.MaxMemoryMB
 	}
+	// Every game gets the skin agent, also without a skin: joining a Udeos
+	// server needs it. Without it (no download yet, offline) the game still starts.
+	agent, agentErr := l.SkinAgent(ctx)
 	params := launch.Params{
 		Version: v, Dirs: l.Dirs, GameDir: l.Dirs.GameDir(id),
-		Nickname: p.Nickname, UUID: p.UUID, JavaPath: java, MaxMemoryMB: mem, JvmArgs: strings.Fields(inst.Launch.JvmArgs),
+		Nickname: p.Nickname, UUID: p.UUID, JavaPath: java, MaxMemoryMB: mem, JvmArgs: append(agent, strings.Fields(inst.Launch.JvmArgs)...),
 		Env: rules.Current(), LauncherVersion: l.Version,
 	}
 	if v.AssetIndex.ID == "legacy" || v.AssetIndex.ID == "pre-1.6" {
@@ -204,6 +232,9 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 		return err
 	}
 	fmt.Fprintf(logFile, "# %s\n# %s %v\n\n", time.Now().Format(time.RFC3339), java, redact(cmd.Args[1:]))
+	if agentErr != nil {
+		fmt.Fprintf(logFile, "# skins are off for this session: %v\n\n", agentErr)
+	}
 	cmd.Stdout = logFile
 	cmd.Stderr = logFile
 
