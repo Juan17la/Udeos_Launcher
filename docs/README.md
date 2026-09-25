@@ -17,6 +17,7 @@ plain language. They are meant to be read in order the first time.
 | 10 | [Adding content](10-adding-content.md) | Installing a search result into an instance: version and loader checks, dependencies, incompatibilities, and what is remembered |
 | 11 | [Design system](11-design-system.md) | The pastel Minecraft design rules the UI follows, and how they map to tokens and the `ui/` building blocks |
 | 12 | [Servers](12-servers.md) | Hosting a world: how a server is created and started on this computer, and how friends reach it on the LAN or through the relay / router |
+| 13 | [Skins](13-skins.md) | The skin library and editor, and how a skin reaches the game and your servers without an account |
 
 The requirements, diagrams and the interactive UI mockup the design was ported
 from are working material kept outside this repository.
