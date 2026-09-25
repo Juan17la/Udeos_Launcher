@@ -7,6 +7,18 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Servers** — a new Servers page hosts Minecraft worlds on this computer
+  (Vanilla, Fabric, Forge or NeoForge; accept the EULA when creating). Each
+  server has a name, a block icon (shown in the multiplayer list), Start/Stop,
+  a live console with one-click commands, players (online: kick, admin, ban;
+  whitelist, admins and bans lists), world backups (back up while running,
+  restore with an automatic backup of the current world), mods from Addons and
+  friendly settings (description, game mode, difficulty, PvP, view distance…).
+  **Internet** tab: the local address for friends on the same Wi-Fi, and
+  "Open to the internet", which asks the router to forward the port (UPnP)
+  after a warning about RAM, CPU and upload use; when the router refuses, it
+  says how to forward the port by hand. Running servers save and stop when
+  the launcher closes.
 - **Profiles keep their own instances** — each launcher profile (a player
   name) sees only its instances. Account menu → Switch profile opens a modal
   listing every profile with its instance count: click to switch, add a new
