@@ -2,6 +2,7 @@ import InstanceIcon from '../components/InstanceIcon'
 import Decor, { DASHBOARD_DECOR } from '../ui/Decor'
 import Button from '../ui/Button'
 import PlayButton from '../components/PlayButton'
+import { InstanceTags } from '../components/Tags'
 import { useApp } from '../state'
 import { fmt } from '../i18n/format'
 import { ago, hours } from '../utils/format'
@@ -37,10 +38,7 @@ export default function Dashboard() {
           <span className="text-[11px] tracking-[0.12em] uppercase text-muted">{t.dashboard.lastPlayed}</span>
           <InstanceIcon inst={last} size={120} />
           <h3 className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{last.name}</h3>
-          <div className="flex gap-2 justify-center">
-            <span className="tag bg-green-soft">{last.version}</span>
-            <span className="tag bg-gold-soft">{last.loaderLabel}</span>
-          </div>
+          <InstanceTags inst={last} className="justify-center" />
           <p className="m-0 text-[13px] text-muted">
             {last.lastPlayed ? fmt(t.dashboard.playedAgo, { when: ago(last.lastPlayed, language), hours: hours(last.playTimeSec) }) : t.dashboard.neverPlayed}
           </p>
@@ -65,10 +63,7 @@ function InstanceCard({ inst }: { inst: Instance }) {
         <InstanceIcon inst={inst} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-2">
           <div className="font-bold text-lg leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{inst.name}</div>
-          <div className="flex gap-2">
-            <span className="tag bg-green-soft">{inst.version}</span>
-            <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
-          </div>
+          <InstanceTags inst={inst} />
         </div>
       </div>
       <div className="flex items-center gap-4 text-xs text-muted">

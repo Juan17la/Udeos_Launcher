@@ -70,6 +70,8 @@ export type SearchResult = {
   downloads: number
   projectType: ProjectType
   loaders: string[]
+  /** Minecraft releases it has builds for, oldest first (absent on pages cached by older builds). */
+  gameVersions?: string[]
 }
 export type SearchPage = { results: SearchResult[]; total: number; offset: number }
 export type SearchGameVersion = { version: string; type: 'release' | 'snapshot' | 'old_beta' | 'old_alpha' }
