@@ -3,124 +3,125 @@
 All notable changes to Udeos Launcher are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## [1.0.0-beta] — 2026-09-25
 
-### Added
+The second beta. Everything from 0.10.0-beta, plus skins, servers,
+profiles with their own instances and many fixes. Grouped by area below.
 
-- **Cancel downloads** — the game download that Play starts can be cancelled
-  from its loading window or its notification, and each Addons download
-  from its notification (a waiting one just leaves the queue). A cancelled
-  download ends quietly, with no error; a modpack cancelled while its new
-  instance was being made leaves no half-made instance behind.
+### Instances
 
-### Fixed
+- **Game loading window**: Play opens a window with the instance's block
+  hopping, a striped progress bar, the version and the percentage. **Hide**
+  shrinks it to a notification; **Cancel** stops the download quietly.
+- **Instance page**: a side panel with name, tags, a 2×2 grid (mods, packs,
+  worlds, play time), then Play, Edit + Folder and Delete. In small windows
+  the details scroll inside the panel and the buttons stay visible.
+- Whole instance cards are clickable. An instance reopens on the tab you
+  left, and every page remembers its scroll when you come back.
+- The **Back to …** button stays under the top bar while a page scrolls,
+  and pages no longer scroll just because of it.
 
-- **Back button always in reach** — on every page with "Back to …" (an
-  instance, a server, Addons, a project's details, New instance, the skin
-  editor) the button now stays under the top bar while the page scrolls.
-  Instance and server pages no longer scroll a little when there is little
-  on them, and their Play/Start, Edit, Folder and Delete buttons stay
-  visible in smaller windows (the details above them scroll instead).
+### Profiles
 
-### Added
+- **Each profile has its own instances** (and servers). Account menu →
+  Switch profile lists every profile with its instance count: switch, add a
+  new one (starts empty) or remove one. Its instances move to the profile
+  that stays, so nothing is deleted. Instances from before this version go
+  to the profile that is active the first time the launcher opens.
+- A profile's avatar is the face of the skin it wears.
 
-- **Servers always find a port** — when a server's port is taken, a server
-  left running from before (the launcher was closed abruptly) is saved and
-  stopped; if another program has it, the server moves to the next free
-  port and remembers it. A server whose console stops answering is killed
-  when you press Stop.
-- **New servers are open to the internet** by default, and the custom
-  address (like `udeoslauncher.friends-smp.….nip.io:41234`) is shown on the
-  card, the side panel and the Internet tab even while the server is stopped.
+### Servers
 
-- **Skins** — a new Skins page, like the official launcher's, that fits the
-  window: the skin you wear on a big 3D model you can turn, and a library of
-  every skin you saved — click a card to wear it (edit and delete on hover).
-  Drop a `.png` you downloaded (or browse for one) to add it: the launcher
-  guesses Classic (4-pixel arms) or Slim (3-pixel arms) and shows a preview
-  while you pick; old 64×32 skins are upgraded. Until you pick one you wear
-  Minecraft's Steve, in the launcher and in the game. **New skin** and Edit
-  open an editor: paint on the flat skin or right on the model, with pencil,
-  eraser, fill, color picker, undo/redo and the second layer (hats, jackets,
-  sleeves). Each profile's skin is used in all its instances from the next
-  Play, and its face becomes the profile's avatar. Skins show in
-  singleplayer and on the servers you host; public servers may show a
-  default skin.
-- **Who can join a server** — server Settings now choose between "Udeos
-  players" (players join through Udeos Launcher and skins show; other
-  launchers cannot join), "Anyone" (any launcher, no skins) and "Microsoft
-  accounts". New servers start on "Udeos players"; existing servers keep
-  letting anyone in.
-- **Servers** — a new Servers page hosts Minecraft worlds on this computer
-  (Vanilla, Fabric, Forge or NeoForge; accept the EULA when creating). Each
-  server has a name, a block icon (shown in the multiplayer list), Start/Stop,
-  a live console with one-click commands, players (online: kick, admin, ban;
-  whitelist, admins and bans lists), world backups (back up while running,
-  restore with an automatic backup of the current world), mods from Addons and
-  friendly settings (description, game mode, difficulty, PvP, view distance…).
-  **Internet** tab: the local address for friends on the same Wi-Fi, and
-  "Open to the internet", which asks the router to forward the port (UPnP)
-  after a warning about RAM, CPU and upload use; when the router refuses, it
-  says how to forward the port by hand. Running servers save and stop when
-  the launcher closes.
-- **Servers reachable from anywhere** — "Open to the internet" now goes
-  through a free relay by default (bore.pub), so friends in another city or
-  country can join even when the router has no UPnP or the connection is
-  shared (CGNAT). Each server gets a named address such as
-  `udeoslauncher.friends-smp.<ip>.nip.io:41234` (free, no account; the name is
-  editable) that stays the same across restarts, plus the plain address as a
-  fallback. The Router connection (UPnP, less lag) is still there, and
-  players with their own bore relay can use it with its secret. The relay
-  reconnects on its own if the connection drops.
-- **Server safety checks** — starting a third server at once warns that the
-  computer may slow down; closing the launcher while servers run asks first,
-  then saves and stops them; a running server can now be deleted (it is
-  saved and stopped first); saving changed settings on a running server
-  warns that it will be stopped so the next start uses them. Server settings
-  refuse a port another server already uses, and out-of-range max players or
-  view distance. The server status shows "Stopping…" while it saves.
-- **Profiles keep their own instances** — each launcher profile (a player
-  name) sees only its instances. Account menu → Switch profile opens a modal
-  listing every profile with its instance count: click to switch, add a new
-  one (starts empty), or remove one (its instances move to the profile that
-  stays active; nothing is deleted). Instances made before this update go to
-  the profile that is active the first time the launcher opens.
-- **Whole cards are clickable** — instance cards open the instance, Addons
-  cards and installed-mod cards open the project's Details page.
-- **Back puts you where you were** — returning from Details restores the
-  Addons search, filters, page and scroll; an instance reopens on the tab
-  you left; every other page remembers its scroll.
-- **Page numbers on Addons** — first/last/nearby pages, a "go to page" box and
-  a "1–30 of N" count.
-- **Game loading screen** — Play opens a modal with the instance's block
-  hopping, a striped progress bar, the version and the percentage; Hide
-  shrinks it to a notification.
+- **New Servers page**: host a Minecraft world on this computer (Vanilla,
+  Fabric, Forge or NeoForge; accept the EULA when creating). Each server has
+  a name, a block icon for the multiplayer list, Start/Stop, a live console
+  with one-click commands, and a Players tab (kick, admin, ban; whitelist,
+  admins and bans lists). It also has world backups (made while running,
+  restored after an automatic backup of the current world), mods from
+  Addons and plain-language settings.
+- **Play with friends anywhere**: servers are open to the internet by
+  default through a free relay (bore.pub), so it works even without UPnP or
+  behind a shared connection (CGNAT). Each server gets a named address such
+  as `udeoslauncher.friends-smp.<ip>.nip.io:41234`. It is shown even while
+  the server is stopped and stays the same across restarts. The Router mode
+  (UPnP, less lag) and your own bore relay are options too. Same-Wi-Fi
+  friends get a local address.
+- **Who can join**: "Udeos players" (the default for new servers; skins
+  show, other launchers cannot join), "Anyone" (any launcher, no skins) or
+  "Microsoft accounts".
+- **Safety checks**: a warning before a third server starts at once. Closing
+  the launcher with servers running asks first, then saves and stops them.
+  A running server can be deleted (it is saved and stopped first). Changing
+  settings of a running server warns that it will stop. Ports another
+  server uses and out-of-range values are refused. "Stopping…" shows while
+  a server saves.
+- **Servers always find a port**: a server left running from before is
+  saved and stopped. If another program has the port, the server moves to
+  the next free one and remembers it. A server whose console stops
+  answering is killed when you press Stop.
 
-### Changed
+### Skins
 
-- **Gentle page transitions** — a new page fades in while rising 6px
-  (0.2 s); instance tabs cross-fade (0.15 s). With reduced motion turned on
-  in the system, only the fade remains.
-- **One tag style on every card** — Minecraft version(s) in green behind a
-  grass block ("1.20.1–1.21.1" on Addons), loaders in gold with proper names
-  (NeoForge, not "neoforge") and at most two plus "+N", downloads as a gray
-  tag with a short number (42M; the exact count on hover).
-- **Instance page side panel** — narrower, so the tabs get the room; name
-  and tags on top, a 2×2 grid of mods/packs/worlds/play time, then Play,
-  Edit + Folder side by side, and Delete last. Scrolls inside itself on
-  short windows instead of hiding its buttons.
-- Download notifications show only the project (or instance) name and a
-  percentage.
-- Addons page heading reads "Addons" like the nav; the search box has a clear
-  button; form fields use the launcher's font.
+- **New Skins page** that fits the window: the skin you wear on a big 3D
+  model you can turn, and a library of every skin you saved. Click a card
+  to wear it; edit and delete are on hover.
+- **Add downloaded skins**: drop a `.png` on the page (or browse). The
+  launcher guesses Classic (4-pixel arms) or Slim (3-pixel arms), shows a
+  preview while you choose, and upgrades old 64×32 skins.
+- **Skin editor**: paint on the flat skin or right on the 3D model. It has
+  pencil, eraser, fill, color picker (right-click too), undo/redo, recent
+  colors and the second layer (hats, jackets, sleeves). Unsaved work is kept
+  if you leave the page.
+- The skin is used in **every instance of the profile** from the next Play,
+  in singleplayer and on the servers you host. Until you pick one, you wear
+  Steve. Public servers may show a default skin.
+
+### Addons
+
+- **Page numbers**: first/last/nearby pages, a "go to page" box and a
+  "1–30 of N" count. The search box has a clear button.
+- Addons cards and installed-mod cards open the project's Details page.
+  Back from Details restores the search, filters, page and scroll.
+- **One tag style everywhere**:
+  - Minecraft versions in green ("1.20.1–1.21.1").
+  - Loaders in gold with their proper names, at most two plus "+N".
+  - Downloads in gray with a short number (42M; the exact count on hover).
+- Download notifications show just the name and a percentage. **Cancel** on
+  a download stops it (a waiting one just leaves the queue). A modpack
+  cancelled mid-way leaves no half-made instance.
+
+### Themes and languages
+
+- **Two themes**: Pastel Overworld (light, the default) and Pastel End
+  (dark), switched from the account menu.
+- **Two languages**: English and Spanish, switched from the account menu.
+- Gentle page transitions (a short fade and rise; only the fade with reduced
+  motion), and one font everywhere.
+
+### Device requirements
+
+- **Windows** 10 or 11 (64-bit). **macOS** 10.13 or newer (Intel or Apple
+  Silicon). **Linux** x86_64 with GTK 3 and WebKitGTK 4.1 (Debian/Ubuntu
+  22.04 or newer, Fedora).
+- **Memory**: 4 GB of RAM at least (the game gets 2 GB by default). 8 GB or
+  more is recommended for modpacks or hosting a server while playing.
+- **Disk**: about 1 GB for the first Minecraft version, plus your worlds and
+  mods.
+- **Internet** for the first Play of each version (the game and the right
+  Java are downloaded then), for Addons and for friends reaching your
+  servers. No Java install and no Microsoft account needed.
 
 ### Fixed
 
-- Profiles modal: the rows' shadow was cut off into a flat border that did
-  not match the row; the keyboard focus ring now surrounds the whole row.
-- A white flash on a quick hover in and out of the instance cards
-  and buttons (both now keep their own compositing layer).
-- Progress bars no longer crawl behind the percentage.
+- Profiles modal: row shadows and the keyboard focus ring.
+- A white flash on quick hover over instance cards and buttons.
+- Progress bars no longer lag behind the percentage.
+- Relayed players were disconnected about 10 seconds after joining.
+
+### Known limitations
+
+- Servers that require a Microsoft account will not let Udeos players in.
+- The installers are not code-signed yet (Windows and macOS warn once).
 
 ## [0.10.0-beta] — 2026-09-18
 
