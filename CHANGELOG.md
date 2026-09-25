@@ -3,6 +3,32 @@
 All notable changes to Udeos Launcher are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Added
+
+- **Whole cards are clickable** — instance cards open the instance, Addons
+  cards and installed-mod cards open the project's Details page.
+- **Back puts you where you were** — returning from Details restores the
+  Addons search, filters, page and scroll; an instance reopens on the tab
+  you left; every other page remembers its scroll.
+- **Page numbers on Addons** — first/last/nearby pages, a "go to page" box and
+  a "1–30 of N" count.
+- **Game loading screen** — Play opens a modal with the instance's block
+  hopping, a striped progress bar, the version and the percentage; Hide
+  shrinks it to a notification.
+
+### Changed
+
+- Download notifications show only the project (or instance) name and a
+  percentage.
+- Addons page heading reads "Addons" like the nav; the search box has a clear
+  button; form fields use the launcher's font.
+
+### Fixed
+
+- Progress bars no longer crawl behind the percentage.
+
 ## [0.10.0-beta] — 2026-09-18
 
 First public release. Installers for Windows, macOS and Linux are on the
