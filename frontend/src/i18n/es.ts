@@ -143,6 +143,7 @@ const es: Dict = {
       title: 'Crear nuevo servidor', subtitle: 'Ponle un nombre, elige una versión y un bloque para su icono.',
       name: 'Nombre del servidor', namePlaceholder: 'p. ej. SMP de amigos', icon: 'Icono del servidor', submit: 'Crear servidor',
       eula: 'Acepto el', eulaLink: 'EULA de Minecraft',
+      publicNote: 'Se abre a internet cada vez que está en marcha, así pueden entrar amigos de cualquier lugar. Ciérralo en la pestaña Internet.',
       loaderHint: '{loader} {version} se instala en el primer inicio. Solo se listan las versiones que {loader} admite.',
     },
   },

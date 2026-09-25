@@ -33,6 +33,8 @@ export function createMock() {
   // s2 predates Udeos logins: it stays open to any launcher.
   const serverProps: Record<string, Record<string, string>> = { s1: { motd: 'Friends SMP', 'server-port': '25565', 'online-mode': 'true', login: 'udeos' }, s2: { motd: 'Modded Realm', 'server-port': '25566', 'online-mode': 'false', login: 'offline' } }
   instances[instances.length - 1].udeosLogin = false
+  // s1 was open before: its address shows while it is stopped.
+  Object.assign(instances[instances.length - 2], { public: true, internet: { relayPort: 41234, address: 'udeoslauncher.friends-smp.159-223-171-199.nip.io:41234' } })
   const serverLogs: Record<string, string[]> = {}
   const playerLists: Record<string, Record<PlayerList, string[]>> = {}
   const listsOf = (id: string) => (playerLists[id] ??= { whitelist: ['Steve'], ops: [], banned: [] })
@@ -48,6 +50,7 @@ export function createMock() {
     s.state.publicAddress = `${s.addressName}.${ip.replace(/\./g, '-')}.nip.io${port === 25565 ? '' : `:${port}`}`
     s.state.publicRaw = router ? `${ip}:${port}` : `${s.internet?.relay || 'bore.pub'}:${port}`
     s.state.publicError = undefined
+    s.internet!.address = s.state.publicAddress
     logLine(s.id, `[Udeos] Open to the internet at ${s.state.publicAddress} (also ${s.state.publicRaw})`)
   }
   const loaderOptions: Record<string, Array<[string, string]>> = {
@@ -323,6 +326,7 @@ export function createMock() {
       const used = new Set(instances.filter((i) => i.server).map((i) => (i as Server).port))
       let port = 25565; while (used.has(port)) port++
       const s = newServer('s' + Date.now(), name, version, loader, loaderVersion, icon, port)
+      s.public = true
       serverProps[s.id] = { motd: name, 'server-port': String(port), 'online-mode': 'true', login: 'udeos' }
       instances.push(s); return structuredClone(s)
     },
