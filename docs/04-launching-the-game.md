@@ -15,6 +15,12 @@ version-3 UUID of the text "OfflinePlayer:" followed by the name), so a
 player keeps their inventory and position on an offline server no matter
 which launcher they use.
 
+Every game also gets `-javaagent:<authlib-injector>=http://127.0.0.1:25585`
+first among the JVM flags: it points the game at the launcher's own skin
+server, which is how the profile's skin shows and how Udeos servers let
+Udeos players in (see [Skins](13-skins.md)). Without it (no download yet)
+the game starts as before.
+
 ## Building the command line
 
 When Play is pressed for an installed version, the launcher assembles one

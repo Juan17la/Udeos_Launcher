@@ -29,10 +29,13 @@ folder:
 
 - `eula.txt` with `eula=true` — the create form makes the player accept
   Mojang's EULA first; a server refuses to start without it.
-- `server.properties` with the server's name as `motd`, **`online-mode=false`**
-  (Udeos players have no Microsoft account, so an online-mode server would
-  refuse every one of them) and the first free **port** from 25565 upwards
-  that no other Udeos server uses.
+- `server.properties` with the server's name as `motd`, the first free
+  **port** from 25565 upwards that no other Udeos server uses, and
+  **"Who can join: Udeos players"**: `online-mode=true` checked by the
+  launcher's own skin server instead of Microsoft, so skins show and Udeos
+  players (who have no Microsoft account) get in; players of other launchers
+  cannot. Settings can switch it to "Anyone" (`online-mode=false`) or
+  "Microsoft accounts". Details in [Skins](13-skins.md#server-login-who-can-join).
 - `server-icon.png` (64×64) when an icon was chosen: the picture next to the
   server in the multiplayer list.
 
@@ -64,20 +67,24 @@ through two events: `server:log` (a console line) and `server:state`
      again. 1.17+ installers leave an argument file
      (`libraries/…/unix_args.txt` or `win_args.txt`), started as
      `@<that file> nogui`; older ones leave a runnable `forge-<build>.jar`.
-3. **Read the port** from `server.properties` (25565 when missing).
-4. **Start Java** from the server folder:
-   `java -Xmx<memory>M <jvm flags> <start arguments>`. Memory is the server's
+3. **Udeos login** (servers on "Udeos players" only): get the skin agent
+   (authlib-injector, downloaded once) and rewrite `online-mode=true` and
+   `enforce-secure-profile=false`; the start fails if the agent cannot be
+   had, since no Udeos player could join without it.
+4. **Read the port** from `server.properties` (25565 when missing).
+5. **Start Java** from the server folder:
+   `java -Xmx<memory>M [-javaagent:…] <jvm flags> <start arguments>`. Memory is the server's
    own setting, else the profile's default, else 2048 MB. On Windows
    `javaw.exe` is swapped for `java.exe` (`ConsoleJava`) so the output can be
    read, and no console window opens.
-5. **Watch the console.** stdout and stderr are read line by line; the last
+6. **Watch the console.** stdout and stderr are read line by line; the last
    500 lines are kept for the Console tab. Three kinds of lines change the
    state:
    - `…]: Done (…)! For help…` → **Ready**: players can join;
    - `…]: <name> joined the game` / `left the game` → the online list;
    - `Saved the game` / `Saved the world` → a waiting backup may continue.
-6. **Open to the internet** if the server's `Public` switch is on (below).
-7. When the process exits, internet access is closed, the play time is added
+7. **Open to the internet** if the server's `Public` switch is on (below).
+8. When the process exits, internet access is closed, the play time is added
    to the instance and the entry is removed.
 
 Typing in the Console tab writes the line to the server's stdin (a leading
@@ -199,8 +206,9 @@ port by hand or suggests the relay.
   `TestPlayerOutlivesHandshakeTimeout` guards it.
 - **A silent relay must be hung up on**, not just ignored: the relay keeps
   the public port as long as the control socket is open.
-- **Offline mode is required** for Udeos players. Switching a server to
-  online mode shuts out everyone who does not have a Microsoft account.
+- **Microsoft's online mode shuts Udeos players out**: they have no account.
+  The Udeos login is online mode too, but the launcher answers the "did
+  this player join?" question itself, for any name, with the offline UUID.
 
 ## Troubleshooting
 
@@ -211,4 +219,4 @@ port by hand or suggests the relay.
 | The named address does not resolve | nip.io unreachable from the friend's network: use the raw address |
 | Friends on the same Wi-Fi cannot join | The OS firewall blocks Java; allow it for private networks |
 | Router mode: "shared" / CGNAT warning | The provider shares the public IP: use Relay mode |
-| Friends get "Invalid session" when joining | The server was switched to `online-mode=true` |
+| Friends get "Invalid session" when joining | They use another launcher and the server is on "Udeos players", or it is on "Microsoft accounts": Settings → Who can join |

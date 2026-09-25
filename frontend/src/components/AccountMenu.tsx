@@ -4,11 +4,13 @@ import Button from '../ui/Button'
 import { useApp } from '../state'
 import { LANGUAGES } from '../i18n'
 import ProfileDialog from './ProfileDialog'
+import { SkinFace } from './SkinView'
 
 /** Nickname button in the nav that opens a glass popover: Switch profile
  *  (opens the profiles modal), theme, language and the privacy & terms dialog. */
 export default function AccountMenu() {
-  const { t, theme, setTheme, language, setLanguage, nickname, setPrivacyOpen } = useApp()
+  const { t, theme, setTheme, language, setLanguage, nickname, setPrivacyOpen, skins } = useApp()
+  const face = skins?.skins.find((k) => k.id === skins.equipped[nickname])?.png
   const [open, setOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [profilesOpen, setProfilesOpen] = useState(false)
@@ -30,7 +32,7 @@ export default function AccountMenu() {
   return (
     <div className="relative flex-none" ref={ref}>
       <Button variant="idle" title={nickname} onClick={() => setOpen((v) => !v)} className="max-w-50">
-        <User size={16} />
+        <SkinFace png={face} size={18} />
         <span className="whitespace-nowrap overflow-hidden text-ellipsis">{nickname || '?'}</span>
       </Button>
       {open && (
