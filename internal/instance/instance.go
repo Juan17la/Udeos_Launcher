@@ -38,9 +38,33 @@ type Instance struct {
 	// Server marks a dedicated server: its .minecraft is the server folder
 	// (server.properties, world/, mods/). Servers live on the Servers page only.
 	Server bool `json:"server,omitempty"`
-	// Public: open the server's port on the router (UPnP) whenever it runs.
-	Public bool `json:"public,omitempty"`
+	// Public: reachable from the internet whenever it runs, the way Internet says.
+	Public   bool     `json:"public,omitempty"`
+	Internet Internet `json:"internet"`
 }
+
+// Internet is how a public server is reached from outside the local network.
+type Internet struct {
+	// Mode is RelayMode ("" too) or RouterMode.
+	Mode string `json:"mode,omitempty"`
+	// Name starts the address friends type ("udeoslauncher.friends-smp");
+	// "" = derived from the server's name.
+	Name string `json:"name,omitempty"`
+	// Relay is a bore relay "host[:control port]" ("" = the public bore.pub),
+	// Secret its shared secret when it has one.
+	Relay  string `json:"relay,omitempty"`
+	Secret string `json:"secret,omitempty"`
+	// RelayPort is the public port the relay gave last time; it is asked for
+	// again so the address friends saved keeps working.
+	RelayPort int `json:"relayPort,omitempty"`
+}
+
+// Internet modes: through a public relay (works behind any router, the
+// default) or straight through the router (UPnP port forward, lower lag).
+const (
+	RelayMode  = "relay"
+	RouterMode = "router"
+)
 
 // Launch is the instance's own JVM settings; a zero value means "use the
 // profile's default" (memory) or "nothing extra" (java, arguments).

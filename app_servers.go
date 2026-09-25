@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"errors"
+	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -16,6 +18,7 @@ import (
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/profile"
 	"udeos/launcher/internal/server"
+	"udeos/launcher/internal/tunnel"
 	"udeos/launcher/internal/upnp"
 )
 
@@ -34,10 +37,12 @@ type ServerView struct {
 	MaxPlayers int              `json:"maxPlayers"`
 	// LanAddress is how players on the same network join (ip:port).
 	LanAddress string `json:"lanAddress"`
+	// AddressName starts the internet address (Internet.Name or the default from the server's name).
+	AddressName string `json:"addressName"`
 }
 
 func (a *App) serverView(inst instance.Instance) ServerView {
-	v := ServerView{InstanceView: a.view(inst), State: a.launcher.ServerStatus(inst.ID)}
+	v := ServerView{InstanceView: a.view(inst), State: a.launcher.ServerStatus(inst.ID), AddressName: core.AddressName(inst)}
 	v.Running = v.State.Running || v.State.Starting
 	props, _ := server.ReadProperties(a.launcher.Dirs.GameDir(inst.ID))
 	v.Port, _ = strconv.Atoi(props["server-port"])
@@ -98,7 +103,8 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 		_ = os.Remove(filepath.Join(dir, sub))
 	}
 	err = errors.Join(
-		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) { i.Server = true }),
+		// The address name is fixed now, so renaming the server later does not change the address friends saved.
+		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) { i.Server, i.Internet.Name = true, server.DefaultAddressName(inst.Name) }),
 		os.WriteFile(filepath.Join(dir, "eula.txt"), []byte("# Accepted in Udeos Launcher: https://aka.ms/MinecraftEULA\neula=true\n"), 0o644),
 		server.WriteProperties(dir, map[string]string{"motd": inst.Name, "online-mode": "false", "server-port": strconv.Itoa(port)}),
 	)
@@ -252,8 +258,33 @@ func (a *App) playerUUID(dir, name string) (string, error) {
 	return u[:8] + "-" + u[8:12] + "-" + u[12:16] + "-" + u[16:20] + "-" + u[20:], nil
 }
 
-// SetServerPublic opens (or closes) the server to the internet through the router.
+// SetServerPublic opens (or closes) the server to the internet.
 func (a *App) SetServerPublic(id string, on bool) error { return a.launcher.SetServerPublic(id, on) }
+
+// SetServerInternet sets how the internet reaches the server: mode "relay"
+// (default) or "router", the address name ("" = from the server's name),
+// and for the relay mode a relay "host[:port]" ("" = bore.pub) and its secret.
+// An open server reconnects with the new settings.
+func (a *App) SetServerInternet(id, mode, name, relay, secret string) error {
+	if _, err := a.gameDir(id); err != nil {
+		return err
+	}
+	if mode != instance.RelayMode && mode != instance.RouterMode {
+		return errors.New("unknown connection mode " + mode)
+	}
+	name = strings.ToLower(strings.TrimSpace(name))
+	if name != "" && !server.ValidAddressName(name) {
+		return fmt.Errorf("the address name can use a-z, 0-9, dots and dashes (%d characters at most, each part with a letter)", server.MaxAddressName)
+	}
+	relay = strings.TrimSpace(relay)
+	if relay != "" {
+		host, port, err := net.SplitHostPort(tunnel.Addr(relay))
+		if n, _ := strconv.Atoi(port); err != nil || host == "" || strings.ContainsAny(host, " /") || n < 1 || n > 65535 {
+			return errors.New("the relay must be a host name or IP, optionally with :port")
+		}
+	}
+	return a.launcher.SetServerInternet(id, instance.Internet{Mode: mode, Name: name, Relay: relay, Secret: strings.TrimSpace(secret)})
+}
 
 // ListBackups lists the server's world backups, newest first.
 func (a *App) ListBackups(id string) ([]content.FileEntry, error) {

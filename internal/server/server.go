@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -106,6 +108,64 @@ func unescape(v string) string {
 		units = append(units, uint16(c))
 	}
 	return string(utf16.Decode(units))
+}
+
+// Addresses friends type. nip.io is a free public DNS that answers any
+// "<anything>.<a-b-c-d>.nip.io" with the IP a.b.c.d, so a server gets a
+// readable name of its own without an account or a domain to buy; the
+// port after ":" is what makes it unique on a shared relay.
+
+var labelRe = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]*[a-z0-9])?$`)
+
+// MaxAddressName keeps the whole address short enough to type.
+const MaxAddressName = 60
+
+// ValidAddressName: dot-separated labels of a-z, 0-9 and "-", each with a letter.
+func ValidAddressName(name string) bool {
+	if name == "" || len(name) > MaxAddressName {
+		return false
+	}
+	for _, label := range strings.Split(name, ".") {
+		if !labelRe.MatchString(label) || !strings.ContainsAny(label, "abcdefghijklmnopqrstuvwxyz") {
+			return false
+		}
+	}
+	return true
+}
+
+// DefaultAddressName is "udeoslauncher.<server name as a label>".
+func DefaultAddressName(serverName string) string {
+	var b strings.Builder
+	for _, r := range strings.ToLower(serverName) {
+		switch {
+		case r >= 'a' && r <= 'z' || r >= '0' && r <= '9':
+			b.WriteRune(r)
+		case b.Len() > 0 && !strings.HasSuffix(b.String(), "-"):
+			b.WriteByte('-')
+		}
+	}
+	label := strings.Trim(b.String(), "-")
+	if len(label) > 40 {
+		label = strings.Trim(label[:40], "-")
+	}
+	if !ValidAddressName(label) {
+		label = "server"
+	}
+	return "udeoslauncher." + label
+}
+
+// PublicAddress is what friends type: "<name>.<a-b-c-d>.nip.io", plus
+// ":port" unless it is Minecraft's default 25565. IPv6 has no such name.
+func PublicAddress(name string, ip net.IP, port int) string {
+	suffix := ""
+	if port != 25565 {
+		suffix = ":" + strconv.Itoa(port)
+	}
+	v4 := ip.To4()
+	if v4 == nil || !ValidAddressName(name) {
+		return net.JoinHostPort(ip.String(), strconv.Itoa(port))
+	}
+	return name + "." + strings.ReplaceAll(v4.String(), ".", "-") + ".nip.io" + suffix
 }
 
 // Player lists and the file each one lives in.
