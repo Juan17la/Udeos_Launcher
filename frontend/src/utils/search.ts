@@ -21,3 +21,19 @@ export function loadSearchVersions(): Promise<SearchGameVersion[]> {
   if (!versionsPromise) versionsPromise = api.ListSearchGameVersions().catch(() => { versionsPromise = null; return [] as SearchGameVersion[] })
   return versionsPromise
 }
+
+/** Page buttons for a pager: 0-based indexes with null for a "…" gap. Always
+ *  the first, the last and the current page ±1; a gap of one page shows
+ *  that page instead of "…". */
+export function pageList(current: number, total: number): (number | null)[] {
+  const keep = [...new Set([0, current - 1, current, current + 1, total - 1])].filter((i) => i >= 0 && i < total).sort((a, b) => a - b)
+  const out: (number | null)[] = []
+  let prev = -1
+  for (const i of keep) {
+    if (i - prev === 2) out.push(i - 1)
+    else if (i - prev > 2) out.push(null)
+    out.push(i)
+    prev = i
+  }
+  return out
+}

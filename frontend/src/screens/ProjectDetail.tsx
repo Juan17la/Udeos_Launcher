@@ -96,7 +96,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                 </div>
                 <h1 className="m-0">{detail.title}</h1>
                 <p className="m-0 text-muted">{detail.description}</p>
-                <div className="text-[13px] text-muted">{fmt(t.search.downloads, { n: detail.downloads.toLocaleString() })} · {result.author}</div>
+                <div className="text-[13px] text-muted">{fmt(t.search.downloads, { n: detail.downloads.toLocaleString() })}{result.author && ` · ${result.author}`}</div>
               </div>
             </div>
 
