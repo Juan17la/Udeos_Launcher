@@ -24,6 +24,8 @@ export type Screen =
    *  alive across Details → Back. */
   | { name: 'detail'; result: SearchResult; instanceId?: string }
 
+type Entry = { screen: Screen; scrollY: number }
+
 type AppState = {
   ready: boolean
   theme: Theme; setTheme: (t: Theme) => void
@@ -32,6 +34,8 @@ type AppState = {
   screen: Screen; go: (s: Screen) => void
   /** The screen Back returns to (the one before the current), or null on the first screen. */
   previous: Screen | null; back: () => void
+  /** True when the current screen was reached with Back. */
+  cameBack: boolean
   profile: Profile | null; saveProfile: (p: Profile) => Promise<void>
   nickname: string
   /** Switch to, add (a new name) or remove a saved nickname (removing the active one
@@ -58,14 +62,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Back lands exactly where they were: an instance's page, or Addons with
   // its instance lock. Login and the dashboard are roots: nothing behind
   // them, and Back never returns to the login screen.
-  const [nav, setNav] = useState<{ screen: Screen; history: Screen[] }>({ screen: { name: 'login' }, history: [] })
-  const { screen, history } = nav
-  const go = useCallback((next: Screen) => setNav((cur) => {
-    if (JSON.stringify(cur.screen) === JSON.stringify(next)) return cur
-    if (next.name === 'login' || next.name === 'dashboard') return { screen: next, history: [] }
-    return { screen: next, history: cur.screen.name === 'login' ? cur.history : [...cur.history, cur.screen].slice(-20) }
-  }), [])
-  const back = useCallback(() => setNav(({ history }) => ({ screen: history[history.length - 1] ?? { name: 'dashboard' }, history: history.slice(0, -1) })), [])
+  // cameBack: the screen was reached with Back, so it may restore what the
+  // player left (Addons keeps its search, page and scroll).
+  const [nav, setNav] = useState<{ screen: Screen; history: Entry[]; cameBack: boolean }>({ screen: { name: 'login' }, history: [], cameBack: false })
+  const { screen, history, cameBack } = nav
+  const go = useCallback((next: Screen) => {
+    // Each history entry keeps its scroll so Back lands at the same spot; a new screen starts at the top.
+    const scrollY = window.scrollY
+    setNav((cur) => {
+      if (JSON.stringify(cur.screen) === JSON.stringify(next)) return cur
+      if (next.name === 'login' || next.name === 'dashboard') return { screen: next, history: [], cameBack: false }
+      return { screen: next, history: cur.screen.name === 'login' ? cur.history : [...cur.history, { screen: cur.screen, scrollY }].slice(-20), cameBack: false }
+    })
+    requestAnimationFrame(() => window.scrollTo({ top: 0 }))
+  }, [])
+  const back = useCallback(() => {
+    const last = history[history.length - 1]
+    setNav({ screen: last?.screen ?? { name: 'dashboard' }, history: history.slice(0, -1), cameBack: !!last })
+    // Two frames: the restored screen commits, then its (cached) content lays out.
+    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: last?.scrollY ?? 0 })))
+  }, [history])
   const [instances, setInstances] = useState<Instance[]>([])
   const [privacyOpen, setPrivacyOpen] = useState(false)
 
@@ -129,10 +145,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<AppState>(() => ({
     ready, theme, setTheme, language, setLanguage, t: DICTS[language],
-    screen, go, previous: history[history.length - 1] ?? null, back, profile, saveProfile, nickname: profile?.nickname ?? '', setNickname, removeNickname,
+    screen, go, previous: history[history.length - 1]?.screen ?? null, back, cameBack, profile, saveProfile, nickname: profile?.nickname ?? '', setNickname, removeNickname,
     instances, refreshInstances,
     privacyOpen, setPrivacyOpen,
-  }), [ready, theme, language, screen, history, profile, instances, privacyOpen, refreshInstances, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, language, screen, history, cameBack, back, profile, instances, privacyOpen, refreshInstances, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppCtx.Provider value={value}>
