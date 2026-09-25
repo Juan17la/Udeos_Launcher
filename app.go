@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"runtime"
+	"sync"
 	"sync/atomic"
 	"udeos/launcher/internal/sysinfo"
 
@@ -32,6 +33,7 @@ type App struct {
 	ctx      context.Context
 	launcher *core.Launcher
 	quitting atomic.Bool // the player confirmed closing with servers running
+	jobs     sync.Map    // download key → context.CancelFunc, for CancelDownload
 }
 
 func NewApp() *App {

@@ -14,10 +14,12 @@ type Props = {
   aside?: ReactNode
   percent?: number
   onDismiss?: () => void
+  /** Tooltip and screen-reader name of the × (default "Close"; "Cancel" on a download). */
+  dismissLabel?: string
   className?: string
 }
 
-export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, onDismiss, className = 'animate-[dialog-fade_0.15s_ease-in-out]' }: Props) {
+export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, onDismiss, dismissLabel = 'Close', className = 'animate-[dialog-fade_0.15s_ease-in-out]' }: Props) {
   return (
     <div role={kind === 'error' ? 'alert' : 'status'}
       className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'border-error shadow-error-glow' : ''} ${kind === 'success' ? 'animate-[pulse-primary_0.9s_ease-out]' : ''}`}>
@@ -32,7 +34,7 @@ export default function StatusMessage({ kind = 'neutral', headline, detail, asid
           {detail && <span className="text-xs text-muted break-words">{detail}</span>}
         </div>
         {aside !== undefined && <span className="text-[13px] text-muted tabular-nums shrink-0">{aside}</span>}
-        {onDismiss && <Button variant="ghost" size="sm" square onClick={onDismiss} aria-label="Close"><X size={12} /></Button>}
+        {onDismiss && <Button variant="ghost" size="sm" square onClick={onDismiss} aria-label={dismissLabel} title={dismissLabel}><X size={12} /></Button>}
       </div>
       {percent !== undefined && (
         <progress value={Math.max(0, Math.min(100, percent))} max={100}

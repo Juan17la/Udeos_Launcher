@@ -5,6 +5,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Cancel downloads** — the game download that Play starts can be cancelled
+  from its loading window or its notification, and each Addons download
+  from its notification (a waiting one just leaves the queue). A cancelled
+  download ends quietly, with no error; a modpack cancelled while its new
+  instance was being made leaves no half-made instance behind.
+
 ### Fixed
 
 - **Back button always in reach** — on every page with "Back to …" (an

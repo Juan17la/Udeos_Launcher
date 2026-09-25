@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, on } from '../api/bridge'
 import type { Progress, SearchResult } from '../api/types'
-import { messageOf } from '../utils/errors'
+import { isCanceled, messageOf } from '../utils/errors'
 
 /** What a "new instance from this modpack" job creates; name '' = the pack's name. */
 export type CreateFromModpack = { name: string; icon: string; gameVersion: string; loader: string }
@@ -27,6 +27,8 @@ export type ContentQueue = {
   enqueue: (instanceId: string, result: SearchResult) => void
   enqueueCreate: (result: SearchResult, create: CreateFromModpack) => void
   dismiss: (id: number) => void
+  /** Stops a job: a queued one just leaves the queue, the installing one stops downloading. */
+  cancel: (id: number) => void
 }
 
 /** How long a finished toast stays before it clears itself. Errors stay until dismissed. */
@@ -67,7 +69,10 @@ export function useContentQueue(refreshInstances: () => Promise<void>): ContentQ
         setTimeout(() => dismiss(next.id), DONE_TOAST_MS)
         refreshInstances()
       })
-      .catch((e) => patch(next.id, { status: 'error', message: messageOf(e), progress: null }))
+      .catch((e) => {
+        const message = messageOf(e)
+        if (isCanceled(message)) { dismiss(next.id); refreshInstances() } else patch(next.id, { status: 'error', message, progress: null })
+      })
       .finally(() => { running.current = false; setJobs((cur) => [...cur]) }) // re-run this effect for the next job
   }, [jobs, dismiss, refreshInstances])
 
@@ -75,5 +80,13 @@ export function useContentQueue(refreshInstances: () => Promise<void>): ContentQ
     setJobs((cur) => cur.map((j) => (j.status === 'installing' ? { ...j, progress: p } : j)))
   }), [])
 
-  return { jobs, enqueue, enqueueCreate, dismiss }
+  const cancel = useCallback((id: number) => {
+    setJobs((cur) => {
+      const job = cur.find((j) => j.id === id)
+      if (job?.status === 'installing') { api.CancelDownload('content'); return cur } // its catch removes it
+      return cur.filter((j) => j.id !== id)
+    })
+  }, [])
+
+  return { jobs, enqueue, enqueueCreate, dismiss, cancel }
 }
