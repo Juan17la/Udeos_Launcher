@@ -6,6 +6,7 @@ import Button from '../ui/Button'
 import AutoLoader from '../ui/Loader'
 import BackButton from '../components/BackButton'
 import ProjectIcon from '../components/ProjectIcon'
+import { DownloadsTag, LoaderTags } from '../components/Tags'
 import Markdown from '../utils/markdown'
 import { computeCompat } from '../utils/compat'
 import { useAddAction } from '../hooks/useAddAction'
@@ -63,7 +64,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
               )}
               <h6 className="m-0">{t.detail.loadersHeading}</h6>
               <div className="flex gap-2 flex-wrap">
-                {detail.loaders.map((l) => <span key={l} className="tag bg-gold-soft">{l}</span>)}
+                <LoaderTags loaders={detail.loaders} max={10} />
               </div>
             </section>
 
@@ -92,11 +93,12 @@ export default function ProjectDetail({ result, instanceId }: Props) {
               <div className="min-w-0 flex flex-col gap-2">
                 <div className="flex gap-2 flex-wrap">
                   <span className="tag bg-tag-gray">{t.search.types[result.projectType]}</span>
+                  <DownloadsTag n={detail.downloads} />
                   {detail.categories.map((c) => <span key={c} className="tag bg-green-soft">{c}</span>)}
                 </div>
                 <h1 className="m-0">{detail.title}</h1>
                 <p className="m-0 text-muted">{detail.description}</p>
-                <div className="text-[13px] text-muted">{fmt(t.search.downloads, { n: detail.downloads.toLocaleString() })}{result.author && ` · ${result.author}`}</div>
+                {result.author && <div className="text-[13px] text-muted">{result.author}</div>}
               </div>
             </div>
 

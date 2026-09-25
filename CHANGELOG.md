@@ -20,6 +20,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- **One tag style on every card** — Minecraft version(s) in green behind a
+  grass block ("1.20.1–1.21.1" on Addons), loaders in gold with proper names
+  (NeoForge, not "neoforge") and at most two plus "+N", downloads as a gray
+  tag with a short number (42M; the exact count on hover).
+- **Instance page side panel** — narrower, so the tabs get the room; name
+  and tags on top, a 2×2 grid of mods/packs/worlds/play time, then Play,
+  Edit + Folder side by side, and Delete last. Scrolls inside itself on
+  short windows instead of hiding its buttons.
 - Download notifications show only the project (or instance) name and a
   percentage.
 - Addons page heading reads "Addons" like the nav; the search box has a clear

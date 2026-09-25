@@ -50,3 +50,6 @@ export const User = ({ size = 16 }: P) => (
 export const Pencil = ({ size = 14 }: P) => (
   <svg {...base(size, 2.75)}><path d="M17 3.5l3.5 3.5L8 19.5H4.5V16z" /></svg>
 )
+export const Download = ({ size = 12 }: P) => (
+  <svg {...base(size, 2.75)}><path d="M12 3.5v12M6.5 10l5.5 5.5 5.5-5.5M4.5 20.5h15" /></svg>
+)

@@ -73,6 +73,8 @@ type Result struct {
 	Downloads   int64       `json:"downloads"`
 	ProjectType ProjectType `json:"projectType"`
 	Loaders     []string    `json:"loaders"`
+	// GameVersions: the Minecraft releases it has builds for, oldest first (no snapshots).
+	GameVersions []string `json:"gameVersions"`
 }
 
 // Page is one page of results.
