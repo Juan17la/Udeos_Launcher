@@ -7,6 +7,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Profiles keep their own instances** — each launcher profile (a player
+  name) sees only its instances. Account menu → Switch profile opens a modal
+  listing every profile with its instance count: click to switch, add a new
+  one (starts empty), or remove one (its instances move to the profile that
+  stays active; nothing is deleted). Instances made before this update go to
+  the profile that is active the first time the launcher opens.
 - **Whole cards are clickable** — instance cards open the instance, Addons
   cards and installed-mod cards open the project's Details page.
 - **Back puts you where you were** — returning from Details restores the
@@ -35,6 +41,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 
+- A white flash on a quick hover in and out of the instance cards
+  and buttons (both now keep their own compositing layer).
 - Progress bars no longer crawl behind the percentage.
 
 ## [0.10.0-beta] — 2026-09-18
