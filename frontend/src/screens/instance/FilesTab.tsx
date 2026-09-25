@@ -21,8 +21,10 @@ const VIEW_KEY = 'files:view'
  *  compact rows (file name and size). Files added by hand have no Modrinth
  *  record, so their card is the file name alone. */
 export default function FilesTab({ id, kind }: { id: string; kind: FileKind }) {
-  const { t } = useApp()
+  const { t, go } = useApp()
   const { jobs } = useContent()
+  // A Modrinth card opens its Details page (Add there stays locked to this instance).
+  const details = (e: ContentEntry) => go({ name: 'detail', instanceId: id, result: { id: e.projectId, slug: '', title: e.title, author: '', description: e.description ?? '', iconUrl: e.iconUrl ?? '', downloads: 0, projectType: e.type, loaders: [] } })
   const source = FILE_KINDS[kind]
   // A finished Addons install re-lists the tab (useFileList reloads when this changes).
   const finished = jobs.filter((j) => j.instanceId === id && j.status === 'done').length
@@ -50,14 +52,14 @@ export default function FilesTab({ id, kind }: { id: string; kind: FileKind }) {
       {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty[kind]}</p>}
       {view === 'card' ? (
         <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
-          {items?.map((f) => <FileCard key={f.name} file={f} entry={meta.get(f.name)} onRemove={() => remove(f)} />)}
+          {items?.map((f) => { const e = meta.get(f.name); return <FileCard key={f.name} file={f} entry={e} onRemove={() => remove(f)} onOpen={e && (() => details(e))} /> })}
         </div>
       ) : items?.map((f) => <FileRow key={f.name} file={f} entry={meta.get(f.name)} onRemove={() => remove(f)} />)}
     </div>
   )
 }
 
-type ItemProps = { file: FileEntry; entry?: ContentEntry; onRemove: () => void }
+type ItemProps = { file: FileEntry; entry?: ContentEntry; onRemove: () => void; onOpen?: () => void }
 
 /** Compact: one line per file. */
 function FileRow({ file, entry, onRemove }: ItemProps) {
@@ -75,10 +77,12 @@ function FileRow({ file, entry, onRemove }: ItemProps) {
 
 /** Card: the Modrinth icon, title, description and version — the same face
  *  the Addons result had — or the bare file for hand-added ones. */
-function FileCard({ file, entry, onRemove }: ItemProps) {
+function FileCard({ file, entry, onRemove, onOpen }: ItemProps) {
   const { t } = useApp()
   return (
-    <div className="panel flex flex-col gap-4 p-5">
+    <div role={onOpen ? 'link' : undefined} tabIndex={onOpen ? 0 : undefined} onClick={onOpen}
+      onKeyDown={(e) => { if (onOpen && e.key === 'Enter' && e.target === e.currentTarget) onOpen() }}
+      className={`panel flex flex-col gap-4 p-5 ${onOpen ? 'panel-hover cursor-pointer' : ''}`}>
       <div className="flex items-center gap-4">
         <ProjectIcon url={entry?.iconUrl} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
@@ -89,7 +93,7 @@ function FileCard({ file, entry, onRemove }: ItemProps) {
       {entry?.description && <p className="m-0 text-[13px] text-muted line-clamp-2">{entry.description}</p>}
       <div className="flex items-center gap-2 mt-auto">
         <span className="tag bg-tag-gray">{bytes(file.sizeBytes)}</span>
-        <Button variant="danger" size="sm" square className="ml-auto" title={t.instance.remove} onClick={onRemove}><X /></Button>
+        <Button variant="danger" size="sm" square className="ml-auto" title={t.instance.remove} onClick={(e) => { e.stopPropagation(); onRemove() }}><X /></Button>
       </div>
     </div>
   )

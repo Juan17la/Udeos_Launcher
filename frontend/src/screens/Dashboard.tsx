@@ -53,11 +53,14 @@ export default function Dashboard() {
   )
 }
 
-/** One instance in the grid: icon, name, version/loader tags, content counts, Play and Manage. */
+/** One instance in the grid: icon, name, version/loader tags, content counts,
+ *  Play and Manage. The whole card opens the instance, like Manage. */
 function InstanceCard({ inst }: { inst: Instance }) {
   const { t, go } = useApp()
+  const open = () => go({ name: 'instance', id: inst.id })
   return (
-    <div className="panel panel-hover flex flex-col gap-4 p-5">
+    <div role="link" tabIndex={0} onClick={open} onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) open() }}
+      className="panel panel-hover flex flex-col gap-4 p-5 cursor-pointer">
       <div className="flex items-center gap-4">
         <InstanceIcon inst={inst} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -73,9 +76,10 @@ function InstanceCard({ inst }: { inst: Instance }) {
         <span>{inst.counts.resourcePacks} {t.dashboard.packs}</span>
         <span>{inst.counts.worlds} {t.dashboard.worlds}</span>
       </div>
-      <div className="flex gap-4">
+      {/* Play must not also open the card. */}
+      <div className="flex gap-4" onClick={(e) => e.stopPropagation()}>
         <PlayButton inst={inst} className="flex-1" />
-        <Button variant="idle" className="flex-1" onClick={() => go({ name: 'instance', id: inst.id })}>{t.dashboard.manage}</Button>
+        <Button variant="idle" className="flex-1" onClick={open}>{t.dashboard.manage}</Button>
       </div>
     </div>
   )

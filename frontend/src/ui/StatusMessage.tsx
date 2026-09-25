@@ -36,7 +36,7 @@ export default function StatusMessage({ kind = 'neutral', headline, detail, asid
       </div>
       {percent !== undefined && (
         <progress value={Math.max(0, Math.min(100, percent))} max={100}
-          className="w-full h-2 rounded-md overflow-hidden [&::-webkit-progress-bar]:bg-idle/60 [&::-webkit-progress-value]:bg-primary [&::-webkit-progress-value]:transition-all" />
+          className="w-full h-2 rounded-md overflow-hidden [&::-webkit-progress-bar]:bg-idle/60 [&::-webkit-progress-value]:bg-primary" />
       )}
     </div>
   )

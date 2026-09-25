@@ -6,11 +6,12 @@ import { messageOf } from '../utils/errors'
 /** What the Play button is doing right now. */
 export type LaunchState =
   | { status: 'idle' }
-  | { status: 'preparing'; instanceId: string; progress: Progress | null }
+  | { status: 'preparing'; instanceId: string; progress: Progress | null; minimized: boolean }
   | { status: 'error'; instanceId: string; message: string }
   | { status: 'exited'; instanceId: string; exitCode: number; logPath: string }
 
-export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void }
+/** minimizeLaunch hides the loading modal; the progress carries on as a notification. */
+export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void; minimizeLaunch: () => void }
 
 /** Owns the launch state: Play, the install progress ticks while preparing,
  *  and the game process events (running clears it, a bad exit opens the
@@ -34,7 +35,7 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
   }, [refreshInstances])
 
   const play = useCallback(async (id: string) => {
-    setLaunch({ status: 'preparing', instanceId: id, progress: null })
+    setLaunch({ status: 'preparing', instanceId: id, progress: null, minimized: false })
     try {
       await api.LaunchInstance(id)
       await refreshInstances()
@@ -45,5 +46,7 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
 
   const dismissLaunch = useCallback(() => setLaunch({ status: 'idle' }), [])
 
-  return { launch, play, dismissLaunch }
+  const minimizeLaunch = useCallback(() => setLaunch((cur) => (cur.status === 'preparing' ? { ...cur, minimized: true } : cur)), [])
+
+  return { launch, play, dismissLaunch, minimizeLaunch }
 }
