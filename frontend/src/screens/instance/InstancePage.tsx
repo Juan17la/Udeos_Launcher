@@ -92,10 +92,13 @@ export default function InstancePage({ id }: { id: string }) {
 
       <div className="min-w-0 flex flex-col gap-6">
         <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.instance.tabs[k] }))} value={tab} onChange={setTab} />
-        {tab === 'worlds' && <WorldsTab id={inst.id} />}
-        {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
-        {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
-        {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
+        {/* Keyed by tab, so switching tabs replays a short fade (no movement). */}
+        <div key={tab} className="animate-[fade-in_0.15s_ease-out]">
+          {tab === 'worlds' && <WorldsTab id={inst.id} />}
+          {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
+          {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
+          {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
+        </div>
       </div>
 
       {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} />}
