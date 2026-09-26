@@ -1,5 +1,6 @@
 import { useApp, useContent, useLaunch } from '../state'
 import type { ContentJob } from '../state'
+import type { Server } from '../api/types'
 import { fmt } from '../i18n/format'
 import { useLaunchProgress } from './LaunchDialog'
 import { errorHeadline } from '../utils/errors'
@@ -13,15 +14,19 @@ const slide = 'animate-[toast-in_0.15s_ease-in-out]'
  *  installs from the Addons page (the project and its percentage while
  *  downloading, a short "Added" note that clears itself, or a
  *  rejection headline with the reason underneath that stays until
- *  dismissed). Lives outside every screen so nothing is lost on navigation. */
+ *  dismissed), and a server's first start. Lives outside every screen so nothing is lost on navigation. */
 export default function Notifications() {
   const { jobs } = useContent()
   const { launch } = useLaunch()
+  const { servers } = useApp()
   const launching = launch.status === 'preparing' && launch.minimized
-  if (jobs.length === 0 && !launching) return null
+  // Never finished a run (lastPlayed is set when it stops) and still coming up.
+  const firstStarts = servers.filter((s) => s.running && !s.state.ready && !s.state.stopping && !s.lastPlayed)
+  if (jobs.length === 0 && !launching && firstStarts.length === 0) return null
   return (
     <div className="fixed bottom-4 right-4 z-9100 flex flex-col gap-4 w-80 max-w-[calc(100vw-2rem)]" aria-live="polite">
       {launching && <LaunchToast />}
+      {firstStarts.map((s) => <FirstStartToast key={s.id} server={s} />)}
       {jobs.map((j) => <JobToast key={j.id} job={j} />)}
     </div>
   )
@@ -31,8 +36,16 @@ export default function Notifications() {
 function LaunchToast() {
   const { t } = useApp()
   const { cancelLaunch } = useLaunch()
-  const { inst, pct } = useLaunchProgress()
-  return <StatusMessage className={slide} headline={inst?.name ?? ''} aside={`${pct}%`} percent={pct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />
+  const { inst, pct, note } = useLaunchProgress()
+  return <StatusMessage className={slide} headline={inst?.name ?? ''} detail={note} aside={`${pct}%`} percent={pct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />
+}
+
+/** A server's first start downloads its files and builds the world, which
+ *  takes minutes with no percentage to show; this says it is working. */
+function FirstStartToast({ server }: { server: Server }) {
+  const { t } = useApp()
+  return <StatusMessage className={slide} headline={fmt(t.servers.firstStart, { name: server.name })} detail={t.servers.firstStartBody}
+    aside={<span aria-hidden className="inline-block w-4 h-4 rounded-md border-2 border-idle/60 border-t-primary animate-spin" />} />
 }
 
 function JobToast({ job }: { job: ContentJob }) {
