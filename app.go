@@ -15,8 +15,10 @@ import (
 	"udeos/launcher/internal/paths"
 )
 
-// Version is the launcher version shown in the UI and sent to the game as launcher_version.
-const Version = "0.1.0"
+// Version is the launcher version shown in the UI, sent to the game as
+// launcher_version and compared with the latest release by CheckUpdate. The
+// Release workflow sets it from the tag (-ldflags "-X main.Version=...").
+var Version = "dev"
 
 // Events pushed to the frontend (see frontend/src/api/bridge.ts).
 const (

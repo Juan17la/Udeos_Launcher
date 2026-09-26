@@ -240,6 +240,8 @@ export function createMock() {
       const i = instances.findIndex((x) => x.id === id); if (i >= 0) instances.splice(i, 1)
     },
     async QuitLauncher() {},
+    async CheckUpdate() { return null },
+    async InstallUpdate() {},
     async CancelDownload(key: string) { canceled.add(key) },
     async SetInstanceInfo(id: string, name: string, icon: string) {
       const i = instances.find((x) => x.id === id); if (!i) throw new Error('instance not found'); i.name = name; if (icon) i.icon = icon; return { ...i }

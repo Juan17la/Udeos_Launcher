@@ -5,6 +5,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+- **Updates from inside the launcher**: on start the launcher checks
+  GitHub for a newer release and asks. **Update** downloads the right file
+  for your system and installs it (Windows runs the installer, macOS opens
+  the .dmg, Linux installs the .deb/.rpm or swaps the portable binary and
+  restarts); **Later** asks again next start. No more re-downloading from
+  GitHub by hand.
 - **Slow first starts say so**: a server's first start shows a
   notification (with a spinner) while it downloads its files and builds the
   world, and Play on a version that is not installed yet notes, in the

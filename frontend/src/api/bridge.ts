@@ -3,10 +3,14 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionList, World } from './types'
+import type { AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
+  /** The newest GitHub release when it is newer than this build, else null (always null in dev builds). */
+  CheckUpdate(): Promise<Update | null>
+  /** Downloads and installs the newest release for this system, then the launcher closes (Linux restarts it). */
+  InstallUpdate(): Promise<void>
   GetProfile(): Promise<ProfileState>
   SaveProfile(p: Profile): Promise<Profile>
   /** The active profile's instances only (each launcher profile has its own). */
