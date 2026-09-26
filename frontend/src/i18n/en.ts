@@ -5,6 +5,10 @@ const en = {
     themeToDark: 'Switch to dark theme', themeToLight: 'Switch to light theme',
     addProfile: 'Add profile', removeProfile: 'Remove profile',
   },
+  update: {
+    title: 'Update available', body: 'Udeos Launcher {version} is out. Update now? The launcher closes while it installs, your instances stay.',
+    notes: 'What\'s new', later: 'Later', confirm: 'Update',
+  },
   common: { back: 'Back to {name}', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
   profiles: {
     title: 'Profiles', active: 'Active', instances: '{n} instance(s)', switch: 'Switch profile',
