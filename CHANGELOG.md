@@ -3,6 +3,14 @@
 All notable changes to Udeos Launcher are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+- **Slow first starts say so**: a server's first start shows a
+  notification (with a spinner) while it downloads its files and builds the
+  world, and Play on a version that is not installed yet notes, in the
+  loading window and its notification, that the first launch downloads the
+  whole game. Neither is frozen.
+
 ## [1.0.0-beta] — 2026-09-25
 
 The second beta. Everything from 0.10.0-beta, plus skins, servers,
