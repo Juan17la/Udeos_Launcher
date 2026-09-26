@@ -36,7 +36,7 @@ export default function LaunchDialog() {
 function LoadingModal() {
   const { t } = useApp()
   const { minimizeLaunch, cancelLaunch } = useLaunch()
-  const { inst, pct, label, slowLoader } = useLaunchProgress()
+  const { inst, pct, label, note } = useLaunchProgress()
   if (!inst) return null
   return (
     <Dialog title={inst.name} onClose={minimizeLaunch} actions={<>
@@ -59,14 +59,15 @@ function LoadingModal() {
             <span className="tabular-nums font-bold text-text">{pct}%</span>
           </div>
         </div>
-        {slowLoader && <p className="m-0 text-xs text-muted text-center">{fmt(t.launch.loaderTakesAWhile, { loader: inst.loader })}</p>}
+        {note && <p className="m-0 text-xs text-muted text-center">{note}</p>}
       </div>
     </Dialog>
   )
 }
 
-/** The launch as the player needs it: which instance, one percentage and a
- *  short phase name. Phases with a file count report real numbers; the ones
+/** The launch as the player needs it: which instance, one percentage, a
+ *  short phase name and a note when it will be slow (a first install of the
+ *  version, or Forge/NeoForge patching the game). Phases with a file count report real numbers; the ones
  *  that don't (version info, the loader installer) tick a simulated counter. */
 export function useLaunchProgress() {
   const { t, instances } = useApp()
@@ -79,8 +80,9 @@ export function useLaunchProgress() {
   const inst = preparing ? instances.find((i) => i.id === launch.instanceId) : undefined
   const pct = Math.round(measurable ? (p!.done / p!.total) * 100 : phase === 'done' ? 100 : (simulated ?? 0))
   const label = phase === 'done' ? t.launch.starting : (t.launch.phases[phase] ?? phase)
-  const slowLoader = phase === 'loader' && (inst?.loader === 'Forge' || inst?.loader === 'NeoForge')
-  return { inst, pct, label, slowLoader }
+  const note = phase === 'loader' && (inst?.loader === 'Forge' || inst?.loader === 'NeoForge') ? fmt(t.launch.loaderTakesAWhile, { loader: inst.loader })
+    : inst && !inst.installed ? fmt(t.launch.firstInstall, { version: inst.version }) : ''
+  return { inst, pct, label, note }
 }
 
 // Start of the current simulated run, outside React: minimizing swaps the
