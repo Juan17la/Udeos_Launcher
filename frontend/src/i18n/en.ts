@@ -71,7 +71,8 @@ const en = {
   servers: {
     title: 'Your Servers', subtitle: 'Host a world on this computer for your friends to join.',
     new: 'New Server', empty: 'No servers yet. Create one to play with friends.', createFirst: 'Create your first server',
-    start: 'Start', stop: 'Stop', starting: 'Starting…', stopping: 'Stopping…', manage: 'Manage',
+    start: 'Start', stop: 'Stop', starting: 'Starting…',
+    firstStart: 'Setting up {name}', firstStartBody: 'The first start downloads the server and builds the world. It can take a few minutes; it is not frozen.', stopping: 'Stopping…', manage: 'Manage',
     status: { stopped: 'Stopped', starting: 'Starting…', online: 'Online' }, playersOf: '{n}/{max} players',
     address: 'Address', copy: 'Copy', copied: 'Copied', port: 'Port', memory: 'Memory', runTime: 'Run time', playersStat: 'Players',
     startFailed: 'Start failed',
@@ -206,6 +207,7 @@ const en = {
     hide: 'Hide',
     starting: 'Starting the game…',
     phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', loader: 'Installing the mod loader', done: 'Launching' },
+    firstInstall: 'Minecraft {version} is not installed yet: the first launch downloads the whole game and can take a few minutes. It is not frozen.',
     loaderTakesAWhile: '{loader} patches the game files on first install; this can take a couple of minutes.',
     exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
   },

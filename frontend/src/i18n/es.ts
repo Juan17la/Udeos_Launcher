@@ -72,7 +72,8 @@ const es: Dict = {
   servers: {
     title: 'Tus servidores', subtitle: 'Aloja un mundo en este equipo para que tus amigos se unan.',
     new: 'Nuevo servidor', empty: 'Aún no tienes servidores. Crea uno para jugar con amigos.', createFirst: 'Crea tu primer servidor',
-    start: 'Iniciar', stop: 'Detener', starting: 'Iniciando…', stopping: 'Deteniendo…', manage: 'Gestionar',
+    start: 'Iniciar', stop: 'Detener', starting: 'Iniciando…',
+    firstStart: 'Preparando {name}', firstStartBody: 'El primer inicio descarga el servidor y genera el mundo. Puede tardar unos minutos; no está congelado.', stopping: 'Deteniendo…', manage: 'Gestionar',
     status: { stopped: 'Detenido', starting: 'Iniciando…', online: 'En línea' }, playersOf: '{n}/{max} jugadores',
     address: 'Dirección', copy: 'Copiar', copied: 'Copiado', port: 'Puerto', memory: 'Memoria', runTime: 'Tiempo activo', playersStat: 'Jugadores',
     startFailed: 'No inició',
@@ -207,6 +208,7 @@ const es: Dict = {
     hide: 'Ocultar',
     starting: 'Iniciando el juego…',
     phases: { version: 'Leyendo la versión', libraries: 'Descargando librerías del juego', assets: 'Descargando sonidos y texturas', client: 'Descargando el juego', natives: 'Desempaquetando librerías nativas', java: 'Descargando Java', loader: 'Instalando el cargador de mods', done: 'Lanzando' },
+    firstInstall: 'Minecraft {version} aún no está instalado: el primer inicio descarga todo el juego y puede tardar unos minutos. No está congelado.',
     loaderTakesAWhile: '{loader} parchea los archivos del juego en la primera instalación; puede tardar un par de minutos.',
     exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',
   },
