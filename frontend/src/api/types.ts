@@ -82,6 +82,7 @@ export type Progress = { phase: string; done: number; total: number; bytes: numb
 export type GameEvent = { instanceId: string; running: boolean; exitCode: number; logPath: string; error?: string }
 
 /** totalMemoryMB is 0 when the machine's RAM could not be read. */
+export type Update = { version: string; url: string }
 export type AppInfo = { version: string; os: string; arch: string; dataDir: string; totalMemoryMB: number }
 
 export type World = { folder: string; name: string; lastPlayed: string; sizeBytes: number }

@@ -4,6 +4,7 @@ import PrivacyDialog from './components/PrivacyDialog'
 import LaunchDialog from './components/LaunchDialog'
 import Notifications from './components/Notifications'
 import CloseDialog from './components/CloseDialog'
+import UpdateDialog from './components/UpdateDialog'
 import AutoLoader from './ui/Loader'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
@@ -37,6 +38,7 @@ function Shell() {
       <Notifications />
       <PrivacyDialog />
       <CloseDialog />
+      {screen.name !== 'login' && <UpdateDialog />}
     </>
   )
 }
