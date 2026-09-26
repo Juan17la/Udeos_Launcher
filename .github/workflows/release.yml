@@ -4,7 +4,9 @@
 # which is the way to smoke-test the three builders before tagging.
 #
 # Artifact names: udeos-launcher-<version>-<os>-<arch>.<ext>, where <version>
-# is the tag without its leading "v" (or "dev" on a manual run).
+# is the tag without its leading "v" (or "dev" on a manual run). The same
+# version is stamped into the binary (main.Version), which the in-app updater
+# compares with the newest GitHub release.
 name: Release
 
 on:
@@ -76,7 +78,7 @@ jobs:
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@${NFPM_VERSION}
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Build
-        run: wails build -clean -tags webkit2_41
+        run: wails build -clean -tags webkit2_41 -ldflags "-X main.Version=${VERSION}"
       - name: Package
         run: |
           mkdir -p dist
@@ -118,7 +120,7 @@ jobs:
           Add-Content -Path $env:GITHUB_PATH -Value "${env:ProgramFiles(x86)}\NSIS"
       - name: Build
         shell: pwsh
-        run: wails build -clean -nsis
+        run: wails build -clean -nsis -ldflags "-X main.Version=$env:VERSION"
       - name: Package
         shell: pwsh
         run: |
@@ -155,7 +157,7 @@ jobs:
           go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Build
-        run: wails build -clean -platform darwin/universal
+        run: wails build -clean -platform darwin/universal -ldflags "-X main.Version=${VERSION}"
       - name: Package
         run: |
           app="build/bin/Udeos Launcher.app"

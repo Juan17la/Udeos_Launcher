@@ -7,6 +7,10 @@ const es: Dict = {
     addProfile: 'Añadir perfil', removeProfile: 'Quitar perfil',
     themeToDark: 'Cambiar a tema oscuro', themeToLight: 'Cambiar a tema claro',
   },
+  update: {
+    title: 'Actualización disponible', body: 'Ya salió Udeos Launcher {version}. ¿Actualizar ahora? El launcher se cierra mientras se instala, tus instancias se quedan.',
+    notes: 'Novedades', later: 'Más tarde', confirm: 'Actualizar',
+  },
   common: { save: 'Guardar', back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   profiles: {
     title: 'Perfiles', active: 'Activo', instances: '{n} instancia(s)', switch: 'Cambiar de perfil',
