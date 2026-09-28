@@ -10,6 +10,8 @@ export function errorHeadline(message: string, t: Dict['errors']): string {
   if (/no build|no downloadable|not supported|unsupported|needs (fabric|forge|quilt|neoforge)/.test(m)) return t.noBuild
   if (/already/.test(m)) return t.alreadyAdded
   if (/must be a 64×64/.test(m)) return t.invalidSkin
+  if (/rejected the api key/.test(m)) return t.badKey
+  if (/rate limit/.test(m)) return t.rateLimited
   if (/cannot reach|no cached|connection|network|timeout|dial tcp|no such host|eof/.test(m)) return t.connectionLost
   return t.failed
 }

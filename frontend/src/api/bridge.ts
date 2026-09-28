@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionList, World } from './types'
+import type { AIAnswer, AIIntent, AIProvider, AIStatus, AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -53,9 +53,18 @@ type Backend = {
   RemoveResourcePack(id: string, name: string): Promise<void>
   /** sub: '' for .minecraft itself, or saves | screenshots | resourcepacks | mods | shaderpacks | logs */
   OpenInstanceFolder(id: string, sub: string): Promise<void>
-  /** loader is '' for any, or fabric|forge|quilt|neoforge; sortBy 'relevance' is the default order.
-   *  Cached, so it keeps working offline. */
-  SearchContent(projectType: ProjectType, text: string, gameVersion: string, loader: string, sortBy: SortBy, offset: number, limit: number): Promise<SearchPage>
+  /** loader is '' for any, or fabric|forge|quilt|neoforge; sortBy 'relevance' is the default order;
+   *  categories are Modrinth category names, all must match. Cached, so it keeps working offline. */
+  SearchContent(projectType: ProjectType, text: string, gameVersion: string, loader: string, sortBy: SortBy, categories: string[], offset: number, limit: number): Promise<SearchPage>
+  AIStatus(): Promise<AIStatus>
+  /** key '' keeps the saved key for the same provider (Groq without one = the built-in key);
+   *  model is one of status.models[provider] ('' = the default). */
+  SetAI(provider: AIProvider, key: string, model: string): Promise<AIStatus>
+  /** Back to Groq with the built-in key. */
+  ResetAI(): Promise<AIStatus>
+  /** Reads a search out of the message, runs it on Modrinth and picks the best few results with a reason each.
+   *  types = what the page offers now; prev = the last search; lockVersion/lockLoader = an instance's ('' = none). */
+  AskAI(message: string, types: ProjectType[], prev: AIIntent, lockVersion: string, lockLoader: string): Promise<AIAnswer>
   ListSearchGameVersions(): Promise<SearchGameVersion[]>
   /** What adding the project would install (version that fits, required dependencies), or a rejection
    *  (no build for the instance's version/loader, incompatible with an installed mod) as the error message. */
@@ -109,7 +118,7 @@ type Backend = {
   ReadSkinFile(path: string): Promise<SkinFile>
   /** File chooser, then ReadSkinFile; png '' when cancelled. */
   PickSkinFile(): Promise<SkinFile>
-  /** Stops a download: 'launch:<instance id>' (Play installing the game) or 'content' (the running Addons install).
+  /** Stops a download: 'launch:<instance id>' (Play installing the game), 'content' (the running Addons install).
    *  The call it belongs to rejects with "context canceled" (see isCanceled). */
   CancelDownload(key: string): Promise<void>
 }

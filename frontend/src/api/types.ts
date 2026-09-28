@@ -91,6 +91,19 @@ export type FileEntry = { name: string; sizeBytes: number; modTime: string; isDi
 export type ProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack'
 /** Search sort order; 'relevance' is Modrinth's default. There is no ascending order. */
 export type SortBy = 'relevance' | 'downloads' | 'newest' | 'updated'
+export type AIProvider = 'groq' | 'claude' | 'openai' | 'gemini' | 'grok'
+/** free: the provider's free plan covers it (rate-limited); otherwise it needs paid API credit. */
+export type AIModel = { id: string; name: string; free: boolean }
+/** The AI search settings; the key itself never comes back. model '' = models[provider][0], the default.
+ *  builtIn: this build carries a Groq key (used on Groq when hasKey is false). */
+export type AIStatus = { provider: AIProvider; model: string; hasKey: boolean; builtIn: boolean; models: Record<AIProvider, AIModel[]> }
+/** A search the model read out of a chat message. Every value is one the
+ *  backend allowed (the page's types, Modrinth's categories and versions); '' = any. */
+export type AIIntent = { type: ProjectType; query: string; categories: string[]; gameVersion: string; loader: string; sort: SortBy }
+/** One recommended Modrinth result; reason is the model's one-liner ('' when it could not give one). */
+export type AIPick = { result: SearchResult; reason: string }
+/** The chat's reply: the search it ran on Modrinth (total = all its results) and its picks from them. */
+export type AIAnswer = { intent: AIIntent; total: number; picks: AIPick[] }
 /** Metadata shown while browsing. The full project (description, gallery,
  *  version and file list) is only fetched once the player adds it. */
 export type SearchResult = {
