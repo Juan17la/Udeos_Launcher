@@ -5,25 +5,63 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.1.0-beta] — 2026-09-28
+
+The third beta. Everything from 1.0.0-beta, plus an AI helper for finding
+addons, updates from inside the launcher and a round of visual polish.
+Optimization is still pending (see the end of this section).
+
+### Addons
+
+- **Ask AI**: describe what you want ("performance mods for fabric
+  1.20.1", "a skyblock modpack", "medieval textures") and the chat answers
+  with its top picks from Modrinth. Each pick shows its name and icon, a
+  short reason why it fits, and its own **Add** and **Details** buttons.
+  Follow-ups refine the search ("only forge", "newer ones"). **See all N
+  results** puts the search on the page, Modrinth categories included
+  (shown as removable tags), and scrolls down to the cards.
+- Works right away through Groq, free and with nothing to download. You
+  can use your own Groq, Claude, OpenAI, Gemini or Grok API key instead,
+  and pick a model from a list that marks which ones a free plan covers.
+  The key stays on your computer. Projects, versions and compatibility
+  still come from Modrinth, and an instance's version/loader stay locked.
+- Also on an instance's Mods, Resource Packs and Shaders tabs, next to
+  **Search in Addons**.
+
+### Updates
+
 - **Updates from inside the launcher**: on start the launcher checks
   GitHub for a newer release and asks. **Update** downloads the right file
   for your system and installs it (Windows runs the installer, macOS opens
   the .dmg, Linux installs the .deb/.rpm or swaps the portable binary and
   restarts); **Later** asks again next start. No more re-downloading from
   GitHub by hand.
-- **Slow first starts say so**: a server's first start shows a
-  notification (with a spinner) while it downloads its files and builds the
-  world, and Play on a version that is not installed yet notes, in the
-  loading window and its notification, that the first launch downloads the
-  whole game. Neither is frozen.
-- **Ask AI in Addons**: describe what you want ("performance mods for
-  fabric 1.20.1", "a skyblock modpack") and the chat answers with its top
-  picks from Modrinth, each with a short reason and its own Add and Details
-  buttons. "See all" puts the search on the page, Modrinth categories
-  included (shown as removable tags). Works right away through Groq, free and with nothing to
-  download; you can use your own Groq, Claude, OpenAI, Gemini or Grok API
-  key instead. Results, versions and compatibility still come from
-  Modrinth, and an instance's version/loader stay locked.
+
+### Slow first starts say so
+
+- Play on a version that is not installed yet shows a gold **First
+  install** note (with an hourglass) and a gold progress bar in the loading
+  window and its notification: the first launch downloads the whole game.
+  Forge/NeoForge's setup step gets the same note. Neither is frozen.
+- A server's first start shows a notification (with a spinner) while it
+  downloads its files and builds the world.
+
+### Look and feel
+
+- Search results and your instances rise in smoothly when they appear,
+  and a search shows placeholder cards while it loads.
+- Text fields and dropdowns always have a border: lighter at rest, deeper
+  on hover, full colour with a soft glow when you click into them. The
+  Addons search and the AI chat have a small icon in front.
+- **Add** checks which instances fit with a small, quiet loader and
+  placeholder rows instead of a big loading box; a card being added shows
+  a small spinner.
+
+### Pending
+
+- **Optimization.** Not done yet in this beta: some screens can feel slow
+  and the launcher can use more memory and CPU than it should. This is the
+  next thing we work on.
 
 ## [1.0.0-beta] — 2026-09-25
 
