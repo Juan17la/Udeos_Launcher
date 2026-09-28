@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -31,6 +32,7 @@ type Manager struct {
 	mu       sync.Mutex
 	pages    map[string]memEntry
 	versions []GameVersion // fetched once per process; the list changes rarely
+	cats     []Category    // same
 }
 
 type memEntry struct {
@@ -133,8 +135,31 @@ func cacheKey(q Query) string {
 	if idx == "" {
 		idx = "relevance"
 	}
-	sum := sha1.Sum([]byte(q.Text))
+	text := q.Text
+	if len(q.Categories) > 0 { // appended only when set, so existing cache files keep their names
+		text += "\x00" + strings.Join(q.Categories, ",")
+	}
+	sum := sha1.Sum([]byte(text))
 	return fmt.Sprintf("%s_%s_%s_%s_%d_%s", q.Type, gv, ldr, idx, q.Offset, hex.EncodeToString(sum[:])[:8])
+}
+
+// Categories returns the provider's category tags, fetched once per process
+// with the disk copy as the offline fallback (same as GameVersions).
+func (m *Manager) Categories(ctx context.Context) ([]Category, error) {
+	m.mu.Lock()
+	have := m.cats
+	m.mu.Unlock()
+	if have != nil {
+		return have, nil
+	}
+	cats, err := cache.Fetch(m.Dirs.SearchCategoriesCacheFile(), m.Provider.Name(), func() ([]Category, error) { return m.Provider.Categories(ctx) })
+	if err != nil {
+		return nil, err
+	}
+	m.mu.Lock()
+	m.cats = cats
+	m.mu.Unlock()
+	return cats, nil
 }
 
 // ProjectDetail goes straight to the provider: fetched once, at click time.

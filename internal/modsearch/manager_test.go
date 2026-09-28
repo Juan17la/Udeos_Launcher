@@ -32,6 +32,7 @@ func (f *fakeProvider) GameVersions(ctx context.Context) ([]GameVersion, error) 
 	}
 	return f.versions, nil
 }
+func (f *fakeProvider) Categories(context.Context) ([]Category, error) { return nil, nil }
 func (f *fakeProvider) Versions(context.Context, string, string, string) ([]Version, error) {
 	return nil, errors.New("not implemented")
 }

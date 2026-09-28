@@ -30,6 +30,7 @@ func (f *fake) Search(context.Context, modsearch.Query) (modsearch.Page, error) 
 	return modsearch.Page{}, nil
 }
 func (f *fake) GameVersions(context.Context) ([]modsearch.GameVersion, error) { return nil, nil }
+func (f *fake) Categories(context.Context) ([]modsearch.Category, error)      { return nil, nil }
 func (f *fake) Versions(_ context.Context, id, mc, ldr string) ([]modsearch.Version, error) {
 	if id != "pack" || (mc != "" && mc != "1.20.1") || (ldr != "" && ldr != "fabric") {
 		return nil, nil
