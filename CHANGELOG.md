@@ -16,6 +16,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   world, and Play on a version that is not installed yet notes, in the
   loading window and its notification, that the first launch downloads the
   whole game. Neither is frozen.
+- **Ask AI in Addons**: describe what you want ("performance mods for
+  fabric 1.20.1", "a skyblock modpack") and the chat answers with its top
+  picks from Modrinth, each with a short reason and its own Add and Details
+  buttons. "See all" puts the search on the page, Modrinth categories
+  included (shown as removable tags). Works right away through Groq, free and with nothing to
+  download; you can use your own Groq, Claude, OpenAI, Gemini or Grok API
+  key instead. Results, versions and compatibility still come from
+  Modrinth, and an instance's version/loader stay locked.
 
 ## [1.0.0-beta] — 2026-09-25
 
