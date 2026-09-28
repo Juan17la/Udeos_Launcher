@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 /** "2 days ago" style label for an ISO timestamp, in the UI language. */
 export function ago(iso: string, lang: string): string {
   const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
@@ -33,3 +34,6 @@ export function versionRange(versions: string[]): string {
 const LOADER_NAMES: Record<string, string> = { fabric: 'Fabric', forge: 'Forge', neoforge: 'NeoForge', quilt: 'Quilt' }
 /** Modrinth's lowercase loader ids as the launcher writes them ("neoforge" → "NeoForge"). */
 export const loaderName = (l: string) => LOADER_NAMES[l.toLowerCase()] ?? l[0].toUpperCase() + l.slice(1)
+
+/** Staggers the cards' rise-in (tokens.css .reveal): 40ms apart, the first 10 only. */
+export const revealDelay = (i: number) => ({ '--reveal-delay': `${Math.min(i, 9) * 40}ms` }) as CSSProperties
