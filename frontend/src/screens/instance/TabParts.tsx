@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Folder, Search as SearchIcon } from '../../ui/icons'
+import { Folder, Search as SearchIcon, Sparkles } from '../../ui/icons'
 import Button from '../../ui/Button'
 import DropZone from '../../ui/DropZone'
 import StatusMessage from '../../ui/StatusMessage'
@@ -19,9 +19,14 @@ export function AddZone({ id, kind, onPick, modrinth }: { id: string; kind: stri
   return (
     <>
       {modrinth && (
-        <Button variant="primary" size="lg" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}>
-          <SearchIcon size={13} /> {t.instance.browseModrinth}
-        </Button>
+        <div className="flex gap-4 flex-wrap">
+          <Button variant="primary" size="lg" className="flex-1" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}>
+            <SearchIcon size={13} /> {t.instance.browseModrinth}
+          </Button>
+          <Button variant="idle" size="lg" onClick={() => go({ name: 'search', instanceId: id, type: modrinth, ai: true })}>
+            <Sparkles size={13} /> {t.ai.ask}
+          </Button>
+        </div>
       )}
       <DropZone text={fmt(t.instance.dropHere, { kind })}>
         <span className="text-[13px]">{t.common.or}</span>

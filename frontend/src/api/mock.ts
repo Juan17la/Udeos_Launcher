@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, Skin, SkinModel, SortBy, World } from './types'
+import type { AIAnswer, AIIntent, AIProvider, AIStatus, ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, Skin, SkinModel, SortBy, World } from './types'
 import { SkinTexture, boxes, faces } from '../utils/skin'
 import { DEFAULT_SKINS } from '../assets'
 
@@ -188,6 +188,14 @@ export function createMock() {
   }
   // Like the backend's CancelDownload: a key here makes the matching fake download stop with "context canceled".
   const canceled = new Set<string>()
+  const aiModels: AIStatus['models'] = {
+    groq: [{ id: 'openai/gpt-oss-20b', name: 'GPT-OSS 20B', free: true }, { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B', free: true }],
+    claude: [{ id: 'claude-opus-5', name: 'Claude Opus 5', free: false }, { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', free: false }],
+    openai: [{ id: 'gpt-6-luna', name: 'GPT-6 Luna', free: false }],
+    gemini: [{ id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', free: true }, { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (preview)', free: false }],
+    grok: [{ id: 'grok-4.20-0309-non-reasoning', name: 'Grok 4.20', free: false }],
+  }
+  let ai: AIStatus = { provider: 'groq', model: '', hasKey: false, builtIn: true, models: aiModels }
   const stopIf = (key: string) => { if (canceled.delete(key)) throw new Error('context canceled') }
   const applyContent = async (instanceId: string, plan: ContentPlan): Promise<ContentEntry[]> => {
     const out: ContentEntry[] = []
@@ -302,7 +310,7 @@ export function createMock() {
     async PickResourcePack() { return { name: 'Picked Pack.zip', sizeBytes: 1000, modTime: new Date().toISOString(), isDir: false } },
     async RemoveResourcePack() {},
     async OpenInstanceFolder() {},
-    async SearchContent(projectType: ProjectType, text: string, gameVersion: string, ldr: string, sortBy: SortBy, offset: number, limit: number) {
+    async SearchContent(projectType: ProjectType, text: string, gameVersion: string, ldr: string, sortBy: SortBy, _categories: string[], offset: number, limit: number) {
       await sleep(200)
       const all = searchResults[projectType].filter((r) =>
         (!text || r.title.toLowerCase().includes(text.toLowerCase())) &&
@@ -314,6 +322,28 @@ export function createMock() {
       return { results: all.slice(offset, offset + limit).map(withVersions), total: all.length, offset }
     },
     async ListSearchGameVersions() { return gameVersions.map((v) => ({ ...v })) },
+    async AIStatus() { return { ...ai } },
+    async SetAI(provider: AIProvider, key: string, model: string) {
+      const hasKey = !!key.trim() || (provider === ai.provider && ai.hasKey)
+      if (!hasKey && provider !== 'groq') throw new Error(`an API key is needed for ${provider}`)
+      ai = { ...ai, provider, model, hasKey }
+      return { ...ai }
+    },
+    async ResetAI() { ai = { ...ai, provider: 'groq', model: '', hasKey: false }; return { ...ai } },
+    // A keyword stand-in for the model: enough to click through the chat in a browser.
+    async AskAI(message: string, types: ProjectType[], prev: AIIntent, lockVersion: string, lockLoader: string): Promise<AIAnswer> {
+      await sleep(500)
+      const m = message.toLowerCase()
+      const type = types.find((t) => m.includes(t === 'resourcepack' ? 'texture' : t)) ?? (types.includes(prev.type) ? prev.type : types[0])
+      const intent: AIIntent = {
+        type, query: m.includes('map') ? 'map' : '', categories: m.includes('performance') || m.includes('fps') ? ['optimization'] : [],
+        gameVersion: lockVersion || (gameVersions.find((v) => m.includes(v.version))?.version ?? prev.gameVersion),
+        loader: lockVersion ? (type === 'mod' || type === 'modpack' ? lockLoader.toLowerCase() : '') : ['fabric', 'forge', 'quilt', 'neoforge'].find((l) => m.includes(l)) ?? prev.loader,
+        sort: m.includes('popular') || m.includes('best') ? 'downloads' : prev.sort,
+      }
+      const page = await backend.SearchContent(intent.type, intent.query, intent.gameVersion, intent.loader, intent.sort, intent.categories, 0, 8)
+      return { intent, total: page.total, picks: page.results.slice(0, 3).map((result, i) => ({ result, reason: i === 2 ? '' : `A mock reason why ${result.title} fits.` })) }
+    },
     async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType as ContentType) },
     // A mock modpack "pours" one mod (JEI) into the instance.
     async AddContent(instanceId: string, projectId: string, projectType: ProjectType) {

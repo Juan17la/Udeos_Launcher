@@ -5,27 +5,30 @@ import { fmt } from '../i18n/format'
 import Button from '../ui/Button'
 import { Input, Select } from '../ui/Field'
 import StatusMessage from '../ui/StatusMessage'
-import AutoLoader from '../ui/Loader'
+import AutoLoader, { Spinner } from '../ui/Loader'
+import { Search as SearchIcon, Sparkles, X } from '../ui/icons'
 import SegmentedControl from '../ui/SegmentedControl'
 import { errorHeadline, messageOf } from '../utils/errors'
 import { allowedTypes, loadSearchVersions, pageList } from '../utils/search'
 import { useAddAction } from '../hooks/useAddAction'
+import { revealDelay } from '../utils/format'
 import BackButton from '../components/BackButton'
 import ProjectIcon from '../components/ProjectIcon'
+import AIChat from '../components/AIChat'
 import { Downloads, InstanceTags, LoaderTags, VersionTag } from '../components/Tags'
-import type { ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
+import type { AIIntent, ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
 
 const LOADERS = ['fabric', 'forge', 'quilt', 'neoforge']
 const SORTS: SortBy[] = ['relevance', 'downloads', 'newest', 'updated']
 const PAGE_SIZE = 30
 
-type Props = { instanceId?: string; type?: ProjectType }
+type Props = { instanceId?: string; type?: ProjectType; ai?: boolean }
 
 /** What the page looked like when the player last left it. Coming back with
  *  Back (from a project's Details) puts it all back — search text, filters,
  *  page and the results themselves, so the scroll lands on the same card. */
 type Saved = {
-  instanceId?: string; type: ProjectType; text: string; gameVersion: string; loader: string; sortBy: SortBy
+  instanceId?: string; type: ProjectType; text: string; gameVersion: string; loader: string; sortBy: SortBy; categories: string[]; aiOpen: boolean
   pageIndex: number; page: SearchPage | null; loadedKey: string | null
 }
 let saved: Saved | null = null
@@ -37,7 +40,7 @@ let saved: Saved | null = null
  *  for mods), Add installs straight away and what is already in the
  *  instance shows as Added. Either way nothing is fetched per card: the
  *  compatibility check happens once, when Add is actually clicked. */
-export default function Search({ instanceId, type: initialType }: Props) {
+export default function Search({ instanceId, type: initialType, ai }: Props) {
   const { t, go, instances, servers, cameBack } = useApp()
   const [init] = useState(() => (cameBack && saved?.instanceId === instanceId ? saved : null))
   const { jobs } = useContent()
@@ -51,6 +54,11 @@ export default function Search({ instanceId, type: initialType }: Props) {
   const [gameVersion, setGameVersion] = useState(init?.gameVersion ?? '')
   const [loader, setLoader] = useState(init?.loader ?? '')
   const [sortBy, setSortBy] = useState<SortBy>(init?.sortBy ?? 'relevance')
+  // Modrinth categories (set by the AI panel; shown as removable tags). They
+  // belong to one project type, so picking another type clears them.
+  const [categories, setCategories] = useState<string[]>(init?.categories ?? [])
+  const [aiOpen, setAiOpen] = useState(init?.aiOpen ?? !!ai)
+  const pickType = (k: ProjectType) => { setType(k); setCategories([]) }
   const [installed, setInstalled] = useState<Set<string>>(() => new Set())
   const { add, dialog } = useAddAction(inst?.id, { gameVersion, loader })
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
@@ -61,6 +69,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
   // Requests can resolve out of order (a slow query answered after a fast
   // one); only the latest one issued is allowed to update the page.
   const seq = useRef(0)
+  const listing = useRef<HTMLDivElement>(null) // the tabs, filters and cards: where "See all" lands
   // The query (minus paging) the shown results answer; a restored page skips its reload.
   const loadedKey = useRef<string | null>(init?.loadedKey ?? null)
 
@@ -92,21 +101,21 @@ export default function Search({ instanceId, type: initialType }: Props) {
   // fixed size no matter how far the player pages through. Going back to a
   // page seen in the last few minutes is answered from Go's memory cache,
   // without a request.
-  const key = JSON.stringify([type, debouncedText, effectiveVersion, effectiveLoader, sortBy])
+  const key = JSON.stringify([type, debouncedText, effectiveVersion, effectiveLoader, sortBy, categories])
   const load = useCallback((offset: number) => {
     const mine = ++seq.current
     setError(null); setLoading(true)
-    api.SearchContent(type, debouncedText, effectiveVersion, effectiveLoader, sortBy, offset, PAGE_SIZE)
+    api.SearchContent(type, debouncedText, effectiveVersion, effectiveLoader, sortBy, categories, offset, PAGE_SIZE)
       .then((p) => { if (mine === seq.current) { setPage(p); loadedKey.current = key } })
       .catch((e) => { if (mine === seq.current) setError(messageOf(e)) })
       .finally(() => { if (mine === seq.current) setLoading(false) })
-  }, [type, debouncedText, effectiveVersion, effectiveLoader, sortBy, key])
+  }, [type, debouncedText, effectiveVersion, effectiveLoader, sortBy, categories, key])
 
   useEffect(() => {
     if (loadedKey.current === key) return
     setPageIndex(0); setPage(null); load(0)
   }, [load, key])
-  useEffect(() => { saved = { instanceId, type, text, gameVersion, loader, sortBy, pageIndex, page, loadedKey: loadedKey.current } })
+  useEffect(() => { saved = { instanceId, type, text, gameVersion, loader, sortBy, categories, aiOpen, pageIndex, page, loadedKey: loadedKey.current } })
   useEffect(() => () => { seq.current++ }, []) // unmount: drop whatever is still in flight
 
   // Paging replaces the grid, so land the player at the top of the new page.
@@ -114,6 +123,14 @@ export default function Search({ instanceId, type: initialType }: Props) {
   const goToPage = (i: number) => {
     if (i < 0 || i >= pages || i === pageIndex) return
     setPageIndex(i); load(i * PAGE_SIZE); window.scrollTo({ top: 0 })
+  }
+
+  // The AI panel's "See all" fills in the same filters a player would (an
+  // instance's version and loader stay locked) and scrolls down to the cards.
+  const showAll = (i: AIIntent) => {
+    setType(i.type); setText(i.query); setDebouncedText(i.query); setCategories(i.categories); setSortBy(i.sort)
+    if (!inst) { setGameVersion(i.gameVersion); setLoader(i.loader) }
+    listing.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   // Per-card state in instance mode: already there, or on its way.
@@ -130,7 +147,10 @@ export default function Search({ instanceId, type: initialType }: Props) {
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
       <BackButton className="-mb-4" />
       <div className="flex flex-col gap-4">
-        <h2 className="mb-2">{t.nav.search}</h2>
+        <div className="flex items-center justify-between gap-4 flex-wrap mb-2">
+          <h2 className="m-0">{t.nav.search}</h2>
+          <Button variant={aiOpen ? 'primary' : 'idle'} aria-pressed={aiOpen} onClick={() => setAiOpen(!aiOpen)}><Sparkles /> {t.ai.ask}</Button>
+        </div>
         <p className="m-0 text-muted">{t.search.subtitle}</p>
       </div>
 
@@ -141,10 +161,17 @@ export default function Search({ instanceId, type: initialType }: Props) {
         </div>
       )}
 
-      <SegmentedControl options={types.map((k) => ({ value: k, label: t.search.types[k] }))} value={type} onChange={setType} />
+      {aiOpen && <AIChat types={types} lock={inst && { version: inst.version, loader: inst.loader }}
+        current={{ type, query: text, categories, gameVersion: effectiveVersion, loader: effectiveLoader, sort: sortBy }}
+        onAdd={add} stateOf={stateOf} onDetails={(r) => go({ name: 'detail', result: r, instanceId: inst?.id })} onShowAll={showAll} />}
+
+      {/* scroll-mt clears the sticky nav when "See all" scrolls here. */}
+      <div ref={listing} className="scroll-mt-24">
+        <SegmentedControl options={types.map((k) => ({ value: k, label: t.search.types[k] }))} value={type} onChange={pickType} />
+      </div>
 
       <div className="flex gap-4 flex-wrap">
-        <Input className="flex-[1_1_220px]" type="search" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
+        <Input className="flex-[1_1_220px]" icon={<SearchIcon />} type="search" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
         <Select className="flex-[0_1_180px]" value={effectiveVersion} disabled={!!inst} onChange={(e) => setGameVersion(e.target.value)}>
           <option value="">{t.search.anyVersion}</option>
           {versions?.map((v) => <option key={v.version} value={v.version}>{v.version}</option>)}
@@ -161,9 +188,18 @@ export default function Search({ instanceId, type: initialType }: Props) {
           {SORTS.map((k) => <option key={k} value={k}>{t.search.sort[k]}</option>)}
         </Select>
       </div>
+      {categories.length > 0 && (
+        <div className="flex gap-2 flex-wrap -mt-2">
+          {categories.map((c) => (
+            <button key={c} type="button" className="tag bg-tag-gray gap-1.5 cursor-pointer" aria-label={fmt(t.ai.removeCategory, { name: c })}
+              onClick={() => setCategories(categories.filter((x) => x !== c))}>{c} <X size={10} /></button>
+          ))}
+        </div>
+      )}
 
       {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
-      <AutoLoader active={loading} label={t.common.loading} />
+      {/* First load of a search: skeleton cards. Paging keeps the old grid dimmed under the loader. */}
+      <AutoLoader active={loading && !!page} label={t.common.loading} />
       {page && page.total > 0 && (
         <p className="m-0 text-[13px] text-muted">
           {fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
@@ -172,10 +208,11 @@ export default function Search({ instanceId, type: initialType }: Props) {
       {page?.results.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.search.empty}</p>}
 
       <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${loading ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
-        {page?.results.map((r) => (
-          <ResultCard key={r.id} result={r} state={stateOf(r)} onAdd={() => add(r)}
+        {page?.results.map((r, i) => (
+          <ResultCard key={r.id} index={i} result={r} state={stateOf(r)} onAdd={() => add(r)}
             onDetails={() => go({ name: 'detail', result: r, instanceId: inst?.id })} />
         ))}
+        {!page && loading && Array.from({ length: 6 }, (_, n) => <SkeletonCard key={n} />)}
       </div>
 
       {dialog}
@@ -186,7 +223,7 @@ export default function Search({ instanceId, type: initialType }: Props) {
 }
 
 /** state is only set with an instance in context: 'added' = already in it, 'busy' = installing now. */
-type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd: () => void; onDetails: () => void }
+type CardProps = { index: number; result: SearchResult; state?: 'added' | 'busy'; onAdd: () => void; onDetails: () => void }
 
 /** Previous / numbered pages with "…" gaps / Next, plus a box to jump to any page. */
 function Pager({ index, pages, disabled, onGo }: { index: number; pages: number; disabled: boolean; onGo: (i: number) => void }) {
@@ -205,12 +242,26 @@ function Pager({ index, pages, disabled, onGo }: { index: number; pages: number;
   )
 }
 
-const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
+/** A result card's shape while its search loads. */
+function SkeletonCard() {
+  return (
+    <div className="panel flex flex-col gap-4 p-5" aria-hidden>
+      <div className="flex items-center gap-4">
+        <div className="skeleton w-11 h-11 shrink-0" />
+        <div className="flex-1 flex flex-col gap-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/2" /></div>
+      </div>
+      <div className="flex flex-col gap-2"><div className="skeleton h-3" /><div className="skeleton h-3 w-5/6" /></div>
+      <div className="flex gap-4 mt-2"><div className="skeleton h-10 flex-1" /><div className="skeleton h-10 flex-1" /></div>
+    </div>
+  )
+}
+
+const ResultCard = memo(function ResultCard({ index, result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
     // The whole card opens Details; the buttons inside stop the click from bubbling.
     <div role="link" tabIndex={0} onClick={onDetails} onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) onDetails() }}
-      className="panel panel-hover flex flex-col gap-4 p-5 cursor-pointer">
+      className="reveal panel panel-hover flex flex-col gap-4 p-5 cursor-pointer" style={revealDelay(index)}>
       <div className="flex items-center gap-4">
         <ProjectIcon url={result.iconUrl} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
@@ -228,6 +279,7 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
          one-click instance pick), Details is a full page. */}
       <div className="flex gap-4 mt-auto">
         <Button variant={state === undefined ? 'primary' : 'idle'} className="flex-1" disabled={state !== undefined} onClick={(e) => { e.stopPropagation(); onAdd() }}>
+          {state === 'busy' && <Spinner size={12} />}
           {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
         </Button>
         <Button variant="idle" className="flex-1" onClick={(e) => { e.stopPropagation(); onDetails() }}>{t.search.details}</Button>
