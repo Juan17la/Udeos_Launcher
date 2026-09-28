@@ -11,10 +11,11 @@ import (
 var searchSorts = map[string]bool{"downloads": true, "newest": true, "updated": true}
 
 // SearchContent browses one content type (mod, resourcepack, shader,
-// modpack) from Modrinth, optionally filtered by Minecraft version and mod
-// loader and sorted by sortBy ("" = relevance, downloads, newest, updated).
+// modpack) from Modrinth, optionally filtered by Minecraft version, mod
+// loader and Modrinth categories (all must match; unknown ones are dropped)
+// and sorted by sortBy ("" = relevance, downloads, newest, updated).
 // Results are cached so the search page keeps working offline.
-func (a *App) SearchContent(projectType, text, gameVersion, ldr, sortBy string, offset, limit int) (modsearch.Page, error) {
+func (a *App) SearchContent(projectType, text, gameVersion, ldr, sortBy string, categories []string, offset, limit int) (modsearch.Page, error) {
 	if !searchSorts[sortBy] {
 		sortBy = ""
 	}
@@ -24,6 +25,7 @@ func (a *App) SearchContent(projectType, text, gameVersion, ldr, sortBy string, 
 		GameVersion: gameVersion,
 		Loader:      strings.ToLower(ldr),
 		Index:       sortBy,
+		Categories:  a.knownCategories(projectType, categories),
 		Offset:      offset,
 		Limit:       limit,
 	}

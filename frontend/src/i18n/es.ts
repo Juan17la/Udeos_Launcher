@@ -30,7 +30,7 @@ const es: Dict = {
   errors: {
     failed: 'Error', loadFailed: 'No se pudo cargar', connectionLost: 'Sin conexión', incompatible: 'Mod incompatible',
     noBuild: 'Sin versión', alreadyAdded: 'Ya añadido', launchFailed: 'No se pudo iniciar', gameCrashed: 'El juego se cerró',
-    invalidNickname: 'Apodo no válido', invalidSkin: 'No es una skin',
+    invalidNickname: 'Apodo no válido', invalidSkin: 'No es una skin', badKey: 'Clave no válida', rateLimited: 'Demasiadas peticiones',
   },
   dashboard: {
     title: 'Tus instancias', subtitle: 'Elige una para jugar o crea una nueva con otra versión o configuración de mods.',
@@ -187,6 +187,21 @@ const es: Dict = {
     sort: { relevance: 'Relevancia', downloads: 'Más descargados', newest: 'Más nuevos', updated: 'Actualizados recientemente' },
     forInstance: 'Añadiendo a {name}',
   },
+  ai: {
+    ask: 'Preguntar a la IA', title: 'Búsqueda con IA',
+    intro: 'Di lo que buscas, como "mods de rendimiento", "un modpack de skyblock" o "texturas medievales". La IA busca en Modrinth y elige las mejores opciones para que las añadas. Tu mensaje se envía a {provider}.',
+    providers: { groq: 'Groq', claude: 'Claude', openai: 'OpenAI', gemini: 'Gemini', grok: 'Grok' },
+    builtIn: '{provider} (incluida)', ownKey: '{provider} · tu clave',
+    settingsIntro: 'La búsqueda con IA usa Groq gratis. Puedes usar tu propia clave de API de Groq, Claude, OpenAI, Gemini o Grok; se queda en este ordenador.',
+    free: 'plan gratuito', paid: 'de pago',
+    freeHint: 'Funciona con una clave de API gratuita de {provider} (con límites de uso).', paidHint: 'Necesita crédito de API de pago en tu cuenta de {provider}.',
+    needKey: 'Añade una clave de API para usar la búsqueda con IA.',
+    provider: 'Proveedor', key: 'Clave de API', keyPlaceholder: 'Pega tu clave de API', keySaved: 'Guardada — déjalo vacío para mantenerla',
+    keyOptional: 'Opcional — vacío usa la clave incluida', model: 'Modelo', recommended: 'recomendado', save: 'Guardar', useBuiltIn: 'Usar Groq incluida',
+    placeholder: '¿Qué estás buscando?', send: 'Buscar', thinking: 'Pensando…',
+    found: 'Mis elecciones de Modrinth para: {filters}', nothing: 'Nada en Modrinth coincide con: {filters}. Prueba con otras palabras.',
+    seeAll: 'Ver los {total} resultados', removeCategory: 'Quitar {name}',
+  },
   compat: {
     vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
   },
@@ -212,6 +227,7 @@ const es: Dict = {
     hide: 'Ocultar',
     starting: 'Iniciando el juego…',
     phases: { version: 'Leyendo la versión', libraries: 'Descargando librerías del juego', assets: 'Descargando sonidos y texturas', client: 'Descargando el juego', natives: 'Desempaquetando librerías nativas', java: 'Descargando Java', loader: 'Instalando el cargador de mods', done: 'Lanzando' },
+    firstInstallTitle: 'Primera instalación', slowTitle: 'Este paso tarda un poco',
     firstInstall: 'Minecraft {version} aún no está instalado: el primer inicio descarga todo el juego y puede tardar unos minutos. No está congelado.',
     loaderTakesAWhile: '{loader} parchea los archivos del juego en la primera instalación; puede tardar un par de minutos.',
     exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',

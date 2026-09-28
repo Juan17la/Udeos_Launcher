@@ -32,6 +32,7 @@ func (f *fakeProvider) Name() string { return "Fake" }
 func (f *fakeProvider) Search(context.Context, modsearch.Query) (modsearch.Page, error) {
 	return modsearch.Page{}, nil
 }
+func (f *fakeProvider) Categories(context.Context) ([]modsearch.Category, error) { return nil, nil }
 func (f *fakeProvider) GameVersions(context.Context) ([]modsearch.GameVersion, error) {
 	return nil, nil
 }

@@ -6,6 +6,7 @@ import Dialog from '../ui/Dialog'
 import Button from '../ui/Button'
 import InstanceIcon from './InstanceIcon'
 import { InstanceTags } from './Tags'
+import { Hourglass } from '../ui/icons'
 
 /** While Play prepares the game: a loading modal (the instance's block
  *  hopping, a striped bar, the percentage), which Hide or Escape shrinks to a
@@ -36,7 +37,7 @@ export default function LaunchDialog() {
 function LoadingModal() {
   const { t } = useApp()
   const { minimizeLaunch, cancelLaunch } = useLaunch()
-  const { inst, pct, label, note } = useLaunchProgress()
+  const { inst, pct, label, note, firstInstall } = useLaunchProgress()
   if (!inst) return null
   return (
     <Dialog title={inst.name} onClose={minimizeLaunch} actions={<>
@@ -51,7 +52,7 @@ function LoadingModal() {
         <InstanceTags inst={inst} className="justify-center" />
         <div className="w-full flex flex-col gap-2">
           <div className="h-4 rounded-md bg-idle/60 overflow-hidden" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
-            <div className="h-full rounded-md bg-primary motion-safe:animate-[bar-stripes_0.8s_linear_infinite]"
+            <div className={`h-full rounded-md motion-safe:animate-[bar-stripes_0.8s_linear_infinite] ${note ? 'bg-gold-deep' : 'bg-primary'}`}
               style={{ width: `${pct}%`, backgroundImage: 'linear-gradient(45deg, rgba(255,255,255,.25) 25%, transparent 25% 50%, rgba(255,255,255,.25) 50% 75%, transparent 75%)', backgroundSize: '24px 24px' }} />
           </div>
           <div className="flex justify-between gap-4 text-xs text-muted">
@@ -59,7 +60,17 @@ function LoadingModal() {
             <span className="tabular-nums font-bold text-text">{pct}%</span>
           </div>
         </div>
-        {note && <p className="m-0 text-xs text-muted text-center">{note}</p>}
+        {/* A slow run that is expected (first install, Forge patching): a gold
+            callout, and the bar above turns gold, so it reads as "normal, wait". */}
+        {note && (
+          <div className="w-full flex items-start gap-3 px-4 py-3 rounded-md bg-gold-soft text-ink animate-[dialog-fade_0.3s_ease-in-out]" role="note">
+            <span className="flex shrink-0 mt-0.5 motion-safe:animate-[hourglass_2.4s_ease-in-out_infinite]"><Hourglass /></span>
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-bold">{firstInstall ? t.launch.firstInstallTitle : t.launch.slowTitle}</span>
+              <span className="text-xs">{note}</span>
+            </div>
+          </div>
+        )}
       </div>
     </Dialog>
   )
@@ -80,9 +91,10 @@ export function useLaunchProgress() {
   const inst = preparing ? instances.find((i) => i.id === launch.instanceId) : undefined
   const pct = Math.round(measurable ? (p!.done / p!.total) * 100 : phase === 'done' ? 100 : (simulated ?? 0))
   const label = phase === 'done' ? t.launch.starting : (t.launch.phases[phase] ?? phase)
+  const firstInstall = !!inst && !inst.installed
   const note = phase === 'loader' && (inst?.loader === 'Forge' || inst?.loader === 'NeoForge') ? fmt(t.launch.loaderTakesAWhile, { loader: inst.loader })
-    : inst && !inst.installed ? fmt(t.launch.firstInstall, { version: inst.version }) : ''
-  return { inst, pct, label, note }
+    : firstInstall ? fmt(t.launch.firstInstall, { version: inst.version }) : ''
+  return { inst, pct, label, note, firstInstall }
 }
 
 // Start of the current simulated run, outside React: minimizing swaps the

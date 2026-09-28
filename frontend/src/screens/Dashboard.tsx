@@ -5,7 +5,7 @@ import PlayButton from '../components/PlayButton'
 import { InstanceTags } from '../components/Tags'
 import { useApp } from '../state'
 import { fmt } from '../i18n/format'
-import { ago, hours } from '../utils/format'
+import { ago, hours, revealDelay } from '../utils/format'
 import type { Instance } from '../api/types'
 
 export default function Dashboard() {
@@ -28,7 +28,7 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
-            {instances.map((inst) => <InstanceCard key={inst.id} inst={inst} />)}
+            {instances.map((inst, i) => <InstanceCard key={inst.id} inst={inst} index={i} />)}
           </div>
         )}
       </div>
@@ -55,12 +55,12 @@ export default function Dashboard() {
 
 /** One instance in the grid: icon, name, version/loader tags, content counts,
  *  Play and Manage. The whole card opens the instance, like Manage. */
-function InstanceCard({ inst }: { inst: Instance }) {
+function InstanceCard({ inst, index }: { inst: Instance; index: number }) {
   const { t, go } = useApp()
   const open = () => go({ name: 'instance', id: inst.id })
   return (
     <div role="link" tabIndex={0} onClick={open} onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) open() }}
-      className="panel panel-hover flex flex-col gap-4 p-5 cursor-pointer">
+      className="reveal panel panel-hover flex flex-col gap-4 p-5 cursor-pointer" style={revealDelay(index)}>
       <div className="flex items-center gap-4">
         <InstanceIcon inst={inst} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-2">

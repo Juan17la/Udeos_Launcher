@@ -41,6 +41,27 @@ second half maps each rule to where it lives in the code.
   - Error / failure: soft pastel red glow or border (`#FF8B94`) with
     ultra-concise messaging capped strictly at 1–3 words (e.g. "Connection
     lost").
+- **Fields (inputs and selects, `ui/Field.tsx`):** always bordered (2px) in
+  the primary colour at 40% (a lighter tone), 70% on hover, full on focus,
+  where a soft 4px ring pulses once (`focus-pulse`) to draw the eye. A
+  screen's main field (the Addons search, the AI chat) also gets a small
+  leading icon in the primary colour (`Input icon=`). Locked/disabled
+  fields drop the border.
+- **Quiet loaders:** a check the player waits on inside something else
+  (Add's compatibility check, an item being added) uses the small ring
+  (`Spinner`, `AutoLoader subtle`) with muted text, plus skeleton rows
+  where the answer will appear, not the glass pill.
+- **Loading & scroll motion:** a search's first load shows skeleton cards
+  (`skeleton` utility, a shimmer in the rows tone). Cards (Addons results,
+  Dashboard instances) rise in once when they appear (`reveal` +
+  `revealDelay(index)`, 40ms stagger), in pure CSS. Nothing else may
+  animate or transition a card's opacity/transform, and there is no
+  scroll-triggered reveal: in WebKitGTK both made cards flash (see the
+  comment on `.reveal` in tokens.css). Reduced motion turns it off.
+- **Slow but expected progress** (a first install, Forge patching) is
+  **gold**: the bar turns `gold-deep` and a gold callout with an hourglass
+  says why. The notification gets a gold border and bar too, so a long
+  wait reads as normal, not stuck.
 - **Three-colour tag system:** tags use the `15px` radius and `PT Mono` across
   three pastel shades:
   - Pastel light gray (`#E2E8F0`): neutral metadata and general categories.

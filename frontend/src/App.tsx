@@ -28,7 +28,7 @@ function Shell() {
       {screen.name === 'dashboard' && <Dashboard />}
       {screen.name === 'create' && <CreateInstance key={String(!!screen.server)} server={screen.server} />}
       {screen.name === 'instance' && <InstancePage id={screen.id} />}
-      {screen.name === 'search' && <Search instanceId={screen.instanceId} type={screen.type} />}
+      {screen.name === 'search' && <Search instanceId={screen.instanceId} type={screen.type} ai={screen.ai} />}
       {screen.name === 'servers' && <Servers />}
       {screen.name === 'server' && <ServerPage id={screen.id} />}
       {screen.name === 'detail' && <ProjectDetail result={screen.result} instanceId={screen.instanceId} />}

@@ -52,10 +52,11 @@ func LoaderMatches(loaders []string, ldr string) bool {
 // Query is provider-agnostic search input.
 type Query struct {
 	Type        ProjectType
-	GameVersion string // "" = any
-	Loader      string // "fabric" | "forge" | "quilt" | "neoforge"; "" = any
-	Text        string // free-text query; "" = browse, most relevant/downloaded first
-	Index       string // sort order: "" = relevance, else "downloads" | "newest" | "updated"
+	GameVersion string   // "" = any
+	Loader      string   // "fabric" | "forge" | "quilt" | "neoforge"; "" = any
+	Text        string   // free-text query; "" = browse, most relevant/downloaded first
+	Index       string   // sort order: "" = relevance, else "downloads" | "newest" | "updated"
+	Categories  []string // provider category tags ("optimization", "technology"...), all must match
 	Offset      int
 	Limit       int
 }
@@ -90,6 +91,13 @@ type Page struct {
 type GameVersion struct {
 	Version string `json:"version"`
 	Type    string `json:"type"`
+}
+
+// Category is one of the provider's content tags ("optimization", "magic"...)
+// and the project type it applies to.
+type Category struct {
+	Name        string      `json:"name"`
+	ProjectType ProjectType `json:"projectType"`
 }
 
 // Version is one downloadable release of a project: which Minecraft versions
@@ -225,6 +233,8 @@ type Provider interface {
 	Name() string
 	Search(ctx context.Context, q Query) (Page, error)
 	GameVersions(ctx context.Context) ([]GameVersion, error)
+	// Categories lists the provider's category tags (the search filter's vocabulary).
+	Categories(ctx context.Context) ([]Category, error)
 	// Versions lists the project's versions that run on gameVersion ("" = any)
 	// and loader ("" = any), newest first as the provider orders them.
 	Versions(ctx context.Context, projectID, gameVersion, loader string) ([]Version, error)

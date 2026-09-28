@@ -22,6 +22,11 @@ func TestBuildFacets(t *testing.T) {
 	if want = `[["project_type:mod"],["categories:quilt","categories:fabric"]]`; got != want {
 		t.Errorf("got %s, want %s", got, want)
 	}
+	// Categories are ANDed: each is its own group.
+	got = buildFacets(Query{Type: TypeMod, Categories: []string{"optimization", "utility"}})
+	if want = `[["project_type:mod"],["categories:optimization"],["categories:utility"]]`; got != want {
+		t.Errorf("got %s, want %s", got, want)
+	}
 }
 
 func TestLoaderMatches(t *testing.T) {
