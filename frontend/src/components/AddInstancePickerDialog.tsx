@@ -68,7 +68,8 @@ export default function AddInstancePickerDialog({ result, filters, onClose }: Pr
             {!none && <p className="m-0 font-bold text-base">{t.content.orAddTo}</p>}
           </>
         )}
-        <AutoLoader active={detected === null} label={t.content.planning} />
+        <AutoLoader subtle active={detected === null} label={t.content.planning} />
+        {detected === null && [0, 1].map((n) => <div key={n} className="skeleton h-13" />)}
         {none && !modpack && (
           <StatusMessage kind="error" headline={t.errors.noBuild}
             detail={fmt(t.content.noCompatible, { loaders: detected.detail?.loaders.join('/') || result.loaders.join('/') || 'Fabric/Forge', versions: detected.detail?.gameVersions.slice(-3).join(', ') ?? '' })} />

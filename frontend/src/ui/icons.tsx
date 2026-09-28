@@ -41,6 +41,12 @@ export const ChevronLeft = ({ size = 14 }: P) => (
 export const Search = ({ size = 14 }: P) => (
   <svg {...base(size, 2.75)}><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
 )
+export const Hourglass = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.75)}><path d="M6 2.5h12M6 21.5h12M7 2.5c0 5 10 5.5 10 9.5S7 17 7 21.5M17 2.5c0 5-10 5.5-10 9.5s10 5 10 9.5" /></svg>
+)
+export const Sparkles = ({ size = 14 }: P) => (
+  <svg {...base(size, 2.75)}><path d="M10 3 8.5 8.5 3 10l5.5 1.5L10 17l1.5-5.5L17 10l-5.5-1.5Z" /><path d="M19 15v6M16 18h6" /></svg>
+)
 export const ChevronDown = ({ size = 14 }: P) => (
   <svg {...base(size, 2.75)}><path d="M6 9l6 6 6-6" /></svg>
 )
