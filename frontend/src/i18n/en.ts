@@ -29,7 +29,7 @@ const en = {
   errors: {
     failed: 'Failed', loadFailed: 'Load failed', connectionLost: 'Connection lost', incompatible: 'Incompatible mod',
     noBuild: 'No build', alreadyAdded: 'Already added', launchFailed: 'Launch failed', gameCrashed: 'Game crashed',
-    invalidNickname: 'Invalid nickname', invalidSkin: 'Not a skin',
+    invalidNickname: 'Invalid nickname', invalidSkin: 'Not a skin', badKey: 'Bad API key', rateLimited: 'Rate limited',
   },
   dashboard: {
     title: 'Your Instances', subtitle: 'Pick one to play, or create a new instance for a different version or mod setup.',
@@ -186,6 +186,21 @@ const en = {
     sort: { relevance: 'Relevance', downloads: 'Most downloaded', newest: 'Newest', updated: 'Recently updated' },
     forInstance: 'Adding to {name}',
   },
+  ai: {
+    ask: 'Ask AI', title: 'AI search',
+    intro: 'Say what you are after, like "performance mods", "a skyblock modpack" or "medieval textures". The AI searches Modrinth and picks the best matches for you to add. Your message is sent to {provider}.',
+    providers: { groq: 'Groq', claude: 'Claude', openai: 'OpenAI', gemini: 'Gemini', grok: 'Grok' },
+    builtIn: '{provider} (built-in)', ownKey: '{provider} · your key',
+    settingsIntro: 'AI search uses Groq for free. You can use your own API key from Groq, Claude, OpenAI, Gemini or Grok instead; it stays on this computer.',
+    free: 'free plan', paid: 'paid',
+    freeHint: 'Works with a free {provider} API key (with usage limits).', paidHint: 'Needs paid API credit on your {provider} account.',
+    needKey: 'Add an API key to use AI search.',
+    provider: 'Provider', key: 'API key', keyPlaceholder: 'Paste your API key', keySaved: 'Saved — leave empty to keep it',
+    keyOptional: 'Optional — empty uses the built-in key', model: 'Model', recommended: 'recommended', save: 'Save', useBuiltIn: 'Use built-in Groq',
+    placeholder: 'What are you looking for?', send: 'Search', thinking: 'Thinking…',
+    found: 'My picks from Modrinth for: {filters}', nothing: 'Nothing on Modrinth matches: {filters}. Try other words.',
+    seeAll: 'See all {total} results', removeCategory: 'Remove {name}',
+  },
   compat: {
     vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
   },
@@ -211,6 +226,7 @@ const en = {
     hide: 'Hide',
     starting: 'Starting the game…',
     phases: { version: 'Reading version info', libraries: 'Downloading game libraries', assets: 'Downloading sounds and textures', client: 'Downloading the game', natives: 'Unpacking native libraries', java: 'Downloading Java runtime', loader: 'Installing the mod loader', done: 'Launching' },
+    firstInstallTitle: 'First install', slowTitle: 'This step takes a while',
     firstInstall: 'Minecraft {version} is not installed yet: the first launch downloads the whole game and can take a few minutes. It is not frozen.',
     loaderTakesAWhile: '{loader} patches the game files on first install; this can take a couple of minutes.',
     exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',

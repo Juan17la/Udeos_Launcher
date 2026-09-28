@@ -10,6 +10,7 @@ import (
 
 	wailsrt "github.com/wailsapp/wails/v2/pkg/runtime"
 
+	"udeos/launcher/internal/ai"
 	"udeos/launcher/internal/core"
 	"udeos/launcher/internal/download"
 	"udeos/launcher/internal/paths"
@@ -34,6 +35,7 @@ const (
 type App struct {
 	ctx      context.Context
 	launcher *core.Launcher
+	ai       *ai.Manager
 	quitting atomic.Bool // the player confirmed closing with servers running
 	jobs     sync.Map    // download key → context.CancelFunc, for CancelDownload
 }
@@ -56,6 +58,7 @@ func (a *App) startup(ctx context.Context) {
 	if err != nil {
 		log.Fatalf("open launcher data: %v", err)
 	}
+	a.ai = ai.New(dirs)
 	a.launcher.Skins.Default = defaultSkin
 	a.launcher.OnServer = func(id, line string) {
 		if line == "" {

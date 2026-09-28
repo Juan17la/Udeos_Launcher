@@ -18,6 +18,7 @@ plain language. They are meant to be read in order the first time.
 | 11 | [Design system](11-design-system.md) | The pastel Minecraft design rules the UI follows, and how they map to tokens and the `ui/` building blocks |
 | 12 | [Servers](12-servers.md) | Hosting a world: how a server is created and started on this computer, and how friends reach it on the LAN or through the relay / router |
 | 13 | [Skins](13-skins.md) | The skin library and editor, and how a skin reaches the game and your servers without an account |
+| 14 | [AI search](14-ai-search.md) | How Groq (built in) or the player's own Claude/OpenAI/Gemini/Grok key turns "performance mods for fabric" into a Modrinth search and picks the best results, how the built-in key is kept out of the repo, and why every result still comes from Modrinth |
 
 The requirements, diagrams and the interactive UI mockup the design was ported
 from are working material kept outside this repository.
