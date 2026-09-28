@@ -5,6 +5,7 @@ import { fmt } from '../i18n/format'
 import { useLaunchProgress } from './LaunchDialog'
 import { errorHeadline } from '../utils/errors'
 import StatusMessage from '../ui/StatusMessage'
+import { Spinner } from '../ui/Loader'
 
 /** Notifications slide in from the right edge. */
 const slide = 'animate-[toast-in_0.15s_ease-in-out]'
@@ -36,8 +37,9 @@ export default function Notifications() {
 function LaunchToast() {
   const { t } = useApp()
   const { cancelLaunch } = useLaunch()
-  const { inst, pct, note } = useLaunchProgress()
-  return <StatusMessage className={slide} headline={inst?.name ?? ''} detail={note} aside={`${pct}%`} percent={pct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />
+  const { inst, pct, note, firstInstall } = useLaunchProgress()
+  return <StatusMessage className={slide} headline={inst?.name ?? ''} detail={note && <><b className="text-text">{firstInstall ? t.launch.firstInstallTitle : t.launch.slowTitle}</b> · {note}</>}
+    accent={note ? 'gold' : undefined} aside={`${pct}%`} percent={pct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />
 }
 
 /** A server's first start downloads its files and builds the world, which
@@ -45,7 +47,7 @@ function LaunchToast() {
 function FirstStartToast({ server }: { server: Server }) {
   const { t } = useApp()
   return <StatusMessage className={slide} headline={fmt(t.servers.firstStart, { name: server.name })} detail={t.servers.firstStartBody}
-    aside={<span aria-hidden className="inline-block w-4 h-4 rounded-md border-2 border-idle/60 border-t-primary animate-spin" />} />
+    aside={<Spinner size={16} />} />
 }
 
 function JobToast({ job }: { job: ContentJob }) {
