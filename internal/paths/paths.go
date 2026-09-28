@@ -96,6 +96,14 @@ func (d Dirs) SearchVersionsCacheFile() string {
 	return filepath.Join(d.SearchCacheDir(), "game_versions.json")
 }
 
+// SearchCategoriesCacheFile is the cached list of the provider's category tags.
+func (d Dirs) SearchCategoriesCacheFile() string {
+	return filepath.Join(d.SearchCacheDir(), "categories.json")
+}
+
+// AIFile holds the AI search settings: provider, the player's API key, model.
+func (d Dirs) AIFile() string { return filepath.Join(d.Root, "ai.json") }
+
 // ContentFile lists what was installed into an instance from the content
 // provider (project, version, file name), next to its .minecraft.
 func (d Dirs) ContentFile(id string) string { return filepath.Join(d.Instances, id, "content.json") }

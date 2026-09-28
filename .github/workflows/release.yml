@@ -78,7 +78,14 @@ jobs:
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@${NFPM_VERSION}
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Build
-        run: wails build -clean -tags webkit2_41 -ldflags "-X main.Version=${VERSION}"
+        # The built-in AI search key, scrambled (docs/14-ai-search.md); a fork
+        # without the GROQ_API_KEY secret builds without one.
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          sealed="$(go run ./internal/ai/seal)"
+          if [ -n "$sealed" ]; then echo "::add-mask::$sealed"; fi
+          wails build -clean -tags webkit2_41 -ldflags "-X main.Version=${VERSION} -X udeos/launcher/internal/ai.sealed=${sealed}"
       - name: Package
         run: |
           mkdir -p dist
@@ -119,8 +126,15 @@ jobs:
           choco install nsis -y --no-progress
           Add-Content -Path $env:GITHUB_PATH -Value "${env:ProgramFiles(x86)}\NSIS"
       - name: Build
+        # The built-in AI search key, scrambled (docs/14-ai-search.md); a fork
+        # without the GROQ_API_KEY secret builds without one.
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         shell: pwsh
-        run: wails build -clean -nsis -ldflags "-X main.Version=$env:VERSION"
+        run: |
+          $sealed = go run ./internal/ai/seal
+          if ($sealed) { Write-Output "::add-mask::$sealed" }
+          wails build -clean -nsis -ldflags "-X main.Version=$env:VERSION -X udeos/launcher/internal/ai.sealed=$sealed"
       - name: Package
         shell: pwsh
         run: |
@@ -157,7 +171,14 @@ jobs:
           go install github.com/wailsapp/wails/v2/cmd/wails@${WAILS_VERSION}
           echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Build
-        run: wails build -clean -platform darwin/universal -ldflags "-X main.Version=${VERSION}"
+        # The built-in AI search key, scrambled (docs/14-ai-search.md); a fork
+        # without the GROQ_API_KEY secret builds without one.
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+        run: |
+          sealed="$(go run ./internal/ai/seal)"
+          if [ -n "$sealed" ]; then echo "::add-mask::$sealed"; fi
+          wails build -clean -platform darwin/universal -ldflags "-X main.Version=${VERSION} -X udeos/launcher/internal/ai.sealed=${sealed}"
       - name: Package
         run: |
           app="build/bin/Udeos Launcher.app"

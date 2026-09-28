@@ -30,9 +30,11 @@ elsewhere, which is how tests run against a throw-away directory and how a
 - `cache/loaders/` — the Fabric, Forge and NeoForge support tables, so the
   create form can still offer them offline; `cache/forge/` and
   `cache/neoforge/` — downloaded installers.
-- `cache/search/` — cached search pages; `cache/content/<sha1>/<file>` — every
+- `cache/search/` — cached search pages, the version and category lists; `cache/content/<sha1>/<file>` — every
   mod, pack or shader downloaded from Modrinth, kept so a second instance
   adding the same file does not download it again.
+- `ai.json` — AI search settings: the provider, the player's own API key (if
+  any) and model; readable by the user only ([14](14-ai-search.md)).
 - `launcher_profiles.json` — an empty stub the Forge/NeoForge installer requires.
 - `libraries/moe/yushi/authlib-injector/` — the Java agent that lets games and
   servers use the launcher's skins (downloaded on first Play).

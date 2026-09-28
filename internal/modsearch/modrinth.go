@@ -117,6 +117,9 @@ func buildFacets(q Query) string {
 		}
 		groups = append(groups, group)
 	}
+	for _, c := range q.Categories {
+		groups = append(groups, []string{"categories:" + c})
+	}
 	raw, _ := json.Marshal(groups)
 	return string(raw)
 }
@@ -174,6 +177,25 @@ func (m *Modrinth) GameVersions(ctx context.Context) ([]GameVersion, error) {
 	out := make([]GameVersion, 0, len(raw))
 	for _, v := range raw {
 		out = append(out, GameVersion{Version: v.Version, Type: normalizeVersionType(v.Type)})
+	}
+	return out, nil
+}
+
+// Categories lists Modrinth's category tags, loaders excluded (they are a
+// separate filter here).
+func (m *Modrinth) Categories(ctx context.Context) ([]Category, error) {
+	var raw []struct {
+		Name        string `json:"name"`
+		ProjectType string `json:"project_type"`
+	}
+	if err := m.Client.GetJSON(ctx, ModrinthBaseURL+"/tag/category", &raw); err != nil {
+		return nil, err
+	}
+	out := make([]Category, 0, len(raw))
+	for _, c := range raw {
+		if !knownLoaders[c.Name] {
+			out = append(out, Category{Name: c.Name, ProjectType: ProjectType(c.ProjectType)})
+		}
 	}
 	return out, nil
 }

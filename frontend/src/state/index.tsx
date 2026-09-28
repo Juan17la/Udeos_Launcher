@@ -22,7 +22,7 @@ export type Screen =
   | { name: 'server'; id: string }
   /** instanceId (from an instance's Add from Modrinth button) locks the results to
    *  that instance's version/loader and makes Add install with no picker. */
-  | { name: 'search'; instanceId?: string; type?: ProjectType }
+  | { name: 'search'; instanceId?: string; type?: ProjectType; ai?: boolean }
   /** Full-page view of one search result; instanceId keeps the instance lock
    *  alive across Details → Back. */
   | { name: 'detail'; result: SearchResult; instanceId?: string }
