@@ -41,7 +41,7 @@ const es: Dict = {
   create: {
     title: 'Crear nueva instancia', subtitle: 'Ponle un nombre, elige una versión y un bloque como icono.',
     name: 'Nombre de la instancia', namePlaceholder: 'p. ej. Mundo Survival', version: 'Versión de Minecraft', chooseVersion: 'Elige una versión',
-    showSnapshots: 'Mostrar snapshots y versiones antiguas', loader: 'Cargador de mods', icon: 'Icono de la instancia',
+    showSnapshots: 'Mostrar snapshots y versiones antiguas', playAfter: 'Jugar en cuanto se instale', loader: 'Cargador de mods', icon: 'Icono de la instancia',
     submit: 'Crear instancia', loadingVersions: 'Cargando versiones de Mojang…', versionsError: 'No se pudo cargar la lista de versiones. Revisa tu conexión.',
     latest: 'última',
     loaderVanilla: 'El juego tal como lo publica Mojang. Sin mods.',

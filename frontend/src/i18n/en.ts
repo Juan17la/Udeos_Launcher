@@ -40,7 +40,7 @@ const en = {
   create: {
     title: 'Create New Instance', subtitle: 'Give it a name, pick a version and choose a block for its icon.',
     name: 'Instance name', namePlaceholder: 'e.g. Survival World', version: 'Minecraft version', chooseVersion: 'Choose a version',
-    showSnapshots: 'Show snapshots and old versions', loader: 'Mod loader', icon: 'Instance icon',
+    showSnapshots: 'Show snapshots and old versions', playAfter: 'Play as soon as it is installed', loader: 'Mod loader', icon: 'Instance icon',
     submit: 'Create Instance', loadingVersions: 'Loading versions from Mojang…', versionsError: 'Could not load the version list. Check your connection.',
     latest: 'latest',
     loaderVanilla: 'The game as Mojang ships it. No mods.',
