@@ -4,7 +4,7 @@ export type Profile = {
   /** The active player. */
   nickname: string
   uuid: string
-  /** Every saved nickname, the active one first; preferences are shared by all. */
+  /** Every saved nickname, the active one first; each has its own instances, skins, language and theme. */
   nicknames: string[]
   language: 'en' | 'es'
   theme: 'light' | 'dark'
@@ -67,9 +67,11 @@ export type ServerLogin = 'udeos' | 'offline' | 'microsoft'
 /** Arm width: 4 pixels (classic, Steve) or 3 (slim, Alex). */
 export type SkinModel = 'classic' | 'slim'
 /** A library skin; png is the 64×64 picture as base64. */
-export type Skin = { id: string; name: string; model: SkinModel; createdAt: string; png: string }
+/** owner: the profile (nickname) whose library it is in. */
+export type Skin = { id: string; name: string; model: SkinModel; createdAt: string; png: string; owner?: string }
 /** Every saved skin, newest first, and what each profile wears (nickname → skin id; missing = Minecraft's default). */
-export type SkinLibrary = { skins: Skin[]; equipped: Record<string, string> }
+/** skins: the active profile's library; equipped: nickname → skin id for every profile; faces: nickname → that skin's picture. */
+export type SkinLibrary = { skins: Skin[]; equipped: Record<string, string>; faces: Record<string, string> }
 /** A skin file read from disk, not saved yet: its file name and the model its pixels suggest. */
 export type SkinFile = { name: string; model: SkinModel; png: string }
 
