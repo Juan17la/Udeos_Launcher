@@ -33,8 +33,32 @@ func TestNicknamesKeepActiveFirstAndDedupe(t *testing.T) {
 		t.Errorf("nicknames: %s", got)
 	}
 	// Switching: the new active name leads, the old one stays available.
-	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: p.Nicknames, Agreed: true})
+	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: p.Nicknames, Language: "es", Theme: "dark", Agreed: true})
 	if got := strings.Join(p.Nicknames, ","); got != "Alex,Steve,Herobrine" || p.UUID != OfflineUUID("Alex") {
 		t.Errorf("after switch: %s %s", got, p.UUID)
+	}
+}
+
+// Each nickname keeps its own language and theme; a new one starts with the current ones.
+func TestPrefsPerNickname(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "profile.json")
+	p, _ := Save(path, Profile{Nickname: "Steve", Language: "es", Theme: "dark", Agreed: true})
+	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: p.Nicknames, Language: p.Language, Theme: p.Theme, Agreed: true})
+	if p.Language != "es" || p.Theme != "dark" {
+		t.Fatalf("new nickname: %s %s", p.Language, p.Theme)
+	}
+	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: p.Nicknames, Language: "en", Theme: "light", Agreed: true})
+	p, _ = Save(path, Profile{Nickname: "Steve", Nicknames: p.Nicknames, Language: p.Language, Theme: p.Theme, Agreed: true})
+	if p.Language != "es" || p.Theme != "dark" {
+		t.Fatalf("back to Steve: %s %s", p.Language, p.Theme)
+	}
+	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: p.Nicknames, Language: "es", Theme: "dark", Agreed: true})
+	if p.Language != "en" || p.Theme != "light" {
+		t.Fatalf("back to Alex: %s %s", p.Language, p.Theme)
+	}
+	// A removed nickname's prefs go with it.
+	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: []string{"Alex"}, Agreed: true})
+	if _, ok := p.Prefs["Steve"]; ok {
+		t.Fatal("removed nickname's prefs kept")
 	}
 }

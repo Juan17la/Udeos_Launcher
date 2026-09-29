@@ -28,7 +28,7 @@ func (a *App) GetProfile() (ProfileState, error) {
 }
 
 // SaveProfile stores nickname, preferences and consent. The UUID is derived.
-// Instances of a profile that was removed move to the active one.
+// Instances and skins of a profile that was removed move to the active one.
 func (a *App) SaveProfile(p profile.Profile) (profile.Profile, error) {
 	if !p.Agreed {
 		return p, errors.New("you must accept the Privacy Policy and Terms of Use")
@@ -45,7 +45,7 @@ func (a *App) SaveProfile(p profile.Profile) (profile.Profile, error) {
 		}
 	}
 	if len(removed) > 0 {
-		err = a.launcher.Instances.Adopt(saved.Nickname, removed...)
+		err = errors.Join(a.launcher.Instances.Adopt(saved.Nickname, removed...), a.launcher.Skins.Adopt(saved.Nickname, removed...))
 	}
 	return saved, err
 }

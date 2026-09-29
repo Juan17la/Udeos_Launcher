@@ -16,7 +16,9 @@ import (
 // Profile is everything the launcher remembers about the player and their
 // preferences. Nickname is the active player; Nicknames every one saved
 // (the active included), so the player can keep a few and switch between
-// them. Preferences are shared by all of them.
+// them. Language and Theme are the active one's; each nickname keeps its own
+// in Prefs, and switching puts the new one's back on. Memory and Java are
+// shared by all of them.
 type Profile struct {
 	Nickname    string   `json:"nickname"`
 	UUID        string   `json:"uuid"`
@@ -26,6 +28,15 @@ type Profile struct {
 	Agreed      bool     `json:"agreed"`   // accepted Privacy Policy & Terms of Use
 	MaxMemoryMB int      `json:"maxMemoryMB"`
 	JavaPath    string   `json:"javaPath,omitempty"` // optional override; empty = managed runtime
+	// Prefs is every nickname's language and theme (the active one's mirrors
+	// Language/Theme). Kept by Save from the file, never from the caller.
+	Prefs map[string]Prefs `json:"prefs,omitempty"`
+}
+
+// Prefs is what each nickname chooses for itself.
+type Prefs struct {
+	Language string `json:"language"`
+	Theme    string `json:"theme"`
 }
 
 // DefaultMaxMemoryMB is the JVM heap given to the game unless the player changes it.
@@ -64,12 +75,19 @@ func Load(path string) (Profile, error) {
 }
 
 // Save validates and writes the profile. The UUID is always recomputed from the
-// nickname so the two can never drift apart.
+// nickname so the two can never drift apart. Switching to a nickname that
+// already has a language and theme puts them back on; a new one keeps the
+// current ones.
 func Save(path string, p Profile) (Profile, error) {
 	p.Nickname = strings.TrimSpace(p.Nickname)
 	if !ValidNickname(p.Nickname) {
 		return p, ErrInvalidNickname
 	}
+	old, _ := Load(path) // none yet on first login
+	if pr, ok := old.Prefs[p.Nickname]; ok && old.Nickname != p.Nickname {
+		p.Language, p.Theme = pr.Language, pr.Theme
+	}
+	p.Prefs = old.Prefs
 	p.UUID = OfflineUUID(p.Nickname)
 	p.normalize()
 	data, err := json.MarshalIndent(p, "", "  ")
@@ -97,4 +115,12 @@ func (p *Profile) normalize() {
 		}
 	}
 	p.Nicknames = names
+	prefs := map[string]Prefs{}
+	for _, n := range names {
+		if pr, ok := p.Prefs[n]; ok {
+			prefs[n] = pr
+		}
+	}
+	prefs[p.Nickname] = Prefs{p.Language, p.Theme}
+	p.Prefs = prefs
 }
