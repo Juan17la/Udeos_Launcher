@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { on } from '../api/bridge'
+import { onFileDrop } from '../api/bridge'
 import { useApp } from '../state'
 import { fmt } from '../i18n/format'
 import { messageOf } from '../utils/errors'
@@ -28,8 +28,8 @@ export function useFileList<T>(instanceId: string, source: FileSource<T>, addedT
     reload()
   }, [instanceId, source, addedTemplate, reload])
 
-  // Native file drops arrive from Go with real paths (browsers only give names); only the mounted tab listens.
-  useEffect(() => on('files:dropped', add), [add])
+  // Native file drops on the tab's DropZone arrive with real paths (browsers only give names); only the mounted tab listens.
+  useEffect(() => onFileDrop(add), [add])
 
   const pick = async () => {
     setError(null); setNote(null)

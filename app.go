@@ -67,7 +67,6 @@ func (a *App) startup(ctx context.Context) {
 			wailsrt.EventsEmit(a.ctx, EventServerLog, map[string]string{"id": id, "line": line})
 		}
 	}
-	wailsrt.OnFileDrop(ctx, a.onFileDrop)
 }
 
 // beforeClose keeps the window open while servers run and asks the UI to

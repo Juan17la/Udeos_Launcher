@@ -1,9 +1,8 @@
 import { ReactNode, useState } from 'react'
 import { Download } from './icons'
 
-/** Drag-and-drop target. Native file drops arrive from Go with real paths
- *  (see the files:dropped event); the browser drop only ends the hover
- *  state. `--wails-drop-target` marks the element for Wails. `prominent`
+/** Drag-and-drop target. Native file drops on it arrive with real paths
+ *  (see onFileDrop); the browser drop only ends the hover state. `--wails-drop-target` marks the element for Wails. `prominent`
  *  makes it the page's main action: tinted, with an icon, a bold `text`
  *  and a `hint` under it. */
 export default function DropZone({ text, hint, children, className = '', prominent }: { text: string; hint?: string; children?: ReactNode; className?: string; prominent?: boolean }) {
