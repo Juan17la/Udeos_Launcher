@@ -8,6 +8,13 @@ import './theme/tokens.css'
 // headless screenshots capture the page after fonts and data settle.
 if (location.search.includes('shot')) { const img = new Image(); img.src = '/slow.png' }
 
+// A file dropped where no page handles it would make the webview open it in
+// place of the launcher. Wails reports the real paths anyway (onFileDrop),
+// so the browser's own handling is never wanted.
+for (const type of ['dragover', 'drop']) {
+  window.addEventListener(type, (e) => { if ((e as DragEvent).dataTransfer?.types.includes('Files')) e.preventDefault() })
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <App />

@@ -5,9 +5,9 @@ import Dialog, { ConfirmDialog } from '../ui/Dialog'
 import DropZone from '../ui/DropZone'
 import { Checkbox, Input, Label } from '../ui/Field'
 import SegmentedControl from '../ui/SegmentedControl'
-import { Check, Folder, Pencil, X } from '../ui/icons'
+import { Check, Download, Folder, Pencil, X } from '../ui/icons'
 import { useApp } from '../state'
-import { api, on } from '../api/bridge'
+import { api, onFileDrop } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { messageOf } from '../utils/errors'
 import { Feedback } from './instance/TabParts'
@@ -15,7 +15,9 @@ import type { Skin, SkinFile, SkinModel } from '../api/types'
 
 /** The Skins page, sized to the window (only the library scrolls, inside
  *  its box): what the active profile wears on a big turning model, a drop
- *  zone for skins downloaded from the web (the main way in), and the
+ *  zone for skins downloaded from the web (the main way in; the whole window
+ *  takes the drop while this page is open, with an overlay while a file is
+ *  over it), and the
  *  library, where a click on a card wears it. Steve, the default, is the
  *  first card; New skin opens the editor. */
 export default function Skins() {
@@ -24,6 +26,7 @@ export default function Skins() {
   const [file, setFile] = useState<SkinFile | null>(null)
   const [deleting, setDeleting] = useState<Skin | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
   const worn = skins?.skins.find((k) => k.id === skins.equipped[nickname])
 
   const act = async (fn: () => Promise<unknown>) => {
@@ -34,13 +37,35 @@ export default function Skins() {
     setError(null)
     try { const f = await next(); if (f.png) setFile(f) } catch (e) { setError(messageOf(e)) }
   }, [])
-  // Native drops arrive from Go with real paths; the first file is the one read.
-  useEffect(() => on('files:dropped', (paths) => { read(() => api.ReadSkinFile(paths[0])) }), [read])
+  // The whole window is the drop target while this page is open (the
+  // property inherits); native drops arrive with real paths, the first file is read.
+  useEffect(() => {
+    const root = document.documentElement.style
+    root.setProperty('--wails-drop-target', 'drop')
+    // Enter/leave fire for every element crossed (and WebKit gives no relatedTarget), so count them.
+    let depth = 0
+    const enter = (e: DragEvent) => { if (e.dataTransfer?.types.includes('Files')) { depth++; setDragging(true) } }
+    const leave = () => { if (depth > 0 && --depth === 0) setDragging(false) }
+    const drop = () => { depth = 0; setDragging(false) }
+    window.addEventListener('dragenter', enter); window.addEventListener('dragleave', leave); window.addEventListener('drop', drop)
+    const off = onFileDrop((paths) => { read(() => api.ReadSkinFile(paths[0])) })
+    return () => {
+      root.removeProperty('--wails-drop-target'); off()
+      window.removeEventListener('dragenter', enter); window.removeEventListener('dragleave', leave); window.removeEventListener('drop', drop)
+    }
+  }, [read])
 
   const wornBy = skins ? Object.values(skins.equipped).filter((id) => id === deleting?.id).length : 0
 
   return (
     <main className="h-[calc(100vh-4.5rem)] overflow-hidden grid grid-cols-[minmax(340px,38%)_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-x-8 gap-y-5 pt-6 px-10 pb-8">
+      {dragging && (
+        <div aria-hidden className="fixed inset-4 z-60 pointer-events-none flex flex-col items-center justify-center gap-3 rounded-md border-3 border-dashed border-primary bg-primary/15 backdrop-blur-sm">
+          <span className="grid place-items-center w-16 h-16 rounded-md bg-primary text-white shadow-primary"><Download size={28} /></span>
+          <span className="text-lg font-bold">{s.drop}</span>
+          <span className="text-xs text-muted">{s.dropHint}</span>
+        </div>
+      )}
       <div className="col-span-2">
         <h2 className="mb-1">{s.title}</h2>
         <p className="m-0 text-muted">{s.subtitle}</p>
