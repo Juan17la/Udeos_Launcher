@@ -68,11 +68,11 @@ func TestLibrary(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := lib.Save("", "  Knight ", Slim, skinPNG(t, 64, true))
+	s, err := lib.Save("Steve", "", "  Knight ", Slim, skinPNG(t, 64, true))
 	if err != nil || s.Name != "Knight" || s.ID == "" {
 		t.Fatalf("save: %v %+v", err, s)
 	}
-	if _, err := lib.Save("", "x", "wide", skinPNG(t, 64, false)); err == nil {
+	if _, err := lib.Save("Steve", "", "x", "wide", skinPNG(t, 64, false)); err == nil {
 		t.Fatal("accepted an unknown model")
 	}
 	if err := lib.Equip("Steve", s.ID); err != nil {
@@ -81,7 +81,17 @@ func TestLibrary(t *testing.T) {
 	if got, pic, ok := lib.Equipped("Steve"); !ok || got.ID != s.ID || len(pic) == 0 {
 		t.Fatal("equipped skin not found")
 	}
-	if err := lib.Delete(s.ID); err != nil {
+	// Each profile has its own library: Alex can't see, change, wear or delete Steve's skin.
+	if skins, _, _ := lib.List("Alex"); len(skins) != 0 {
+		t.Fatal("Alex sees Steve's skin")
+	}
+	if _, err := lib.Save("Alex", s.ID, "Mine", Slim, skinPNG(t, 64, true)); err == nil {
+		t.Fatal("Alex changed Steve's skin")
+	}
+	if lib.Equip("Alex", s.ID) == nil || lib.Delete("Alex", s.ID) == nil {
+		t.Fatal("Alex used Steve's skin")
+	}
+	if err := lib.Delete("Steve", s.ID); err != nil {
 		t.Fatal(err)
 	}
 	if _, _, ok := lib.Equipped("Steve"); ok {
@@ -89,11 +99,33 @@ func TestLibrary(t *testing.T) {
 	}
 }
 
+// Skins saved before profiles had libraries go to the active profile; a
+// removed profile's skins go to the one that takes over.
+func TestLibraryAdopt(t *testing.T) {
+	lib, _ := Open(t.TempDir())
+	old, _ := lib.Save("", "", "Old", Classic, skinPNG(t, 64, false))
+	worn, _ := lib.Save("", "", "Worn", Classic, skinPNG(t, 64, false))
+	lib.data.Equipped["Herobrine"] = worn.ID // worn before libraries were per profile
+	if skins, _, _ := lib.List("Steve"); len(skins) != 1 || skins[0].ID != old.ID {
+		t.Fatalf("unclaimed skin not adopted: %+v", skins)
+	}
+	if skins, _, _ := lib.List("Herobrine"); len(skins) != 1 || skins[0].ID != worn.ID {
+		t.Fatalf("worn skin not kept by its wearer: %+v", skins)
+	}
+	_ = lib.Equip("Steve", old.ID)
+	if err := lib.Adopt("Alex", "Steve"); err != nil {
+		t.Fatal(err)
+	}
+	if skins, eq, _ := lib.List("Alex"); len(skins) != 1 || eq["Steve"] != "" {
+		t.Fatalf("removed profile's skins not moved: %+v %v", skins, eq)
+	}
+}
+
 // The game's whole path: metadata → hasJoined (signed textures) → the
 // texture address → the picture; lookups by UUID and by name.
 func TestServer(t *testing.T) {
 	lib, _ := Open(t.TempDir())
-	s, _ := lib.Save("", "Knight", Slim, skinPNG(t, 64, true))
+	s, _ := lib.Save("Alex_1", "", "Knight", Slim, skinPNG(t, 64, true))
 	_ = lib.Equip("Alex_1", s.ID)
 	srv, err := Start(lib, func() []string { return []string{"Alex_1", "Other"} })
 	if err != nil {
