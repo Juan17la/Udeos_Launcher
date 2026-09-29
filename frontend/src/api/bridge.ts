@@ -127,7 +127,6 @@ type Events = {
   'install:progress': Progress
   'content:progress': Progress
   'game:state': GameEvent
-  'files:dropped': string[]
   'server:log': { id: string; line: string }
   'server:state': { id: string }
   /** The window was closed while servers run: confirm, then QuitLauncher. */
@@ -138,7 +137,7 @@ declare global {
   interface Window {
     go?: { main: { App: Backend } }
     runtime?: {
-      EventsOn(name: string, cb: (data: unknown) => void): () => void
+      EventsOn(name: string, cb: (...data: unknown[]) => void): () => void
       EventsOff(name: string): void
       BrowserOpenURL(url: string): void
       ClipboardSetText(text: string): Promise<boolean>
@@ -182,6 +181,19 @@ export function copyText(text: string) {
 }
 
 /** Subscribe to a backend event; returns the unsubscribe function. */
+/** Files dropped on an element marked `--wails-drop-target: drop` (the
+ *  property inherits, so its children count too). Wails reports every native
+ *  drop with its real paths and where it landed; a drop anywhere else is
+ *  ignored. Browsers (the mock) give no paths, so nothing arrives there. */
+export function onFileDrop(cb: (paths: string[]) => void): () => void {
+  if (!inWails || !window.runtime) return () => {}
+  return window.runtime.EventsOn('wails:file-drop', (...args: unknown[]) => {
+    const [x, y, paths] = args as [number, number, string[]]
+    const el = document.elementFromPoint(x, y)
+    if (paths?.length && el && getComputedStyle(el).getPropertyValue('--wails-drop-target').trim() === 'drop') cb(paths)
+  })
+}
+
 export function on<K extends keyof Events>(name: K, cb: (data: Events[K]) => void): () => void {
   if (inWails && window.runtime) {
     const off = window.runtime.EventsOn(name, (d) => cb(d as Events[K]))
