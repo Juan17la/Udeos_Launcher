@@ -7,7 +7,7 @@ import StatusMessage from '../ui/StatusMessage'
 import SegmentedControl from '../ui/SegmentedControl'
 import { errorHeadline, messageOf } from '../utils/errors'
 import { INSTANCE_NAME } from '../utils/validation'
-import { useApp } from '../state'
+import { useApp, useLaunch } from '../state'
 import BackButton from '../components/BackButton'
 import { api, openExternal } from '../api/bridge'
 import { serverIconPNG } from '../utils/serverIcon'
@@ -22,9 +22,11 @@ type LoaderTable = { status: 'loading' } | { status: 'error' } | { status: 'read
 /** server: the same form makes a dedicated server (no Quilt, EULA required). */
 export default function CreateInstance({ server = false }: { server?: boolean }) {
   const { t, go, back, refreshInstances } = useApp()
+  const { play } = useLaunch()
   const s = server ? { ...t.create, ...t.servers.create } : t.create
   const loaders = server ? LOADERS.filter((l) => l !== 'Quilt') : LOADERS
   const [eula, setEula] = useState(false)
+  const [playNow, setPlayNow] = useState(true)
   const [name, setName] = useState('')
   const [version, setVersion] = useState('')
   const [loader, setLoader] = useState<Loader>('Vanilla')
@@ -77,6 +79,8 @@ export default function CreateInstance({ server = false }: { server?: boolean })
         : await api.CreateInstance(clean, version, loader, loaderOption?.version ?? '', icon)
       await refreshInstances()
       go(server ? { name: 'server', id: inst.id } : { name: 'instance', id: inst.id })
+      // Play installs what is missing first; its dialog shows the download, then the game starts.
+      if (!server && playNow) play(inst.id)
     } catch (e) {
       setError(messageOf(e)); setBusy(false)
     }
@@ -137,6 +141,7 @@ export default function CreateInstance({ server = false }: { server?: boolean })
           <IconPicker value={icon} onChange={setIcon} />
         </div>
 
+        {!server && <Checkbox checked={playNow} onChange={(e) => setPlayNow(e.target.checked)} label={t.create.playAfter} />}
         {server && <p className="m-0 text-sm text-muted">{t.servers.create.publicNote}</p>}
         {server && (
           <Checkbox checked={eula} onChange={(e) => setEula(e.target.checked)} label={<>
