@@ -10,11 +10,13 @@ box. It shows:
   3D model that fills the panel and turns (drag to turn it), its name, model
   and a one-line "In singleplayer and on your servers", and Edit.
 - A **drop zone** as the main action, since most players download their
-  skins: tinted, with an icon, "Drop a skin you downloaded" and Browse. A
-  dropped `.png` opens "Add skin" with the name taken from the file, the
+  skins: tinted, with an icon, "Drop a skin you downloaded" and Browse. While
+  this page is open the whole window takes the drop: while a file is over
+  it, a dashed overlay covers the window. A dropped `.png` opens "Add skin" with the name taken from the file, the
   model its pixels suggest, a turning preview that follows the model choice,
   and "Wear it now".
-- **Library**: Steve (the default) first, then every saved skin, as cards
+- **Library**: Steve (the default) first, then every skin the active
+  profile saved (each profile has its own library), as cards
   (the model at a 3/4 angle, name, Classic or Slim). **A click on a card
   wears it**; the worn one is outlined and tagged "In use". Edit and Delete
   appear over the model on hover or keyboard focus (Steve has neither);
@@ -36,6 +38,11 @@ the UUID, which would not match the page.
 The skin a profile wears is used by **every instance of that profile** from
 the next Play. Its face also becomes the avatar in the account menu and the
 profile switcher.
+
+Each profile has its **own library**: a skin belongs to the profile that
+saved it, and only that profile sees, edits, wears or deletes it. Skins saved
+before libraries were per profile go to the profile wearing them, the rest
+to the profile active at the next start. Removing a profile moves its skins to the one that stays active.
 
 ### Classic and slim
 
@@ -141,7 +148,8 @@ real server.properties key):
 
 ## Data on disk
 
-- `skins/library.json` — the skins (id, name, model, creation date) and
+- `skins/library.json` — the skins (id, name, model, creation date, owning
+  profile `owner`) and
   which skin each profile wears (`equipped`: nickname → skin id).
 - `skins/<id>.png` — each picture, always a re-encoded 64×64 PNG.
 - `libraries/moe/yushi/authlib-injector/<version>/` — the agent.
