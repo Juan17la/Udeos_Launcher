@@ -5,6 +5,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.2.0-beta] — 2026-09-29
+
+The fourth beta: each profile keeps its own skins, language and theme, new
+instances can start playing right away, and old versions open on Windows
+again. Optimization is still pending.
+
 ### Instances
 
 - **Play as soon as it is installed** (on by default in New Instance):
@@ -21,6 +27,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   the active profile.
 - **Skins**: the whole window is the drop zone while Skins is open (an
   overlay shows while a file is over it).
+
+### Fixes
+
+- **Windows: old versions (1.12 and older, e.g. 1.8.9) open again.** The
+  game started but its window stayed hidden; the launcher now hides only the
+  console, never the game window.
 - A file dropped outside a drop zone is ignored: it no longer opens in
   place of the launcher, and an instance tab only takes files dropped on
   its drop zone.
