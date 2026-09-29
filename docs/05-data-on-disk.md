@@ -66,13 +66,14 @@ why the button asks for confirmation.
 
 `profile.json` holds the active nickname, its derived UUID, every saved
 nickname (`nicknames`, the active one first — the account menu switches
-between them, adds and removes; preferences are shared), language, theme,
-the consent flag, the maximum memory for the game and an optional custom
+between them, adds and removes), the active one's language and theme,
+every nickname's own language and theme (`prefs`: switching puts them back
+on; a new nickname starts with the current ones), the consent flag, the maximum memory for the game and an optional custom
 Java path. It is the only place personal data exists, and it never leaves
 the machine.
 
 `skins/` holds the skin library: `library.json` (each skin's id, name and
-model, and which skin each nickname wears) and one `<id>.png` per skin. See
+model, the profile it belongs to (`owner`), and which skin each nickname wears) and one `<id>.png` per skin. See
 [Skins](13-skins.md).
 
 ## Reading worlds and screenshots
