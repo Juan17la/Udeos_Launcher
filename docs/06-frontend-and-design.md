@@ -68,8 +68,10 @@ How it is built:
 - **Create instance**: name, the loader choice (Vanilla, Forge, NeoForge, Fabric, Quilt),
   version from Mojang's list (releases by default, a checkbox reveals
   snapshots and old versions; with a loader picked only the versions it
-  supports are offered and a note names the build that will be installed)
-  and the icon grid.
+  supports are offered and a note names the build that will be installed),
+  the icon grid, and "Play as soon as it is installed" (on by default:
+  after Create, Play starts on the instance page, downloading then opening
+  the game).
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
   Open folder, Delete with confirmation) and the tabs. The card is
   `components/SidePanel` (shared with a server's page): exactly the window's
