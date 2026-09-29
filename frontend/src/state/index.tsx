@@ -143,18 +143,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const persistPrefs = useCallback(async (patch: Partial<Profile>) => {
     if (!profile) return
-    setProfile(await api.SaveProfile({ ...profile, ...patch }))
+    const saved = await api.SaveProfile({ ...profile, ...patch })
+    setProfile(saved)
+    return saved
   }, [profile])
 
   const setTheme = (t: Theme) => { setThemeState(t); persistPrefs({ theme: t }) }
   const setLanguage = (l: Language) => { setLanguageState(l); persistPrefs({ language: l }) }
 
-  // Each profile has its own instances: after a switch (or a removal, whose
-  // instances move to the active profile) the list is reloaded and the
-  // player lands on the dashboard, since the page they were on may belong
-  // to the other profile.
+  // Each profile has its own instances, skins, language and theme: after a
+  // switch (or a removal, whose instances and skins move to the active
+  // profile) they are reloaded (skins follow `profile`) and the player lands
+  // on the dashboard, since the page they were on may belong to the other profile.
   const switchTo = useCallback(async (patch: Partial<Profile>) => {
-    await persistPrefs(patch)
+    const saved = await persistPrefs(patch)
+    if (saved) { setThemeState(saved.theme); setLanguageState(saved.language) }
     await refreshInstances()
     go({ name: 'dashboard' })
   }, [persistPrefs, refreshInstances, go])

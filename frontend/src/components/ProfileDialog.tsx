@@ -10,12 +10,13 @@ import { NICKNAME } from '../utils/validation'
 import { SkinFace } from './SkinView'
 
 /** The launcher's profiles: each one is a player name with its own
- *  instances. Click one to switch (the dashboard reloads with its
- *  instances), add a new one (it becomes active, with no instances), or
- *  remove one — its instances move to the profile that stays active. */
+ *  instances, skins, language and theme. Click one to switch (the dashboard
+ *  reloads with its things), add a new one (it becomes active, with no
+ *  instances or skins, keeping the current language and theme), or remove
+ *  one — its instances and skins move to the profile that stays active. */
 export default function ProfileDialog({ onClose }: { onClose: () => void }) {
   const { t, profile, nickname, setNickname, removeNickname, skins } = useApp()
-  const faceOf = (n: string) => skins?.skins.find((k) => k.id === skins.equipped[n])?.png
+  const faceOf = (n: string) => skins?.faces[n]
   const nicknames = profile?.nicknames ?? []
   const [counts, setCounts] = useState<Record<string, number>>({})
   const [newName, setNewName] = useState('')
