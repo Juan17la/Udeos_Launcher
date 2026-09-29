@@ -14,9 +14,6 @@ import (
 	"udeos/launcher/internal/sysopen"
 )
 
-// EventFilesDropped carries the paths of files dropped onto the window.
-const EventFilesDropped = "files:dropped"
-
 func (a *App) gameDir(id string) (string, error) {
 	if _, err := a.launcher.Instances.Get(id); err != nil {
 		return "", err
@@ -256,13 +253,4 @@ func (a *App) mediaHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Cache-Control", "no-cache")
 	http.ServeFile(w, r, path)
-}
-
-// onFileDrop forwards dropped files to the UI, which decides what to do with
-// them depending on the open tab.
-func (a *App) onFileDrop(_, _ int, paths []string) {
-	if len(paths) == 0 {
-		return
-	}
-	wailsrt.EventsEmit(a.ctx, EventFilesDropped, paths)
 }
