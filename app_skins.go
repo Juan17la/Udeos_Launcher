@@ -23,33 +23,52 @@ type SkinView struct {
 	PNG string `json:"png"`
 }
 
-// SkinLibrary is every saved skin, newest first, and the skin each launcher
-// profile wears (nickname → skin id; a missing nickname wears the default, Steve).
+// SkinLibrary is the active profile's skins, newest first, and the skin each
+// launcher profile wears (nickname → skin id; a missing nickname wears the
+// default, Steve), with its picture in Faces for the profile switcher.
 type SkinLibrary struct {
 	Skins    []SkinView        `json:"skins"`
 	Equipped map[string]string `json:"equipped"`
+	Faces    map[string]string `json:"faces"` // nickname → base64 PNG
 }
 
-// ListSkins returns the skin library.
-func (a *App) ListSkins() SkinLibrary {
-	skins, equipped := a.launcher.Skins.List()
-	out := SkinLibrary{Skins: []SkinView{}, Equipped: equipped}
+// ListSkins returns the active profile's skin library.
+func (a *App) ListSkins() (SkinLibrary, error) {
+	out := SkinLibrary{Skins: []SkinView{}, Equipped: map[string]string{}, Faces: map[string]string{}}
+	p, err := a.launcher.Profile()
+	if err != nil {
+		return out, err
+	}
+	skins, equipped, err := a.launcher.Skins.List(p.Nickname)
+	if err != nil {
+		return out, err
+	}
+	out.Equipped = equipped
+	for n := range equipped {
+		if _, pic, ok := a.launcher.Skins.Equipped(n); ok {
+			out.Faces[n] = base64.StdEncoding.EncodeToString(pic)
+		}
+	}
 	for _, s := range skins {
 		if pic, err := a.launcher.Skins.PNG(s.ID); err == nil {
 			out.Skins = append(out.Skins, SkinView{s, base64.StdEncoding.EncodeToString(pic)})
 		}
 	}
-	return out
+	return out, nil
 }
 
-// SaveSkin adds a skin (id "") or changes one: its name, its model
+// SaveSkin adds a skin to the active profile's library (id "") or changes one: its name, its model
 // (classic | slim) and its picture, a 64×64 PNG in base64.
 func (a *App) SaveSkin(id, name, model, pngBase64 string) (SkinView, error) {
 	raw, err := base64.StdEncoding.DecodeString(pngBase64)
 	if err != nil {
 		return SkinView{}, errors.New("a skin must be a 64×64 or 64×32 PNG image")
 	}
-	s, err := a.launcher.Skins.Save(id, name, model, raw)
+	p, err := a.launcher.Profile()
+	if err != nil {
+		return SkinView{}, err
+	}
+	s, err := a.launcher.Skins.Save(p.Nickname, id, name, model, raw)
 	if err != nil {
 		return SkinView{}, err
 	}
@@ -57,8 +76,14 @@ func (a *App) SaveSkin(id, name, model, pngBase64 string) (SkinView, error) {
 	return SkinView{s, base64.StdEncoding.EncodeToString(pic)}, err
 }
 
-// DeleteSkin removes a skin; profiles that wore it get the default back.
-func (a *App) DeleteSkin(id string) error { return a.launcher.Skins.Delete(id) }
+// DeleteSkin removes one of the active profile's skins; if worn, the default goes back on.
+func (a *App) DeleteSkin(id string) error {
+	p, err := a.launcher.Profile()
+	if err != nil {
+		return err
+	}
+	return a.launcher.Skins.Delete(p.Nickname, id)
+}
 
 // EquipSkin makes the active profile wear the skin in every one of its
 // instances from the next Play ("" = the default skin, Steve).

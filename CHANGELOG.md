@@ -5,6 +5,28 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Instances
+
+- **Play as soon as it is installed** (on by default in New Instance):
+  creating an instance starts Play right away, so the game downloads and
+  then opens without another click. Untick it to only create the instance.
+
+### Profiles
+
+- **Each profile has its own skins, language and theme**, like it already
+  had its own instances. Switching profile puts its skin library, language
+  and theme back; a new profile starts with no skins and the current
+  language and theme. Removing a profile moves its skins to the one that
+  stays. Skins saved before this go to the profile wearing them, the rest to
+  the active profile.
+- **Skins**: the whole window is the drop zone while Skins is open (an
+  overlay shows while a file is over it).
+- A file dropped outside a drop zone is ignored: it no longer opens in
+  place of the launcher, and an instance tab only takes files dropped on
+  its drop zone.
+- The project detail page's sidebar (versions, loaders, your instances)
+  scrolls on its own, so a long instance list no longer scrolls the page.
+
 ## [1.1.0-beta] — 2026-09-28
 
 The third beta. Everything from 1.0.0-beta, plus an AI helper for finding

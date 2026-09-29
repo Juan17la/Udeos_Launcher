@@ -37,10 +37,14 @@ type Skin struct {
 	Name      string    `json:"name"`
 	Model     string    `json:"model"` // Classic | Slim
 	CreatedAt time.Time `json:"createdAt"`
+	// Owner is the launcher profile (nickname) the skin belongs to; each
+	// profile has its own library. "" = unclaimed (saved before profiles had
+	// libraries): the next List hands it to the profile wearing it, else the active one.
+	Owner string `json:"owner,omitempty"`
 }
 
-// Library is every skin the player saved, shared by all launcher profiles,
-// plus which one each profile (nickname) wears.
+// Library is every skin the player saved, each owned by one launcher
+// profile, plus which one each profile (nickname) wears.
 type Library struct {
 	// Default is the classic skin worn by profiles that chose none (Steve,
 	// set by the app); nil leaves it to Minecraft's own default.
@@ -80,25 +84,80 @@ func Open(dir string) (*Library, error) {
 func (l *Library) file() string             { return filepath.Join(l.dir, "library.json") }
 func (l *Library) pngPath(id string) string { return filepath.Join(l.dir, filepath.Base(id)+".png") }
 
-// List returns the skins, newest first, and the skin each nickname wears.
-func (l *Library) List() ([]Skin, map[string]string) {
+// mine finds owner's skin id (-1 when there is none).
+func (l *Library) mine(owner, id string) int {
+	return slices.IndexFunc(l.data.Skins, func(s Skin) bool { return s.ID == id && s.Owner == owner })
+}
+
+// List returns owner's skins, newest first, and the skin each nickname wears.
+// Unclaimed skins are handed to owner first.
+func (l *Library) List(owner string) ([]Skin, map[string]string, error) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	skins := slices.Clone(l.data.Skins)
+	if err := l.adoptLocked(owner, nil); err != nil {
+		return nil, nil, err
+	}
+	var skins []Skin
+	for _, s := range l.data.Skins {
+		if s.Owner == owner {
+			skins = append(skins, s)
+		}
+	}
 	slices.SortStableFunc(skins, func(a, b Skin) int { return b.CreatedAt.Compare(a.CreatedAt) })
 	eq := map[string]string{}
 	for k, v := range l.data.Equipped {
 		eq[k] = v
 	}
-	return skins, eq
+	return skins, eq, nil
+}
+
+// Adopt gives owner every unclaimed skin (unless a profile wears it: that
+// one gets it) and every skin of `from` (profiles
+// being removed, so nothing they had is lost); what they wore is forgotten.
+func (l *Library) Adopt(owner string, from ...string) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	return l.adoptLocked(owner, from)
+}
+
+func (l *Library) adoptLocked(owner string, from []string) error {
+	changed := false
+	for i := range l.data.Skins {
+		s := &l.data.Skins[i]
+		if s.Owner == "" {
+			// A profile already wearing an unclaimed skin keeps it.
+			s.Owner = owner
+			for n, id := range l.data.Equipped {
+				if id == s.ID && !slices.Contains(from, n) {
+					s.Owner = n
+					break
+				}
+			}
+			changed = true
+		} else if s.Owner != owner && slices.Contains(from, s.Owner) {
+			s.Owner = owner
+			changed = true
+		}
+	}
+	for _, n := range from {
+		if _, ok := l.data.Equipped[n]; ok && n != owner {
+			delete(l.data.Equipped, n)
+			changed = true
+		}
+	}
+	if !changed {
+		return nil
+	}
+	return l.saveLocked()
 }
 
 // PNG returns a skin's picture.
 func (l *Library) PNG(id string) ([]byte, error) { return os.ReadFile(l.pngPath(id)) }
 
-// Save stores a new skin (id "") or replaces one's name, model and picture.
-// The picture goes through Normalize, so it is always a 64×64 PNG.
-func (l *Library) Save(id, name, model string, pic []byte) (Skin, error) {
+// Save stores a new skin for owner (id "") or replaces the name, model and
+// picture of one of owner's. The picture goes through Normalize, so it is
+// always a 64×64 PNG.
+func (l *Library) Save(owner, id, name, model string, pic []byte) (Skin, error) {
 	name = strings.TrimSpace(name)
 	if name == "" || utf8.RuneCountInString(name) > MaxName {
 		return Skin{}, errors.New("the skin name must be 1-32 characters")
@@ -112,14 +171,14 @@ func (l *Library) Save(id, name, model string, pic []byte) (Skin, error) {
 	}
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	i := slices.IndexFunc(l.data.Skins, func(s Skin) bool { return s.ID == id })
+	i := l.mine(owner, id)
 	if id != "" && i < 0 {
 		return Skin{}, errors.New("skin not found")
 	}
 	if i < 0 {
 		b := make([]byte, 6)
 		_, _ = rand.Read(b)
-		l.data.Skins = append(l.data.Skins, Skin{ID: hex.EncodeToString(b), CreatedAt: time.Now()})
+		l.data.Skins = append(l.data.Skins, Skin{ID: hex.EncodeToString(b), CreatedAt: time.Now(), Owner: owner})
 		i = len(l.data.Skins) - 1
 	}
 	s := &l.data.Skins[i]
@@ -130,11 +189,11 @@ func (l *Library) Save(id, name, model string, pic []byte) (Skin, error) {
 	return *s, l.saveLocked()
 }
 
-// Delete removes a skin; profiles that wore it go back to the default skin.
-func (l *Library) Delete(id string) error {
+// Delete removes one of owner's skins; if it was worn, the default goes back on.
+func (l *Library) Delete(owner, id string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	i := slices.IndexFunc(l.data.Skins, func(s Skin) bool { return s.ID == id })
+	i := l.mine(owner, id)
 	if i < 0 {
 		return errors.New("skin not found")
 	}
@@ -150,13 +209,13 @@ func (l *Library) Delete(id string) error {
 	return l.saveLocked()
 }
 
-// Equip makes nickname wear the skin; id "" puts the default back.
+// Equip makes nickname wear one of its own skins; id "" puts the default back.
 func (l *Library) Equip(nickname, id string) error {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if id == "" {
 		delete(l.data.Equipped, nickname)
-	} else if !slices.ContainsFunc(l.data.Skins, func(s Skin) bool { return s.ID == id }) {
+	} else if l.mine(nickname, id) < 0 {
 		return errors.New("skin not found")
 	} else {
 		l.data.Equipped[nickname] = id

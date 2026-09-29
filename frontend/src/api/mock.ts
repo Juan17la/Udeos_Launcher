@@ -217,6 +217,7 @@ export function createMock() {
     return out
   }
 
+  const prefs: Record<string, Pick<Profile, 'language' | 'theme'>> = {}
   const adopt = (owner: string, from: string[]) => { for (const i of instances) if (!i.owner || from.includes(i.owner)) i.owner = owner }
 
   const backend = {
@@ -226,9 +227,14 @@ export function createMock() {
     },
     async SaveProfile(p: Profile) {
       const removed = (profile?.nicknames ?? []).filter((n) => !p.nicknames.includes(n))
+      // Like the backend: each nickname keeps its language and theme; switching puts them back on.
+      const mine = prefs[p.nickname]
+      if (mine && profile && profile.nickname !== p.nickname) p = { ...p, ...mine }
+      prefs[p.nickname] = { language: p.language, theme: p.theme }
       profile = { ...p, uuid: 'mock-uuid', nicknames: [p.nickname, ...p.nicknames.filter((n) => n !== p.nickname)] }
       localStorage.setItem('mock:profile', JSON.stringify(profile))
       adopt(p.nickname, removed)
+      for (const s of skins) if (!s.owner || removed.includes(s.owner)) s.owner = p.nickname
       return profile
     },
     // Like the backend: each profile sees its own instances; unclaimed ones go to the active profile.
@@ -438,12 +444,18 @@ export function createMock() {
     },
     async RestoreBackup(id: string) { if (serverOf(id).state.running) throw new Error('stop the server before restoring a backup'); await backend.BackupServer(id) },
     async RemoveBackup(id: string, name: string) { backups[id] = (backups[id] ?? []).filter((b) => b.name !== name) },
-    async ListSkins() { await samples; return { skins: structuredClone(skins), equipped: { ...equipped } } },
+    async ListSkins() {
+      await samples
+      const me = profile?.nickname ?? ''
+      for (const s of skins) s.owner ||= me
+      const faces = Object.fromEntries(Object.entries(equipped).map(([n, id]) => [n, skins.find((s) => s.id === id)?.png ?? '']))
+      return { skins: structuredClone(skins.filter((s) => s.owner === me)), equipped: { ...equipped }, faces }
+    },
     async SaveSkin(id: string, name: string, model: SkinModel, png: string) {
       if (!name.trim()) throw new Error('the skin name must be 1-32 characters')
-      let s = skins.find((x) => x.id === id)
+      let s = skins.find((x) => x.id === id && x.owner === profile?.nickname)
       if (id && !s) throw new Error('skin not found')
-      if (!s) { s = { id: 'k' + Date.now(), name: '', model, createdAt: new Date().toISOString(), png: '' }; skins.unshift(s) }
+      if (!s) { s = { id: 'k' + Date.now(), name: '', model, createdAt: new Date().toISOString(), png: '', owner: profile?.nickname }; skins.unshift(s) }
       Object.assign(s, { name: name.trim(), model, png })
       return { ...s }
     },
