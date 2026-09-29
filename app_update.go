@@ -118,7 +118,9 @@ func (a *App) InstallUpdate() error {
 	restart := runtime.GOOS == "linux"
 	switch {
 	case strings.HasSuffix(file, ".exe"):
-		err = exec.Command(file).Start()
+		// Through the shell (ShellExecute), not CreateProcess: the installer
+		// asks for admin, and only the shell shows the UAC prompt for it.
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", file).Start()
 	case strings.HasSuffix(file, ".dmg"):
 		err = exec.Command("open", file).Start()
 	case strings.HasSuffix(file, ".deb"):
