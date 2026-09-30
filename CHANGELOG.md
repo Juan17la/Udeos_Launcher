@@ -5,6 +5,17 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.2.1-beta] — 2026-09-29
+
+A fix for updating from inside the launcher on Windows.
+
+### Fixes
+
+- **Windows: Update works again.** It found the new version but stopped with
+  "The requested operation requires elevation". The installer is now started
+  so Windows can ask for permission. Launchers older than 1.2.1-beta still
+  have the bug: download this installer by hand once.
+
 ## [1.2.0-beta] — 2026-09-29
 
 The fourth beta: each profile keeps its own skins, language and theme, new
