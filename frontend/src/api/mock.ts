@@ -1,7 +1,9 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
 import type { AIAnswer, AIIntent, AIProvider, AIStatus, ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, Skin, SkinModel, SortBy, World } from './types'
+import type { AIGroup, AITurn, Alternatives, JoinExport, JoinInfo, VersionChoice } from './types'
 import { SkinTexture, boxes, faces } from '../utils/skin'
 import { DEFAULT_SKINS } from '../assets'
+import { DEFAULT_COLORS } from '../utils/theme'
 
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
@@ -73,6 +75,9 @@ export function createMock() {
       { folder: 'Nether Base', name: 'Nether Base', lastPlayed: new Date(Date.now() - 7 * 864e5).toISOString(), sizeBytes: 8_400_000 },
     ],
   }
+  // Datapacks per world (a server has one world: key with '').
+  const datapacks: Record<string, FileEntry[]> = {}
+  const dpKey = (id: string, world: string) => `${id}|${instances.find((x) => x.id === id)?.server ? '' : world}`
   const syncCounts = (id: string) => { const i = instances.find((x) => x.id === id); if (i) i.counts.worlds = (worlds[id] ?? []).length }
 
   const gameVersions: SearchGameVersion[] = [
@@ -95,6 +100,10 @@ export function createMock() {
       { id: 'bsl', slug: 'bsl-shaders', title: 'BSL Shaders', author: 'capttatsu', description: 'Balanced shaders with realistic lighting.', iconUrl: '', downloads: 6_000_000, projectType: 'shader', loaders: [] },
       { id: 'complementary', slug: 'complementary-reimagined', title: 'Complementary Reimagined', author: 'EminGT', description: 'Vanilla-friendly shader pack.', iconUrl: '', downloads: 5_500_000, projectType: 'shader', loaders: [] },
     ],
+    datapack: [
+      { id: 'terralith', slug: 'terralith', title: 'Terralith', author: 'Stardust Labs', description: 'Overhauls world generation with new biomes and landscapes.', iconUrl: '', downloads: 9_000_000, projectType: 'datapack', loaders: [], gameVersions: ['1.19.2', '1.20.1', '1.21.1'] },
+      { id: 'veinminer', slug: 'veinminer', title: 'VeinMiner', author: 'Nerdy', description: 'Break a whole vein of ore at once.', iconUrl: '', downloads: 1_200_000, projectType: 'datapack', loaders: [], gameVersions: ['1.20.1', '1.21.1'] },
+    ],
     modpack: [
       { id: 'allthemods', slug: 'all-the-mods-10', title: 'All the Mods 10', author: 'ATMTeam', description: 'A kitchen-sink modpack for 1.20.1.', iconUrl: '', downloads: 4_000_000, projectType: 'modpack', loaders: ['forge'] },
       { id: 'vaultsurvival', slug: 'vault-survival', title: 'Vault Hunters', author: 'Team Vault Hunters', description: 'Roguelike vault dungeons.', iconUrl: '', downloads: 3_000_000, projectType: 'modpack', loaders: ['forge'] },
@@ -108,6 +117,7 @@ export function createMock() {
     faithful: ['1.21.1', '1.20.4', '1.19.2'], dandelion: ['1.20.4'],
     bsl: ['1.21.1', '1.20.4'], complementary: ['1.20.4', '1.19.2'],
     allthemods: ['1.20.1'], vaultsurvival: ['1.18.2'],
+    terralith: ['1.21.1', '1.20.1', '1.19.2'], veinminer: ['1.21.1', '1.20.1'],
   }
 
   // Dev fixture for the add-to-instance flow: what each project "publishes" and
@@ -131,14 +141,17 @@ export function createMock() {
     jei: [{ projectId: 'fabric-api', versionId: '', type: 'optional' }],
   }
   const loadersOf = (id: string) => {
-    const all = [...searchResults.mod, ...searchResults.resourcepack, ...searchResults.shader, ...searchResults.modpack]
+    const all = [...searchResults.mod, ...searchResults.resourcepack, ...searchResults.shader, ...searchResults.modpack, ...searchResults.datapack]
     return all.find((r) => r.id === id)?.loaders ?? (id === 'fabric-api' ? ['fabric', 'quilt'] : [])
   }
-  const versionsOf = (id: string): ProjectVersion[] => (mockVersionsById[id] ?? ['1.21.1', '1.20.4', '1.20.1', '1.19.2']).map((mc) => ({
-    id: `${id}@${mc}`, projectId: id, name: `${titles[id] ?? id} for ${mc}`, versionNumber: `1.0+${mc}`, gameVersions: [mc], loaders: loadersOf(id), type: 'release' as const,
-    datePublished: new Date().toISOString(), files: [{ url: `https://cdn.mock/${id}-${mc}.jar`, filename: `${id}-${mc}${id === 'faithful' || id === 'dandelion' || id === 'bsl' || id === 'complementary' ? '.zip' : '.jar'}`, sha1: '', sha512: '', size: 1_000_000, primary: true }], dependencies: deps[id] ?? [],
-  }))
-  const contentTypeOf = (id: string): ContentType => searchResults.resourcepack.some((r) => r.id === id) ? 'resourcepack' : searchResults.shader.some((r) => r.id === id) ? 'shader' : 'mod'
+  // Two releases per Minecraft version (newest first); Sodium's older one does not clash with OptiFine, so the conflict dialog has an alternative to offer.
+  const versionsOf = (id: string): ProjectVersion[] => (mockVersionsById[id] ?? ['1.21.1', '1.20.4', '1.20.1', '1.19.2']).flatMap((mc) => [false, true].map((old) => ({
+    id: old ? `${id}@${mc}~old` : `${id}@${mc}`, projectId: id, name: `${titles[id] ?? id} for ${mc}`, versionNumber: `${old ? '1.0' : '1.1'}+${mc}`, gameVersions: [mc], loaders: loadersOf(id), type: 'release' as const,
+    datePublished: new Date(Date.now() - (old ? 40 : 3) * 864e5).toISOString(),
+    files: [{ url: `https://cdn.mock/${id}-${mc}.jar`, filename: `${id}-${mc}${old ? '-old' : ''}${id === 'faithful' || id === 'dandelion' || id === 'terralith' || id === 'veinminer' || id === 'bsl' || id === 'complementary' ? '.zip' : '.jar'}`, sha1: '', sha512: '', size: 1_000_000, primary: true }],
+    dependencies: old && id === 'sodium' ? [] : deps[id] ?? [],
+  })))
+  const contentTypeOf = (id: string): ContentType => searchResults.resourcepack.some((r) => r.id === id) ? 'resourcepack' : searchResults.shader.some((r) => r.id === id) ? 'shader' : searchResults.datapack.some((r) => r.id === id) ? 'datapack' : 'mod'
   const projectDetail = (id: string): ProjectDetail => {
     const all = [...searchResults.mod, ...searchResults.resourcepack, ...searchResults.shader, ...searchResults.modpack]
     const hit = all.find((r) => r.id === id)
@@ -158,18 +171,20 @@ export function createMock() {
   const installed: Record<string, ContentEntry[]> = { i3: [
     { projectId: 'jei', versionId: 'jei@1.20.1', title: 'Just Enough Items', versionNumber: '15.3.0.4', type: 'mod', file: 'jei-1.20.1-forge-15.3.0.4.jar', sha1: '', description: 'View items and recipes.', iconUrl: '' },
   ] }
-  const planContent = (instanceId: string, projectId: string, projectType: ContentType): ContentPlan => {
+  const planContent = (instanceId: string, projectId: string, projectType: ContentType, versionId = ''): ContentPlan => {
     const inst = instances.find((x) => x.id === instanceId)
     if (!inst) throw new Error('instance not found')
     const title = titles[projectId] ?? projectId
-    const have = installed[instanceId] ?? []
-    const plan: ContentPlan = { instance: instanceId, projectId, title, type: projectType, items: [], alreadyInstalled: have.some((e) => e.projectId === projectId), warnings: [] }
+    let have = installed[instanceId] ?? []
+    const current = have.find((e) => e.projectId === projectId)
+    const plan: ContentPlan = { instance: instanceId, projectId, title, type: projectType, items: [], alreadyInstalled: !!current && (!versionId || current.versionId === versionId), warnings: [] }
     if (plan.alreadyInstalled) return plan
+    if (current) { plan.replace = current.file; have = have.filter((e) => e.projectId !== projectId) }
     if (projectType === 'mod' && inst.loader === 'Vanilla') throw new Error('this instance has no mod loader: create a Fabric, Forge or NeoForge instance to use mods')
     const ldr = projectType === 'mod' ? inst.loader.toLowerCase() : ''
     const suffix = ldr ? ` with ${inst.loader}` : ''
     const pick = (id: string) => versionsOf(id).find((v) => v.gameVersions.includes(inst.version) && (!ldr || v.loaders.includes(ldr)))
-    const root = pick(projectId)
+    const root = versionId ? versionsOf(projectId).find((v) => v.id === versionId && v.gameVersions.includes(inst.version) && (!ldr || v.loaders.includes(ldr))) : pick(projectId)
     if (!root) throw new Error(`${title} has no build for Minecraft ${inst.version}${suffix}`)
     plan.items.push({ version: root, title, type: projectType, reason: '', requiredBy: '' })
     const queue = [...root.dependencies.map((d) => ({ d, by: projectId }))]
@@ -197,7 +212,7 @@ export function createMock() {
   }
   let ai: AIStatus = { provider: 'groq', model: '', hasKey: false, builtIn: true, models: aiModels }
   const stopIf = (key: string) => { if (canceled.delete(key)) throw new Error('context canceled') }
-  const applyContent = async (instanceId: string, plan: ContentPlan): Promise<ContentEntry[]> => {
+  const applyContent = async (instanceId: string, plan: ContentPlan, world = ''): Promise<ContentEntry[]> => {
     const out: ContentEntry[] = []
     for (let i = 0; i < plan.items.length; i++) {
       const it: ContentPlanItem = plan.items[i]
@@ -208,29 +223,36 @@ export function createMock() {
       const entry: FileEntry = { name: f.filename, sizeBytes: f.size, modTime: new Date().toISOString(), isDir: false }
       if (it.type === 'mod') (mods[instanceId] ??= []).unshift(entry)
       else if (it.type === 'shader') (shaders[instanceId] ??= []).unshift(entry)
+      else if (it.type === 'datapack') (datapacks[dpKey(instanceId, world)] ??= []).unshift(entry)
       out.push({ projectId: it.version.projectId, versionId: it.version.id, title: it.title, versionNumber: it.version.versionNumber, type: it.type, file: f.filename, sha1: '', incompatible: it.version.dependencies.filter((d) => d.type === 'incompatible').map((d) => d.projectId), requiredBy: it.requiredBy, description: descriptions[it.version.projectId] ?? '', iconUrl: '' })
     }
     emit('content:progress', { phase: 'content', done: plan.items.length, total: plan.items.length, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
-    ;(installed[instanceId] ??= []).push(...out)
+    // A chosen release takes the old one's place (file and record).
+    if (plan.replace) {
+      mods[instanceId] = (mods[instanceId] ?? []).filter((f) => f.name !== plan.replace)
+      shaders[instanceId] = (shaders[instanceId] ?? []).filter((f) => f.name !== plan.replace)
+    }
+    installed[instanceId] = (installed[instanceId] ?? []).filter((e) => !out.some((o) => o.projectId === e.projectId))
+    installed[instanceId].push(...out)
     const inst = instances.find((x) => x.id === instanceId)
     if (inst) inst.counts.mods = (mods[instanceId] ?? []).length
     return out
   }
 
-  const prefs: Record<string, Pick<Profile, 'language' | 'theme'>> = {}
+  const prefs: Record<string, Pick<Profile, 'language' | 'theme' | 'colors'>> = {}
   const adopt = (owner: string, from: string[]) => { for (const i of instances) if (!i.owner || from.includes(i.owner)) i.owner = owner }
 
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock', totalMemoryMB: 16384 } },
     async GetProfile() {
-      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'light' as const, agreed: false, maxMemoryMB: 2048 } }
+      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'light' as const, colors: DEFAULT_COLORS, agreed: false, maxMemoryMB: 2048 } }
     },
     async SaveProfile(p: Profile) {
       const removed = (profile?.nicknames ?? []).filter((n) => !p.nicknames.includes(n))
       // Like the backend: each nickname keeps its language and theme; switching puts them back on.
       const mine = prefs[p.nickname]
       if (mine && profile && profile.nickname !== p.nickname) p = { ...p, ...mine }
-      prefs[p.nickname] = { language: p.language, theme: p.theme }
+      prefs[p.nickname] = { language: p.language, theme: p.theme, colors: p.colors }
       profile = { ...p, uuid: 'mock-uuid', nicknames: [p.nickname, ...p.nicknames.filter((n) => n !== p.nickname)] }
       localStorage.setItem('mock:profile', JSON.stringify(profile))
       adopt(p.nickname, removed)
@@ -301,6 +323,14 @@ export function createMock() {
     },
     async ExportScreenshot(_id: string, name: string) { await sleep(400); return `/home/player/${name}` },
     async ListResourcePacks(id: string) { return id === 'i1' ? [{ name: 'Faithful 32x.zip', sizeBytes: 45_000_000, modTime: new Date().toISOString(), isDir: false }] : [] },
+    async ListDatapacks(id: string, world: string) { return (datapacks[dpKey(id, world)] ??= []).map((d) => ({ ...d })) },
+    async AddDatapack(id: string, world: string, path: string) {
+      const name = path.split('/').pop() ?? 'pack.zip'
+      const d: FileEntry = { name, sizeBytes: 120_000, modTime: new Date().toISOString(), isDir: false }
+      ;(datapacks[dpKey(id, world)] ??= []).unshift(d); return d
+    },
+    async PickDatapack(id: string, world: string) { await sleep(300); return backend.AddDatapack(id, world, '/home/player/terralith.zip') },
+    async RemoveDatapack(id: string, world: string, name: string) { datapacks[dpKey(id, world)] = (datapacks[dpKey(id, world)] ?? []).filter((d) => d.name !== name) },
     async ListMods(id: string) { return (mods[id] ?? []).map((m) => ({ ...m })) },
     async AddMod(id: string, path: string) {
       if (!/\.jar$/i.test(path)) throw new Error('mods must be .jar files')
@@ -336,26 +366,93 @@ export function createMock() {
       return { ...ai }
     },
     async ResetAI() { ai = { ...ai, provider: 'groq', model: '', hasKey: false }; return { ...ai } },
-    // A keyword stand-in for the model: enough to click through the chat in a browser.
-    async AskAI(message: string, types: ProjectType[], prev: AIIntent, lockVersion: string, lockLoader: string): Promise<AIAnswer> {
-      await sleep(500)
-      const m = message.toLowerCase()
-      const type = types.find((t) => m.includes(t === 'resourcepack' ? 'texture' : t)) ?? (types.includes(prev.type) ? prev.type : types[0])
-      const intent: AIIntent = {
-        type, query: m.includes('map') ? 'map' : '', categories: m.includes('performance') || m.includes('fps') ? ['optimization'] : [],
-        gameVersion: lockVersion || (gameVersions.find((v) => m.includes(v.version))?.version ?? prev.gameVersion),
-        loader: lockVersion ? (type === 'mod' || type === 'modpack' ? lockLoader.toLowerCase() : '') : ['fabric', 'forge', 'quilt', 'neoforge'].find((l) => m.includes(l)) ?? prev.loader,
-        sort: m.includes('popular') || m.includes('best') ? 'downloads' : prev.sort,
+    // A keyword stand-in for the advisor: enough to click through the page in a browser. It asks when the
+    // request is vague, splits the results into two needs, leaves out what the instance has, and varies its words.
+    async AskAI(message: string, types: ProjectType[], history: AITurn[], instanceId: string): Promise<AIAnswer> {
+      await sleep(1100)
+      const m = message.toLowerCase().trim()
+      if (m.split(/\s+/).length < 2 || m.includes('cool')) {
+        return { understood: '', question: 'Do you want to build, to fight or to explore? That changes what I would look for.', summary: '', groups: [], followUps: [] }
       }
-      const page = await backend.SearchContent(intent.type, intent.query, intent.gameVersion, intent.loader, intent.sort, intent.categories, 0, 8)
-      return { intent, total: page.total, picks: page.results.slice(0, 3).map((result, i) => ({ result, reason: i === 2 ? '' : `A mock reason why ${result.title} fits.` })) }
+      const inst = instances.find((x) => x.id === instanceId)
+      const have = (installed[instanceId] ?? []).map((e) => e.projectId)
+      const type = types.find((t) => m.includes(t === 'resourcepack' ? 'texture' : t)) ?? types[0]
+      const page = await backend.SearchContent(type, '', inst?.version ?? '', inst && type === 'mod' ? inst.loader.toLowerCase() : '', 'downloads', [], 0, 8)
+      const pool = page.results.filter((r) => !have.includes(r.id))
+      const intent = (categories: string[]): AIIntent => ({ type, query: '', categories, gameVersion: inst?.version ?? '', loader: inst && type === 'mod' ? inst.loader.toLowerCase() : '', sort: 'downloads' })
+      const groups: AIGroup[] = [
+        { label: 'The essentials', intro: 'These do most of the work.', picks: pool.slice(0, 2), intent: intent(['optimization']) },
+        { label: 'Nice extras', intro: 'Worth it once the basics run well.', picks: pool.slice(2, 4), intent: intent([]) },
+      ].filter((g) => g.picks.length).map((g) => ({ ...g, total: page.total, picks: g.picks.map((result, i) => ({ result, reason: i === 0 ? `Covers the main thing you asked for and works with ${inst ? inst.name : 'any compatible instance'}.` : `A good partner for ${g.picks[0].title}: they do not overlap.` })) }))
+      const openings = ['Think of it as two layers: a base and a few extras.', 'I went for a small set that work well together rather than a long list.', 'Short version: start with the essentials, add the extras only if you want more.']
+      return {
+        understood: `You want: ${message.trim().slice(0, 60)}`, question: '', followUps: ['Make it lighter', 'Add something for my friends', 'Now for textures'],
+        summary: groups.length ? `${openings[history.length % openings.length]} ${inst ? `Everything here runs on ${inst.name} (${inst.version}) and nothing duplicates what it already has.` : 'Pick an instance when you press Add and I will only offer the ones these work on.'}` : '',
+        groups,
+      }
     },
+
     async PlanContent(instanceId: string, projectId: string, projectType: ProjectType) { await sleep(400); return planContent(instanceId, projectId, projectType as ContentType) },
     // A mock modpack "pours" one mod (JEI) into the instance.
-    async AddContent(instanceId: string, projectId: string, projectType: ProjectType) {
+    async AddContent(instanceId: string, projectId: string, projectType: ProjectType, versionId = '', world = '') {
       canceled.delete('content')
-      const plan = planContent(instanceId, projectType === 'modpack' ? 'jei' : projectId, projectType === 'modpack' ? 'mod' : projectType)
-      return plan.alreadyInstalled ? [] : applyContent(instanceId, plan)
+      const plan = planContent(instanceId, projectType === 'modpack' ? 'jei' : projectId, projectType === 'modpack' ? 'mod' : projectType, versionId)
+      return plan.alreadyInstalled ? [] : applyContent(instanceId, plan, world)
+    },
+    // The releases that fit the instance, each marked when installed or when it clashes with something installed.
+    async ListProjectVersions(instanceId: string, projectId: string, projectType: ProjectType): Promise<VersionChoice[]> {
+      await sleep(250)
+      const inst = instances.find((x) => x.id === instanceId)
+      if (!inst) throw new Error('instance not found')
+      const ldr = projectType === 'mod' ? inst.loader.toLowerCase() : ''
+      const have = installed[instanceId] ?? []
+      return versionsOf(projectId).filter((v) => v.gameVersions.includes(inst.version) && (!ldr || v.loaders.includes(ldr))).map((v) => ({
+        id: v.id, number: v.versionNumber, name: v.name, type: v.type, datePublished: v.datePublished, gameVersions: v.gameVersions, loaders: v.loaders,
+        installed: have.some((e) => e.versionId === v.id),
+        conflictWith: have.find((e) => e.projectId !== projectId && (v.dependencies.some((d) => d.type === 'incompatible' && d.projectId === e.projectId) || (e.incompatible ?? []).includes(projectId)))?.title,
+      }))
+    },
+    async GetAlternatives(instanceId: string, projectId: string, projectType: ProjectType): Promise<Alternatives> {
+      await sleep(400)
+      const fits = (await backend.ListProjectVersions(instanceId, projectId, projectType)).filter((v) => !v.installed && !v.conflictWith)
+      if (fits.length) return { versions: fits.slice(0, 8), similar: [] }
+      const have = (installed[instanceId] ?? []).map((e) => e.projectId)
+      const similar: SearchResult[] = []
+      for (const r of searchResults[projectType as 'mod'] ?? []) {
+        if (r.id === projectId || have.includes(r.id)) continue
+        try { const p = planContent(instanceId, r.id, projectType as ContentType); if (!p.alreadyInstalled && p.items.length) similar.push(r) } catch { /* does not fit */ }
+        if (similar.length === 3) break
+      }
+      return { versions: [], similar }
+    },
+    async ExportServerJoinFile(id: string): Promise<JoinExport> {
+      const s = serverOf(id)
+      if (s.loader === 'Vanilla') throw new Error('a Vanilla server needs nothing installed: friends can join with plain Minecraft ' + s.version)
+      await sleep(700)
+      return { path: `/home/player/${s.name}.udeos`, info: { references: s.counts.mods || 3, embedded: 0, sizeBytes: 3_412, hasAddress: !!(s.state.publicAddress || s.internet?.address) } }
+    },
+    async PickJoinFile() { await sleep(300); return '/home/player/Friends SMP.udeos' },
+    async ReadJoinFile(path: string): Promise<JoinInfo> {
+      if (!/\.udeos$/i.test(path)) throw new Error('that is not a join file: it should end in .udeos')
+      return { name: path.split('/').pop()!.replace(/\.udeos$/i, ''), address: 'udeoslauncher.friends-smp.159-223-171-199.nip.io:41234' }
+    },
+    async CreateInstanceFromFile(path: string, name: string, icon: string) {
+      const info = await backend.ReadJoinFile(path)
+      const mc = '1.20.1'
+      const inst = await backend.CreateInstance(name || info.name, mc, 'Fabric', '0.16.9', icon)
+      emit('content:progress', { phase: 'content', done: 1, total: 3, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
+      await sleep(900)
+      await applyContent(inst.id, planContent(inst.id, 'sodium', 'mod'))
+      return { ...inst }
+    },
+    async ListCategories(projectType: ProjectType) {
+      const all: Record<string, string[]> = {
+        mod: ['adventure', 'decoration', 'equipment', 'library', 'magic', 'mobs', 'optimization', 'storage', 'technology', 'transportation', 'utility', 'worldgen'],
+        resourcepack: ['combat', 'cursed', 'decoration', 'realistic', 'simplistic', 'themed', 'vanilla-like'],
+        shader: ['cartoon', 'cursed', 'fantasy', 'realistic', 'semi-realistic', 'vanilla-like'],
+        modpack: ['adventure', 'challenging', 'combat', 'kitchen-sink', 'lightweight', 'magic', 'multiplayer', 'optimization', 'quests', 'technology'],
+      }
+      return all[projectType] ?? []
     },
     async CreateInstanceFromModpack(projectId: string, name: string, icon: string, gameVersion: string) {
       const hit = searchResults.modpack.find((r) => r.id === projectId)!
@@ -375,6 +472,12 @@ export function createMock() {
       serverProps[s.id] = { motd: name, 'server-port': String(port), 'online-mode': 'true', login: 'udeos' }
       instances.push(s); return structuredClone(s)
     },
+    async CreateServerFromModpack(projectId: string, name: string, icon: string, _iconPNG: string, gameVersion: string) {
+      const hit = searchResults.modpack.find((r) => r.id === projectId)!
+      const mc = gameVersion || mockVersionsById[projectId][0]
+      await sleep(600)
+      return backend.CreateServer(name || hit.title, mc, 'Forge', `${mc}-47.4.10`, icon)
+    },
     async SetServerIcon() {},
     async StartServer(id: string) {
       const s = serverOf(id)
@@ -385,6 +488,7 @@ export function createMock() {
       s.state.running = true; logLine(id, `[Udeos] Started with 2048 MB of memory on port ${s.port}.`); serverState(id)
       for (const l of ['Starting minecraft server version ' + s.version, `Starting Minecraft server on *:${s.port}`, '**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!', 'Preparing level "world"']) { await sleep(250); logLine(id, `${stamp()} ${l}`) }
       setTimeout(() => {
+        if (!s.state.running || s.state.stopping) return // cancelled while loading
         logLine(id, `${stamp()} Done (2.104s)! For help, type "help"`); s.state.starting = false; s.state.ready = true
         if (s.public) openPublic(s)
         serverState(id)

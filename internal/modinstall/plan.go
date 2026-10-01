@@ -58,17 +58,46 @@ type Plan struct {
 	Items            []PlanItem `json:"items"`
 	AlreadyInstalled bool       `json:"alreadyInstalled"`
 	Warnings         []string   `json:"warnings"`
+	// Replace is the file of another version of the same project that this
+	// plan takes out once the new one is in (the player picked a version).
+	Replace string `json:"replace,omitempty"`
+	// World is the world folder a datapack goes into (see Entry.World).
+	World string `json:"world,omitempty"`
 }
 
 // Plan works out which version of projectID fits inst, pulls in its required
 // dependencies and checks nothing installed is declared incompatible. Every
 // rule that fails comes back as a plain error the UI can show as is.
 func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID string, projectType modsearch.ProjectType) (Plan, error) {
+	return m.PlanVersion(ctx, inst, projectID, projectType, "")
+}
+
+// PlanVersion is Plan for one release the player chose (versionID "" = the
+// best one). When the project is already in the instance as another version,
+// the plan replaces it: Plan.Replace names the file that goes.
+func (m *Manager) PlanVersion(ctx context.Context, inst instance.Instance, projectID string, projectType modsearch.ProjectType, versionID string) (Plan, error) {
+	return m.plan(ctx, inst, projectID, projectType, versionID, "")
+}
+
+// PlanDatapack is PlanVersion for a datapack going into one world (world is the
+// folder relative to the game folder, see Entry.World). Datapacks load on every
+// loader, so the provider is asked for the "datapack" builds, not the instance's loader.
+func (m *Manager) PlanDatapack(ctx context.Context, inst instance.Instance, projectID, versionID, world string) (Plan, error) {
+	return m.plan(ctx, inst, projectID, modsearch.TypeDatapack, versionID, world)
+}
+
+func (m *Manager) plan(ctx context.Context, inst instance.Instance, projectID string, projectType modsearch.ProjectType, versionID, world string) (Plan, error) {
 	kind := string(projectType)
-	if typeSubdir(kind) == "" {
+	if typeSubdir(kind) == "" && kind != "datapack" {
 		return Plan{}, fmt.Errorf("cannot add a %s to an instance", kind)
 	}
 	ldr := ""
+	if kind == "datapack" {
+		if world == "" {
+			return Plan{}, errors.New("pick a world first")
+		}
+		ldr = "datapack"
+	}
 	if kind == "mod" {
 		if inst.Loader == "" || inst.Loader == loader.Vanilla {
 			return Plan{}, errors.New("this instance has no mod loader: create a Fabric, Quilt, Forge or NeoForge instance to use mods")
@@ -79,6 +108,8 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	if err != nil {
 		return Plan{}, err
 	}
+	// A datapack counts only in the world it is in: the same pack may go into another world.
+	installed = slices.DeleteFunc(installed, func(e Entry) bool { return e.Type == "datapack" && e.World != world })
 	installedBy := map[string]Entry{}
 	for _, e := range installed {
 		if e.ProjectID != "" {
@@ -90,17 +121,36 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	if err != nil {
 		return Plan{}, err
 	}
-	plan := Plan{Instance: inst.ID, ProjectID: root.ID, Title: root.Title, Type: kind, Items: []PlanItem{}, Warnings: []string{}}
-	if _, ok := installedBy[root.ID]; ok {
-		plan.AlreadyInstalled = true
-		return plan, nil
+	plan := Plan{Instance: inst.ID, ProjectID: root.ID, Title: root.Title, Type: kind, World: world, Items: []PlanItem{}, Warnings: []string{}}
+	if e, ok := installedBy[root.ID]; ok {
+		if versionID == "" || e.VersionID == versionID {
+			plan.AlreadyInstalled = true
+			return plan, nil
+		}
+		// Another version was asked for: it takes the installed one's place, which must not count as a conflict.
+		plan.Replace = e.File
+		delete(installedBy, root.ID)
+		installed = slices.DeleteFunc(slices.Clone(installed), func(x Entry) bool { return x.ProjectID == root.ID })
 	}
-	rootVersion, ok, err := m.matchingVersion(ctx, root.ID, inst.Version, ldr)
-	if err != nil {
-		return Plan{}, err
-	}
-	if !ok {
-		return Plan{}, fmt.Errorf("%s has no build for Minecraft %s%s%s", root.Title, inst.Version, loaderSuffix(inst), m.otherLoadersHint(ctx, root.ID, inst.Version, ldr))
+	var rootVersion modsearch.Version
+	if versionID != "" {
+		v, err := m.Provider.VersionByID(ctx, versionID)
+		if err != nil {
+			return Plan{}, fmt.Errorf("cannot reach %s: %w", m.Provider.Name(), err)
+		}
+		if v.ProjectID != root.ID || !contains(v.GameVersions, inst.Version) || !modsearch.LoaderMatches(v.Loaders, ldr) {
+			return Plan{}, fmt.Errorf("%s %s has no build for Minecraft %s%s", root.Title, v.VersionNumber, inst.Version, loaderSuffix(inst))
+		}
+		rootVersion = v
+	} else {
+		v, ok, err := m.matchingVersion(ctx, root.ID, inst.Version, ldr)
+		if err != nil {
+			return Plan{}, err
+		}
+		if !ok {
+			return Plan{}, fmt.Errorf("%s has no build for Minecraft %s%s%s", root.Title, inst.Version, loaderSuffix(inst), m.otherLoadersHint(ctx, root.ID, inst.Version, ldr))
+		}
+		rootVersion = v
 	}
 	plan.Items = append(plan.Items, PlanItem{Version: rootVersion, Title: root.Title, Type: kind})
 
@@ -112,7 +162,8 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	}
 	var queue []pending
 	var optional []string
-	incompatible := map[string][]string{} // project id → project ids it declares incompatible
+	incompatible := map[string][]modsearch.Dependency{} // project id → what it declares incompatible (a project, or one version of it)
+	plannedVer := map[string]string{root.ID: rootVersion.ID}
 	enqueue := func(v modsearch.Version, depth int) {
 		for _, d := range v.Dependencies {
 			switch d.Type {
@@ -124,7 +175,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 				}
 			case modsearch.DepIncompatible:
 				if d.ProjectID != "" {
-					incompatible[v.ProjectID] = append(incompatible[v.ProjectID], d.ProjectID)
+					incompatible[v.ProjectID] = append(incompatible[v.ProjectID], d)
 				}
 			}
 		}
@@ -151,6 +202,7 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 			continue
 		}
 		planned[v.ProjectID] = true
+		plannedVer[v.ProjectID] = v.ID
 		plan.Items = append(plan.Items, PlanItem{Version: v, RequiredBy: p.by})
 		enqueue(v, p.depth+1)
 	}
@@ -161,8 +213,8 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 	for _, it := range plan.Items {
 		ids[it.Version.ProjectID] = true
 		ids[it.RequiredBy] = true
-		for _, x := range incompatible[it.Version.ProjectID] {
-			ids[x] = true
+		for _, d := range incompatible[it.Version.ProjectID] {
+			ids[d.ProjectID] = true
 		}
 	}
 	for _, o := range optional {
@@ -190,7 +242,9 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 		}
 		if it.Type == "" {
 			it.Type = "mod"
-			if n, ok := names[it.Version.ProjectID]; ok && typeSubdir(string(n.ProjectType)) != "" {
+			if kind == "datapack" {
+				it.Type = "datapack" // what a datapack needs is datapacks, in the same world
+			} else if n, ok := names[it.Version.ProjectID]; ok && typeSubdir(string(n.ProjectType)) != "" {
 				it.Type = string(n.ProjectType)
 			}
 		}
@@ -201,12 +255,14 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 
 	// Incompatibilities, both ways: what the new versions refuse, and what the
 	// installed ones refused when they were added.
+	// A dependency that names a version is incompatible with that release only.
 	for _, it := range plan.Items {
-		for _, x := range incompatible[it.Version.ProjectID] {
-			if _, have := installedBy[x]; have {
+		for _, d := range incompatible[it.Version.ProjectID] {
+			x := d.ProjectID
+			if e, have := installedBy[x]; have && (d.VersionID == "" || d.VersionID == e.VersionID) {
 				return Plan{}, fmt.Errorf("%s is incompatible with %s, which is installed in this instance", it.Title, nameOf(x))
 			}
-			if planned[x] {
+			if planned[x] && (d.VersionID == "" || d.VersionID == plannedVer[x]) {
 				return Plan{}, fmt.Errorf("%s is incompatible with %s, which it would be installed with", it.Title, nameOf(x))
 			}
 		}
@@ -215,6 +271,11 @@ func (m *Manager) Plan(ctx context.Context, inst instance.Instance, projectID st
 		for _, x := range e.Incompatible {
 			if planned[x] {
 				return Plan{}, fmt.Errorf("%s is incompatible with %s, which is installed in this instance", nameOf(x), e.Title)
+			}
+		}
+		for project, version := range plannedVer {
+			if slices.Contains(e.IncompatibleVersions, version) {
+				return Plan{}, fmt.Errorf("%s is incompatible with %s, which is installed in this instance", nameOf(project), e.Title)
 			}
 		}
 	}
@@ -338,7 +399,7 @@ func (m *Manager) installedEntries(inst instance.Instance) ([]Entry, error) {
 	gameDir := m.Dirs.GameDir(inst.ID)
 	kept := entries[:0]
 	for _, e := range entries {
-		if _, err := os.Stat(filepath.Join(gameDir, typeSubdir(e.Type), e.File)); err == nil {
+		if _, err := os.Stat(filepath.Join(gameDir, filepath.FromSlash(dirOf(e.Type, e.World)), e.File)); err == nil {
 			kept = append(kept, e)
 		}
 	}

@@ -172,3 +172,63 @@ All of them live in `app_content_install.go` and go through
     go run ./cmd/udeoscli add <instance id> iris            # pulls Sodium in
     go run ./cmd/udeoscli add <instance id> faithful-32x resourcepack
     go run ./cmd/udeoscli modpack simply-optimized-reloaded 1.20.1 forge   # new instance
+
+## Choosing a version, conflicts and alternatives
+
+**A chosen version.** `AddContent(instance, project, type, versionId)` installs a
+specific release; `""` keeps the old behaviour (the best release that fits).
+`modinstall.PlanVersion` checks that the release belongs to the project and runs
+on the instance's Minecraft version and loader. When the project is already in
+the instance as another release the plan **replaces** it: `Plan.Replace` names
+the old file, which `Apply` removes once the new one is in (the manifest entry
+is replaced by project id). `ListProjectVersions` lists the releases that run on
+an instance (newest first, at most 60), marking the installed one and any that
+clash with something installed (`conflictWith` = that mod's title). The Details
+page's **Versions** tab is built on it; releases that clash are kept apart
+under "Do not work with your mods".
+
+**Version-pinned conflicts.** Modrinth lets a mod declare itself incompatible
+with *one release* of another mod (`dependency_type: incompatible` with a
+`version_id`). The check honours that: an entry records whole-project conflicts
+in `Incompatible` and pinned ones in `IncompatibleVersions` (older `content.json`
+files only have the first and are treated as whole-project, the safe side).
+
+**Alternatives.** When an install fails on an incompatibility, the failed job in
+the Activity popover gets **See options** → `ConflictDialog` →
+`GetAlternatives`: first other releases of the same mod that fit and clash with
+nothing installed; only when there are none, similar mods (same first topic,
+this Minecraft version and loader) whose full plan succeeds, at most three.
+Releases are not checked for their own required dependencies (choosing one runs
+a full plan anyway); similar mods are, because offering one that then fails
+would be worse than offering fewer.
+
+**Topics.** `ListCategories(type)` feeds the Addons page's topic chips (Modrinth's
+own categories for mods, packs, shaders or modpacks; any number can be on).
+With an instance in context the version/loader menus are replaced by one "Only
+what works on it" chip: the results are already limited to that instance.
+
+## Datapacks
+
+Modrinth files datapacks as `project_type: mod` with the loader tag
+`datapack`, so the search splits them out with facets: type `datapack` uses
+`project_type:datapack` (no loader group: datapacks load on any loader), and
+type `mod` adds `categories!=datapack`. Hits are shown as type `datapack`
+(`resultType`), with no loader tags, and use the mod categories
+(`categoryType`). Versions are asked with `loaders=["datapack"]`.
+
+A datapack lives inside a world, so installs take a **world**:
+`modinstall.Entry.World` is the world folder relative to the game folder
+(`saves/My World` on an instance, `<level-name>` on a server) and
+`dirOf(type, world)` replaces the fixed type folders. `PlanDatapack` /
+`AddDatapack` refuse without a world ("pick a world first"); the same pack can
+be in several worlds (`Append` keys on project **and** world, and a datapack
+only counts as installed in its own world). `AddContent(..., versionId, world)`
+carries it from the UI: a server ignores `world` (one world), an instance
+needs a saves/ folder name. `ListDatapacks`, `AddDatapack`, `PickDatapack` and
+`RemoveDatapack` mirror the mod bindings. `content.AddMod` answers "that is a
+datapack: add it in the Datapacks tab" for a zip with `pack.mcmeta`.
+
+UI: a **Datapacks** tab on instance pages (world select on top) and server
+pages; Add from Addons opens `DatapackDialog` (instance, then world; a server
+installs at once). Datapacks are not in the join file (server side only) and
+the AI advisor does not suggest them yet.

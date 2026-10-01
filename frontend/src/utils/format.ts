@@ -35,5 +35,6 @@ const LOADER_NAMES: Record<string, string> = { fabric: 'Fabric', forge: 'Forge',
 /** Modrinth's lowercase loader ids as the launcher writes them ("neoforge" → "NeoForge"). */
 export const loaderName = (l: string) => LOADER_NAMES[l.toLowerCase()] ?? l[0].toUpperCase() + l.slice(1)
 
-/** Staggers the cards' rise-in (tokens.css .reveal): 40ms apart, the first 10 only. */
-export const revealDelay = (i: number) => ({ '--reveal-delay': `${Math.min(i, 9) * 40}ms` }) as CSSProperties
+/** Staggers the cards' rise-in (tokens.css .reveal): 40ms apart, the first 10 only;
+ *  the rest do not animate (they are below the fold, and animating dozens of cards makes scrolling stutter). */
+export const revealDelay = (i: number) => (i < 10 ? { '--reveal-delay': `${i * 40}ms` } : { animation: 'none' }) as CSSProperties

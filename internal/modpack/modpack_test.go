@@ -142,3 +142,70 @@ func TestCreateAndAddTo(t *testing.T) {
 		t.Errorf("1.21.1: err=%v instances=%d", err, len(store.List()))
 	}
 }
+
+// A server is built from the pack's server side: client-only files are skipped,
+// server-overrides/ replaces client-overrides/, and a Quilt pack is refused.
+func TestCreateServer(t *testing.T) {
+	jar := []byte("server jar")
+	sum := sha1.Sum(jar)
+	jarSHA := hex.EncodeToString(sum[:])
+	quilt := false
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/mod.jar":
+			w.Write(jar)
+		case "/pack.mrpack":
+			var buf bytes.Buffer
+			zw := zip.NewWriter(&buf)
+			idx, _ := zw.Create("modrinth.index.json")
+			loaderDep := `"fabric-loader":"0.16.9"`
+			if quilt {
+				loaderDep = `"quilt-loader":"0.26.0"`
+			}
+			idx.Write([]byte(`{"formatVersion":1,"name":"Fast Pack","dependencies":{"minecraft":"1.20.1",` + loaderDep + `},
+				"files":[{"path":"mods/both.jar","hashes":{"sha1":"` + jarSHA + `"},"env":{"client":"required","server":"required"},"downloads":["http://` + r.Host + `/mod.jar"],"fileSize":10},
+				         {"path":"mods/client-only.jar","hashes":{"sha1":"00"},"env":{"client":"required","server":"unsupported"},"downloads":["http://nowhere/x.jar"]}]}`))
+			for name, body := range map[string]string{"overrides/config/a.txt": "shared", "server-overrides/config/s.txt": "server", "client-overrides/config/c.txt": "client"} {
+				f, _ := zw.Create(name)
+				f.Write([]byte(body))
+			}
+			zw.Close()
+			w.Write(buf.Bytes())
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer srv.Close()
+
+	dirs := paths.FromRoot(t.TempDir())
+	store, _ := instance.Open(dirs)
+	m := New(dirs, &fake{packURL: srv.URL + "/pack.mrpack", jarSHA: jarSHA}, store, nil)
+
+	inst, _, err := m.CreateServer(context.Background(), "pack", "", "grass", "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	game := dirs.GameDir(inst.ID)
+	for path, want := range map[string]string{"mods/both.jar": "server jar", "config/a.txt": "shared", "config/s.txt": "server"} {
+		if got, _ := os.ReadFile(filepath.Join(game, filepath.FromSlash(path))); string(got) != want {
+			t.Errorf("%s = %q, want %q", path, got, want)
+		}
+	}
+	for _, path := range []string{"mods/client-only.jar", "config/c.txt"} {
+		if _, err := os.Stat(filepath.Join(game, filepath.FromSlash(path))); err == nil {
+			t.Errorf("%s must not be in a server", path)
+		}
+	}
+	if inst.Icon == IconKey {
+		t.Error("a server keeps the icon it was given, not the pack's")
+	}
+
+	quilt = true
+	dirs = paths.FromRoot(t.TempDir()) // the fake pack has no hash, so a fresh cache
+	store, _ = instance.Open(dirs)
+	m = New(dirs, &fake{packURL: srv.URL + "/pack.mrpack", jarSHA: jarSHA}, store, nil)
+	before := len(store.List())
+	if _, _, err := m.CreateServer(context.Background(), "pack", "", "grass", "", ""); err == nil || !strings.Contains(err.Error(), "Quilt") || len(store.List()) != before {
+		t.Errorf("quilt: err=%v instances=%d", err, len(store.List()))
+	}
+}

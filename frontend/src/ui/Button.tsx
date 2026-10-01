@@ -5,7 +5,7 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
  *  secondary — pastel sky blue (Overworld) / charcoal-purple (End): Open instance
  *  idle      — warm pebble gray / charcoal-purple, for neutral actions and anything unselected
  *  danger    — pastel end purple-red
- *  ghost     — no fill, for inline links-as-buttons */
+ *  ghost     — outlined, no fill */
 export type ButtonVariant = 'primary' | 'secondary' | 'idle' | 'danger' | 'ghost'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
@@ -30,16 +30,19 @@ const SIZE: Record<ButtonSize, string> = {
 const SQUARE: Record<ButtonSize, string> = { sm: 'px-2.5 py-2 min-w-9 h-9', md: 'px-3 py-2.5 min-w-10 h-10', lg: 'px-3.5 py-3 min-w-12 h-12' }
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-primary text-white hover:bg-primary-hover shadow-primary active:shadow-neu-inset',
-  secondary: 'bg-secondary text-text hover:bg-secondary-hover shadow-secondary active:shadow-neu-inset',
-  idle: 'bg-idle text-text hover:bg-idle-hover shadow-neu active:shadow-neu-inset',
+  primary: 'bg-primary text-on-primary hover:bg-primary-hover shadow-primary active:shadow-neu-inset',
+  secondary: 'bg-secondary text-on-secondary hover:bg-secondary-hover shadow-secondary active:shadow-neu-inset',
+  idle: 'bg-idle text-on-idle hover:bg-idle-hover shadow-neu active:shadow-neu-inset',
   danger: 'bg-error/80 text-white hover:bg-error/90 shadow-neu active:shadow-neu-inset',
-  ghost: 'bg-transparent text-text hover:bg-idle/40 active:bg-idle/60',
+  // Border only, no fill: the outline takes the primary colour on hover.
+  ghost: 'bg-transparent text-text shadow-[inset_0_0_0_2px_color-mix(in_srgb,var(--color-text)_28%,transparent)] hover:shadow-[inset_0_0_0_2px_var(--color-primary)] active:shadow-[inset_0_0_0_2px_var(--color-primary-hover)]',
 }
 
-/* transform-gpu: a permanent compositing layer, so WebKitGTK does not
-   create/drop one around the hover lift and flash white (see panel-hover in tokens.css). */
-const base = 'transform-gpu relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline font-bold leading-[1.2] rounded-md border-0 transition-all duration-150 ease-in-out hover:-translate-y-px active:translate-y-0 active:scale-98 disabled:pointer-events-none disabled:shadow-none'
+/* No transform on hover or press and no permanent layer: a page of cards has
+   dozens of buttons, and each one on its own compositing layer made long
+   lists scroll badly in WebKitGTK (see panel-hover in tokens.css). Hover and
+   press are colour and shadow (the VARIANT classes). */
+const base = 'relative overflow-hidden inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer no-underline min-w-fit font-bold leading-[1.2] rounded-md border-0 transition-[background-color,box-shadow,color,opacity] duration-150 ease-in-out disabled:pointer-events-none disabled:shadow-none'
 const idleDisabled = 'disabled:opacity-60 disabled:cursor-not-allowed'
 
 export default function Button({ variant = 'idle', size = 'md', block, square, loading, className = '', type = 'button', children, disabled, ...rest }: Props) {

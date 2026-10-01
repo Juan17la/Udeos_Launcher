@@ -7,6 +7,7 @@ import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
 import { messageOf } from '../../utils/errors'
 import { Feedback } from '../instance/TabParts'
+import { LaunchFields, useLaunchForm } from '../instance/SettingsTab'
 import SegmentedControl from '../../ui/SegmentedControl'
 import type { Server, ServerLogin } from '../../api/types'
 
@@ -24,6 +25,7 @@ const LOGINS: ServerLogin[] = ['udeos', 'offline', 'microsoft']
 /** The server.properties a player usually cares about, in plain words. */
 export default function ServerSettingsTab({ server }: { server: Server }) {
   const { t, refreshInstances } = useApp()
+  const launch = useLaunchForm(server) // memory and Java live on this page too, under the same Save
   const s = t.servers.settings
   const [props, setProps] = useState<Record<string, string> | null>(null)
   const [saved, setSaved] = useState<Record<string, string> | null>(null)
@@ -40,11 +42,11 @@ export default function ServerSettingsTab({ server }: { server: Server }) {
   if (!props) return <AutoLoader active={!error} label={t.common.loading} />
 
   const set = (k: string, v: string) => setProps({ ...props, [k]: v })
-  const dirty = Object.keys(props).some((k) => props[k] !== saved?.[k])
+  const dirty = launch.dirty || Object.keys(props).some((k) => props[k] !== saved?.[k])
   const save = async () => {
     setBusy(true); setError(null); setNote(null)
     // Reloads the server list: "Who can join" is the server's udeosLogin flag too (the Internet tab reads it).
-    try { await api.SetServerProperties(server.id, props); setSaved(props); setNote(s.saved); await refreshInstances(); return true } catch (e) { setError(messageOf(e)); return false } finally { setBusy(false) }
+    try { await api.SetServerProperties(server.id, props); if (launch.dirty) await launch.save(); setSaved(props); setNote(s.saved); await refreshInstances(); return true } catch (e) { setError(messageOf(e)); return false } finally { setBusy(false) }
   }
 
   return (
@@ -100,6 +102,7 @@ export default function ServerSettingsTab({ server }: { server: Server }) {
           <Input id="srv-seed" type="text" value={props['level-seed']} spellCheck={false} onChange={(e) => set('level-seed', e.target.value)} />
           <p className="m-0 mt-2 text-sm text-muted">{s.seedHint}</p>
         </div>
+        <LaunchFields form={launch} />
         <div className="flex justify-end">
           <SaveSettingsButton inst={server} dirty={dirty} busy={busy} label={s.save} onSave={save} />
         </div>

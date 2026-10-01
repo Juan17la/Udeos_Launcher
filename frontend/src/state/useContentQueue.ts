@@ -4,7 +4,7 @@ import type { Progress, SearchResult } from '../api/types'
 import { isCanceled, messageOf } from '../utils/errors'
 
 /** What a "new instance from this modpack" job creates; name '' = the pack's name. */
-export type CreateFromModpack = { name: string; icon: string; gameVersion: string; loader: string }
+export type CreateFromModpack = { name: string; icon: string; gameVersion: string; loader: string; /** A .udeos join file to build the instance from instead of a modpack. */ file?: string; /** Build a dedicated server (with this icon, base64 PNG) instead of an instance. */ server?: { iconPNG: string } }
 
 /** One "add this project to that instance" (or "new instance from this
  *  modpack") request, shown as a toast. */
@@ -14,6 +14,10 @@ export type ContentJob = {
   instanceId: string
   result: SearchResult
   create?: CreateFromModpack
+  /** The release the player picked on the Details page ('' = the best one for the instance). */
+  versionId?: string
+  /** A datapack's world (the saves/ folder name; '' on a server, which has one). */
+  world?: string
   status: 'queued' | 'installing' | 'done' | 'error'
   progress: Progress | null
   /** Rejection reason (status 'error'). */
@@ -24,8 +28,10 @@ export type ContentJob = {
 
 export type ContentQueue = {
   jobs: ContentJob[]
-  enqueue: (instanceId: string, result: SearchResult) => void
+  enqueue: (instanceId: string, result: SearchResult, versionId?: string, world?: string) => void
   enqueueCreate: (result: SearchResult, create: CreateFromModpack) => void
+  /** New instance from a join file on disk; name is the server's (for the notification). */
+  enqueueJoinFile: (path: string, name: string) => void
   dismiss: (id: number) => void
   /** Stops a job: a queued one just leaves the queue, the installing one stops downloading. */
   cancel: (id: number) => void
@@ -43,13 +49,14 @@ export function useContentQueue(refreshInstances: () => Promise<void>): ContentQ
   const running = useRef(false)
   const patch = (id: number, p: Partial<ContentJob>) => setJobs((cur) => cur.map((j) => (j.id === id ? { ...j, ...p } : j)))
 
-  const push = (instanceId: string, result: SearchResult, create?: CreateFromModpack) => setJobs((cur) => {
-    const dup = cur.some((j) => j.instanceId === instanceId && j.result.id === result.id && (j.status === 'queued' || j.status === 'installing'))
+  const push = (instanceId: string, result: SearchResult, create?: CreateFromModpack, versionId?: string, world?: string) => setJobs((cur) => {
+    const dup = cur.some((j) => j.instanceId === instanceId && j.result.id === result.id && j.world === world && (j.status === 'queued' || j.status === 'installing'))
     if (dup) return cur
-    return [...cur, { id: nextId.current++, instanceId, result, create, status: 'queued', progress: null, message: '', count: 0 }]
+    return [...cur, { id: nextId.current++, instanceId, result, create, versionId, world, status: 'queued', progress: null, message: '', count: 0 }]
   })
-  const enqueue = useCallback((instanceId: string, result: SearchResult) => push(instanceId, result), [])
+  const enqueue = useCallback((instanceId: string, result: SearchResult, versionId?: string, world?: string) => push(instanceId, result, undefined, versionId, world), [])
   const enqueueCreate = useCallback((result: SearchResult, create: CreateFromModpack) => push('', result, create), [])
+  const enqueueJoinFile = useCallback((path: string, name: string) => push('', { id: `file:${path}`, slug: '', title: name, author: '', description: '', iconUrl: '', downloads: 0, projectType: 'mod', loaders: [] }, { name, icon: 'grass_block_side', gameVersion: '', loader: '', file: path }), [])
 
   const dismiss = useCallback((id: number) => setJobs((cur) => cur.filter((j) => j.id !== id)), [])
 
@@ -60,9 +67,13 @@ export function useContentQueue(refreshInstances: () => Promise<void>): ContentQ
     if (!next) return
     running.current = true
     patch(next.id, { status: 'installing' })
-    const run = next.create
+    const run = next.create?.server
+      ? api.CreateServerFromModpack(next.result.id, next.create.name, next.create.icon, next.create.server.iconPNG, next.create.gameVersion, next.create.loader).then((srv) => { patch(next.id, { instanceId: srv.id }); return 1 })
+      : next.create?.file
+      ? api.CreateInstanceFromFile(next.create.file, next.create.name, next.create.icon).then((inst) => { patch(next.id, { instanceId: inst.id }); return 1 })
+      : next.create
       ? api.CreateInstanceFromModpack(next.result.id, next.create.name, next.create.icon, next.create.gameVersion, next.create.loader).then((inst) => { patch(next.id, { instanceId: inst.id }); return 1 })
-      : api.AddContent(next.instanceId, next.result.id, next.result.projectType).then((entries) => entries.length)
+      : api.AddContent(next.instanceId, next.result.id, next.result.projectType, next.versionId ?? '', next.world ?? '').then((entries) => entries.length)
     run
       .then((count) => {
         patch(next.id, { status: 'done', count, progress: null })
@@ -88,5 +99,5 @@ export function useContentQueue(refreshInstances: () => Promise<void>): ContentQ
     })
   }, [])
 
-  return { jobs, enqueue, enqueueCreate, dismiss, cancel }
+  return { jobs, enqueue, enqueueCreate, enqueueJoinFile, dismiss, cancel }
 }

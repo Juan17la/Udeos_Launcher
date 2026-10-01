@@ -58,8 +58,11 @@ How it is built:
 
 ## Screens
 
-- **Login** (first run only): language, then nickname plus the consent
-  checkbox. Both links open the Privacy & Terms dialog. The nickname is
+- **Login** (setup, one step): nickname, language and theme (dark, light or
+  custom colours, shown live), plus the consent checkbox the first time. It
+  appears on first run and again for every added profile (`Add profile` in the
+  profiles dialog), so each profile starts the way its player wants. The
+  privacy links open the Privacy & Terms dialog. The nickname is
   validated with the same rule Minecraft uses (3–16 letters, digits or
   underscores — `NICKNAME` in `utils/validation.ts`).
 - **Dashboard**: a card per instance (icon, name, version, loader, counts of
