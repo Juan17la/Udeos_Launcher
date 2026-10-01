@@ -86,14 +86,14 @@ const es: Dict = {
     loaderUnsupported: '{loader} no tiene una versión para {version}.',
   },
   instance: {
-    editShort: 'Editar', folder: 'Carpeta', playTime: 'Tiempo jugado', edit: 'Editar nombre e icono', deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
+    editShort: 'Editar', folder: 'Carpeta', playTime: 'Jugado', edit: 'Editar nombre e icono', deleteInstance: 'Eliminar instancia', confirmDeleteTitle: '¿Eliminar esta instancia?', confirmDelete: 'Se borrará la instancia con todos sus mundos, capturas y packs. No se puede deshacer.',
     notInstalled: 'Se descarga al jugar', installed: 'Lista para jugar',
-    tabs: { datapacks: 'Datapacks', mods: 'Mods', resourcepacks: 'Paquetes de recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas', settings: 'Ajustes' },
-    views: { card: 'Tarjetas', compact: 'Compacto' }, addedByHand: 'Añadido a mano',
+    tabs: { datapacks: 'Datapacks', mods: 'Mods', resourcepacks: 'Recursos', shaders: 'Shaders', worlds: 'Mundos', screenshots: 'Capturas', settings: 'Ajustes' },
+    views: { card: 'Fichas', compact: 'Lista' }, addedByHand: 'Añadido a mano',
     saveToDevice: 'Guardar en el equipo', remove: 'Quitar', openFolder: 'Abrir carpeta', view: 'Ver',
     removeWorld: 'Eliminar mundo', confirmDeleteWorldTitle: '¿Eliminar este mundo?', confirmDeleteWorld: '"{name}" y todo lo construido en él se borrará de esta instancia. Guárdalo en tu equipo antes si quieres conservar una copia.',
     worldAdded: 'Mundo "{name}" añadido', fileAdded: '{name} añadido',
-    browse: 'Buscar archivo', add: { datapacks: 'Añadir datapacks', mods: 'Añadir mods', resourcepacks: 'Añadir paquetes de recursos', shaders: 'Añadir shaders', worlds: 'Añadir un mundo' },
+    browse: 'Examinar', add: { datapacks: 'Añadir datapacks', mods: 'Añadir mods', resourcepacks: 'Añadir recursos', shaders: 'Añadir shaders', worlds: 'Añadir un mundo' },
     empty: {
       datapacks: 'Este mundo aún no tiene datapacks. Añade uno desde Complementos o arrastra un .zip aquí.', mods: 'Aún no hay mods. Arrastra un archivo .jar aquí.', resourcepacks: 'Aún no hay paquetes de recursos. Arrastra un .zip aquí o usa Buscar.', shaders: 'Aún no hay shaders. Arrastra un shader pack aquí.',
       worlds: 'Aún no hay mundos. Juega la instancia para crear uno, o arrastra aquí una carpeta o .zip de un mundo.', screenshots: 'Aún no hay capturas. Haz una en el juego (F2) y aparecerá aquí.',

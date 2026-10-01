@@ -87,12 +87,12 @@ const en = {
   instance: {
     editShort: 'Edit', folder: 'Folder', playTime: 'Play time', edit: 'Edit name and icon', deleteInstance: 'Delete instance', confirmDeleteTitle: 'Delete this instance?', confirmDelete: 'This removes the instance and all its worlds, screenshots and packs. This cannot be undone.',
     notInstalled: 'Downloads on first play', installed: 'Ready to play',
-    tabs: { mods: 'Mods', resourcepacks: 'Resource Packs', shaders: 'Shaders', datapacks: 'Datapacks', worlds: 'Worlds', screenshots: 'Screenshots', settings: 'Settings' },
+    tabs: { mods: 'Mods', resourcepacks: 'Resources', shaders: 'Shaders', datapacks: 'Datapacks', worlds: 'Worlds', screenshots: 'Screenshots', settings: 'Settings' },
     views: { card: 'Cards', compact: 'Compact' }, addedByHand: 'Added by hand',
     saveToDevice: 'Save to Device', remove: 'Remove', openFolder: 'Open folder', view: 'View',
     removeWorld: 'Delete world', confirmDeleteWorldTitle: 'Delete this world?', confirmDeleteWorld: '"{name}" and everything built in it will be removed from this instance. Save it to your device first if you want to keep a copy.',
     worldAdded: 'Added world "{name}"', fileAdded: 'Added {name}',
-    browse: 'Browse files', add: { datapacks: 'Add datapacks', mods: 'Add mods', resourcepacks: 'Add resource packs', shaders: 'Add shaders', worlds: 'Add a world' },
+    browse: 'Browse files', add: { datapacks: 'Add datapacks', mods: 'Add mods', resourcepacks: 'Add resources', shaders: 'Add shaders', worlds: 'Add a world' },
     empty: {
       datapacks: 'No datapacks in this world yet. Add one from Addons or drag a .zip here.', mods: 'No mods installed yet. Drag a .jar file here.', resourcepacks: 'No resource packs installed yet. Drag a .zip file here or use Browse.', shaders: 'No shaders installed yet. Drag a shader pack here.',
       worlds: 'No worlds yet. Play the instance to create one, or drag a world folder or .zip here.', screenshots: 'No screenshots yet. Take one in-game (F2) and it will show up here.',

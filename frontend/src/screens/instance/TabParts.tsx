@@ -16,7 +16,7 @@ import type { ProjectType } from '../../api/types'
 export function DropArea({ children, className = '' }: { children: ReactNode; className?: string }) {
   const [over, setOver] = useState(false)
   return (
-    <div className={`rounded-md outline-offset-8 ${over ? 'outline-2 outline-dashed outline-primary' : ''} ${className}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
+    <div className={`flex-1 rounded-md outline-offset-8 ${over ? 'outline-2 outline-dashed outline-primary' : ''} ${className}`} style={{ ['--wails-drop-target' as string]: 'drop' }}
       onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false) }} onDrop={(e) => { e.preventDefault(); setOver(false) }}>
       {children}
     </div>
@@ -29,14 +29,14 @@ export function DropArea({ children, className = '' }: { children: ReactNode; cl
 export function Toolbar({ id, kind, onPick, modrinth, children }: { id: string; kind: keyof Dict['instance']['add']; onPick: () => void; modrinth?: ProjectType; children?: ReactNode }) {
   const { t, go } = useApp()
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center gap-2 min-w-0">
       {modrinth ? (
         <>
-          <Button variant="primary" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}><Plus size={13} /> {t.instance.add[kind]}</Button>
-          <Button variant="idle" onClick={() => go({ name: 'ai', instanceId: id })}><Sparkles size={13} /> {t.ai.ask}</Button>
-          <Button variant="ghost" onClick={onPick}>{t.instance.browse}</Button>
+          <Button variant="primary" size="sm" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}><Plus size={13} /> {t.instance.add[kind]}</Button>
+          <Button variant="idle" size="sm" onClick={() => go({ name: 'ai', instanceId: id })}><Sparkles size={13} /> {t.ai.ask}</Button>
+          <Button variant="ghost" size="sm" onClick={onPick}>{t.instance.browse}</Button>
         </>
-      ) : <Button variant="primary" onClick={onPick}><Plus size={13} /> {t.instance.add[kind]}</Button>}
+      ) : <Button variant="primary" size="sm" onClick={onPick}><Plus size={13} /> {t.instance.add[kind]}</Button>}
       <span className="flex-1" />
       {children}
     </div>

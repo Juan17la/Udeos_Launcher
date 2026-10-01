@@ -8,7 +8,7 @@ import { useApp } from '../../state'
 import { InstanceTags } from '../../components/Tags'
 import { ago, hours } from '../../utils/format'
 import PlayButton from '../../components/PlayButton'
-import SidePanel from '../../components/SidePanel'
+import SidePanel, { ScrollBody, SPLIT_MAIN, SplitColumn } from '../../components/SidePanel'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
 import { api } from '../../api/bridge'
 import FilesTab from './FilesTab'
@@ -50,26 +50,27 @@ export default function InstancePage({ id }: { id: string }) {
   ]
 
   return (
-    <main className="flex-1 grid grid-cols-[minmax(300px,340px)_minmax(0,1fr)] items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12">
+    <main className={SPLIT_MAIN}>
       {/* Identity on top, numbers under it, actions at the bottom (Play biggest; Delete is in Edit). */}
       <SidePanel actions={<>
         <PlayButton inst={inst} size="lg" />
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
-          <Button variant="idle" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="idle" size="sm" className="px-2!" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
+          <Button variant="idle" size="sm" className="px-2!" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
         </div>
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
-          <InstanceIcon inst={inst} size={64} />
+          {/* Decorative: the first thing to give way when the window is very short, so the panel never needs a scrollbar. */}
+          <div className="[@media(max-height:570px)]:hidden"><InstanceIcon inst={inst} size={56} /></div>
           {/* w-full: a shrink-to-fit column has no width for the name's truncation to resolve against. */}
-          <h3 className="m-0 w-full truncate" title={inst.name}>{inst.name}</h3>
+          <h3 className="m-0 w-full truncate text-[22px]" title={inst.name}>{inst.name}</h3>
           <InstanceTags inst={inst} className="justify-center" />
           <span className={`text-xs ${inst.installed ? 'text-muted' : 'text-text'}`}>{inst.installed ? t.instance.installed : t.instance.notInstalled}</span>
         </div>
 
         <dl className="m-0 grid grid-cols-2 gap-2">
           {stats.map(([label, value]) => (
-            <div key={label} className="flex flex-col px-4 py-2 rounded-md bg-panel-2 shadow-neu min-w-0">
+            <div key={label} className="flex flex-col px-2.5 py-1 rounded-md bg-panel-2 shadow-neu min-w-0">
               <dt className="text-[11px] text-muted truncate">{label}</dt>
               <dd className="m-0 text-base font-bold tabular-nums">{value}</dd>
             </div>
@@ -80,17 +81,19 @@ export default function InstancePage({ id }: { id: string }) {
         </p>
       </SidePanel>
 
-      <div className="min-w-0 flex flex-col gap-6">
+      <SplitColumn>
         <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.instance.tabs[k] }))} value={tab} onChange={setTab} />
         {/* Keyed by tab, so switching tabs replays a short fade (no movement). */}
-        <div key={tab} className="animate-[fade-in_0.15s_ease-out]">
-          {tab === 'worlds' && <WorldsTab id={inst.id} />}
-          {tab === 'datapacks' && <DatapacksTab id={inst.id} />}
-          {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
-          {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
-          {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
-        </div>
-      </div>
+        <ScrollBody>
+          <div key={tab} className="flex-1 flex flex-col animate-[fade-in_0.15s_ease-out]">
+            {tab === 'worlds' && <WorldsTab id={inst.id} />}
+            {tab === 'datapacks' && <DatapacksTab id={inst.id} />}
+            {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
+            {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
+            {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
+          </div>
+        </ScrollBody>
+      </SplitColumn>
 
       {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} onDelete={() => { setEditing(false); setConfirmDelete(true) }} />}
       {confirmDelete && (

@@ -23,7 +23,7 @@ export default function DatapacksTab({ id, server }: { id: string; server?: bool
   if (server) return <FilesTab id={id} kind="datapacks" world="" />
   if (worlds?.length === 0) return <p className="text-muted text-center text-sm px-5 py-10">{t.content.noWorlds}</p>
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex-1 flex flex-col gap-4">
       {worlds && (
         <div className="max-w-xs">
           <Label htmlFor="dp-world">{t.content.worldTab}</Label>

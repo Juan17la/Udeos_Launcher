@@ -37,9 +37,9 @@ export function Downloads({ n, className = '' }: { n: number; className?: string
 /** An instance's version and loader ("Forge 47.4.10"). */
 export function InstanceTags({ inst, className = '' }: { inst: Instance; className?: string }) {
   return (
-    <div className={`flex gap-2 flex-wrap ${className}`}>
+    <div className={`flex gap-2 min-w-0 ${className}`}>
       <VersionTag versions={[inst.version]} />
-      <span className="tag bg-gold-soft">{inst.loaderLabel}</span>
+      <span className="tag bg-gold-soft min-w-0" title={inst.loaderLabel}><span className="truncate">{inst.loaderLabel}</span></span>
     </div>
   )
 }
