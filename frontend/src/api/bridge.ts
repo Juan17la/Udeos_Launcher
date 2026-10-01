@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails —
 // `vite dev` in a browser — an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { AIAnswer, AIIntent, AIProvider, AIStatus, AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionList, World } from './types'
+import type { JoinExport, JoinInfo, AIAnswer, AITurn, AIProvider, AIStatus, Alternatives, AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionChoice, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -40,6 +40,10 @@ type Backend = {
   ListScreenshots(id: string): Promise<FileEntry[]>
   ExportScreenshot(id: string, name: string): Promise<string>
   ListResourcePacks(id: string): Promise<FileEntry[]>
+  ListDatapacks(id: string, world: string): Promise<FileEntry[]>
+  AddDatapack(id: string, world: string, path: string): Promise<FileEntry>
+  PickDatapack(id: string, world: string): Promise<FileEntry>
+  RemoveDatapack(id: string, world: string, name: string): Promise<void>
   ListMods(id: string): Promise<FileEntry[]>
   AddMod(id: string, path: string): Promise<FileEntry>
   PickMod(id: string): Promise<FileEntry>
@@ -62,16 +66,33 @@ type Backend = {
   SetAI(provider: AIProvider, key: string, model: string): Promise<AIStatus>
   /** Back to Groq with the built-in key. */
   ResetAI(): Promise<AIStatus>
-  /** Reads a search out of the message, runs it on Modrinth and picks the best few results with a reason each.
-   *  types = what the page offers now; prev = the last search; lockVersion/lockLoader = an instance's ('' = none). */
-  AskAI(message: string, types: ProjectType[], prev: AIIntent, lockVersion: string, lockLoader: string): Promise<AIAnswer>
+  /** The advisor: works out what the player needs, searches Modrinth for each need (for the instance's version
+   *  and loader, without what it already has) and explains its picks. types = what the page offers;
+   *  history = the conversation so far; instanceId = the instance being added to ('' = none). */
+  AskAI(message: string, types: ProjectType[], history: AITurn[], instanceId: string): Promise<AIAnswer>
   ListSearchGameVersions(): Promise<SearchGameVersion[]>
   /** What adding the project would install (version that fits, required dependencies), or a rejection
    *  (no build for the instance's version/loader, incompatible with an installed mod) as the error message. */
   PlanContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentPlan>
   /** Plans again and downloads; progress arrives on 'content:progress'. A modpack pours its
    *  build for the instance's version/loader into it (files already there are kept). */
-  AddContent(instanceId: string, projectId: string, projectType: ProjectType): Promise<ContentEntry[]>
+  /** world: the saves/ folder a datapack goes into (a server has one world, pass ''). */
+  AddContent(instanceId: string, projectId: string, projectType: ProjectType, versionId: string, world: string): Promise<ContentEntry[]>
+  /** Releases of the project that run on the instance (its Minecraft version and loader), newest first. */
+  ListProjectVersions(instanceId: string, projectId: string, projectType: ProjectType): Promise<VersionChoice[]>
+  /** After a conflict: other releases that fit, and when there are none, similar projects that can be added now. */
+  GetAlternatives(instanceId: string, projectId: string, projectType: ProjectType): Promise<Alternatives>
+  /** Asks where to save, then writes the server's join file: a few KB that give a friend the same version,
+   *  loader, mods and server entry. path '' = cancelled. A Vanilla server has nothing to share (rejects). */
+  ExportServerJoinFile(id: string): Promise<JoinExport>
+  /** File chooser for a .udeos file; '' when cancelled. */
+  PickJoinFile(): Promise<string>
+  /** Which server a join file is for, without installing anything (rejects when it is not a join file). */
+  ReadJoinFile(path: string): Promise<JoinInfo>
+  /** New instance from a join file; name '' = the server's name. Progress on 'content:progress'. */
+  CreateInstanceFromFile(path: string, name: string, icon: string): Promise<Instance>
+  /** Modrinth category names for one content type, for the search filter chips. */
+  ListCategories(projectType: ProjectType): Promise<string[]>
   /** New instance from a modpack: its build for gameVersion/loader ('' = newest), the loader it
    *  declares, every file and its overrides. name '' = the pack's name. Progress on 'content:progress'. */
   CreateInstanceFromModpack(projectId: string, name: string, icon: string, gameVersion: string, loader: string): Promise<Instance>
@@ -84,6 +105,7 @@ type Backend = {
   /** The active profile's servers (servers are instances with `server` set, never in ListInstances). */
   ListServers(): Promise<Server[]>
   /** EULA accepted by the caller; iconPNG = 64×64 PNG, base64 (utils/serverIcon). Nothing downloads until Start. */
+  CreateServerFromModpack(projectId: string, name: string, icon: string, iconPNG: string, gameVersion: string, loader: string): Promise<Server>
   CreateServer(name: string, version: string, loader: Loader, loaderVersion: string, icon: string, iconPNG: string): Promise<Server>
   SetServerIcon(id: string, iconPNG: string): Promise<void>
   /** Resolves once the process runs (after any download); state on 'server:state', console on 'server:log'. */

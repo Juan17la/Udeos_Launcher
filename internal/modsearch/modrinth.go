@@ -75,6 +75,10 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 	}
 	page := Page{Total: raw.TotalHits, Offset: raw.Offset, Results: make([]Result, 0, len(raw.Hits))}
 	for _, h := range raw.Hits {
+		loaders := loadersFrom(h.Categories)
+		if q.Type == TypeDatapack {
+			loaders = []string{} // a datapack runs on any loader; its fabric/forge tags only mean "also has a mod"
+		}
 		page.Results = append(page.Results, Result{
 			ID:           h.ProjectID,
 			Slug:         h.Slug,
@@ -83,12 +87,21 @@ func (m *Modrinth) Search(ctx context.Context, q Query) (Page, error) {
 			Description:  truncateDescription(h.Description, maxDescriptionLen),
 			IconURL:      h.IconURL,
 			Downloads:    h.Downloads,
-			ProjectType:  ProjectType(h.ProjectType),
-			Loaders:      loadersFrom(h.Categories),
+			ProjectType:  resultType(q.Type, h.ProjectType),
+			Loaders:      loaders,
 			GameVersions: releasesFrom(h.Versions),
 		})
 	}
 	return page, nil
+}
+
+// resultType is the type a hit is shown as: what was asked for when that is
+// datapacks (Modrinth reports them as "mod"), else the hit's own.
+func resultType(asked ProjectType, hit string) ProjectType {
+	if asked == TypeDatapack {
+		return TypeDatapack
+	}
+	return ProjectType(hit)
 }
 
 // searchURL builds the /search request. Modrinth's index parameter picks the
@@ -107,10 +120,14 @@ func searchURL(q Query, limit int) string {
 // OR-groups, ANDed together (each inner array is an OR, the outer array is an AND).
 func buildFacets(q Query) string {
 	groups := [][]string{{"project_type:" + string(q.Type)}}
+	if q.Type == TypeMod {
+		groups = append(groups, []string{"categories!=datapack"}) // datapacks have their own type
+	}
 	if q.GameVersion != "" {
 		groups = append(groups, []string{"versions:" + q.GameVersion})
 	}
-	if q.Loader != "" {
+	// Datapacks carry fabric/forge tags but load anywhere: no loader group.
+	if q.Loader != "" && q.Type != TypeDatapack {
 		var group []string
 		for _, l := range LoaderNames(q.Loader) {
 			group = append(group, "categories:"+l)
@@ -246,6 +263,7 @@ type modrinthProject struct {
 	ProjectType string `json:"project_type"`
 	Description string `json:"description"`
 	IconURL     string `json:"icon_url"`
+	ClientSide  string `json:"client_side"`
 }
 
 func (raw modrinthVersion) toVersion() Version {
@@ -337,7 +355,7 @@ func (m *Modrinth) Projects(ctx context.Context, ids []string) ([]ProjectInfo, e
 	}
 	out := make([]ProjectInfo, 0, len(raw))
 	for _, p := range raw {
-		out = append(out, ProjectInfo{ID: p.ID, Slug: p.Slug, Title: p.Title, ProjectType: ProjectType(p.ProjectType), Description: truncateDescription(p.Description, maxDescriptionLen), IconURL: p.IconURL})
+		out = append(out, ProjectInfo{ID: p.ID, Slug: p.Slug, Title: p.Title, ProjectType: ProjectType(p.ProjectType), Description: truncateDescription(p.Description, maxDescriptionLen), IconURL: p.IconURL, ClientSide: p.ClientSide})
 	}
 	return out, nil
 }

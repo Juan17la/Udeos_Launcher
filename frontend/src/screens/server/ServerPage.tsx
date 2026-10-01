@@ -2,26 +2,28 @@ import { useEffect, useState } from 'react'
 import InstanceIcon from '../../components/InstanceIcon'
 import ServerButton, { ServerStatus, shareAddress } from '../../components/ServerButton'
 import { InstanceTags } from '../../components/Tags'
-import BackButton from '../../components/BackButton'
 import SidePanel from '../../components/SidePanel'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
-import { Folder, Pencil, X } from '../../ui/icons'
+import { Folder, Pencil } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
 import SegmentedControl from '../../ui/SegmentedControl'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { hours } from '../../utils/format'
+import { fmt } from '../../i18n/format'
 import { messageOf } from '../../utils/errors'
 import FilesTab from '../instance/FilesTab'
-import SettingsTab from '../instance/SettingsTab'
+import DatapacksTab from '../instance/DatapacksTab'
 import ConsoleTab from './ConsoleTab'
 import PlayersTab from './PlayersTab'
-import InternetTab, { CopyAddress } from './InternetTab'
+import InternetTab from './InternetTab'
+import CopyAddress from '../../components/CopyAddress'
+import JoinFile from './JoinFile'
 import BackupsTab from './BackupsTab'
 import ServerSettingsTab from './ServerSettingsTab'
 
-type Tab = 'console' | 'players' | 'internet' | 'backups' | 'mods' | 'settings'
+type Tab = 'console' | 'players' | 'internet' | 'backups' | 'mods' | 'datapacks' | 'settings'
 
 /** Last tab open per server, so coming back reopens it. */
 const lastTab = new Map<string, Tab>()
@@ -29,10 +31,10 @@ const lastTab = new Map<string, Tab>()
 /** One server, laid out like an instance: identity, numbers and Start/Stop
  *  in the side panel, everything to manage in tabs. */
 export default function ServerPage({ id }: { id: string }) {
-  const { t, servers, profile, refreshInstances, go } = useApp()
+  const { t, servers, refreshInstances, go } = useApp()
   const server = servers.find((s) => s.id === id)
-  const tabs: Tab[] = !server || server.loader === 'Vanilla' ? ['console', 'players', 'internet', 'backups', 'settings'] : ['console', 'players', 'internet', 'backups', 'mods', 'settings']
-  const [tab, setTabState] = useState<Tab>(() => lastTab.get(id) ?? 'console')
+  const tabs: Tab[] = !server || server.loader === 'Vanilla' ? ['console', 'players', 'internet', 'backups', 'datapacks', 'settings'] : ['console', 'players', 'internet', 'backups', 'mods', 'datapacks', 'settings']
+  const [tab, setTabState] = useState<Tab>(() => lastTab.get(id) ?? (server?.running ? 'console' : 'players')) // the console is a wall of text: only while it is running
   const setTab = (k: Tab) => { lastTab.set(id, k); setTabState(k) }
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -54,24 +56,20 @@ export default function ServerPage({ id }: { id: string }) {
 
   const stats: [string, string | number][] = [
     [t.servers.playersStat, `${server.state.players.length}/${server.maxPlayers}`],
-    [t.servers.port, server.port],
-    [t.servers.memory, `${server.launch.maxMemoryMB || profile?.maxMemoryMB || 2048} MB`],
     [t.servers.runTime, `${hours(server.playTimeSec)} h`],
   ]
   const address = shareAddress(server)
+  // Never finished a run and still coming up: the first start downloads the server and builds the world.
+  const firstStart = server.running && !server.state.ready && !server.state.stopping && !server.lastPlayed
 
   return (
     <main className="flex-1 grid grid-cols-[minmax(300px,340px)_minmax(0,1fr)] items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12">
-      <BackButton className="col-span-2" />
       <SidePanel actions={<>
         <ServerButton server={server} size="lg" />
         <div className="grid grid-cols-2 gap-3">
           <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
           <Button variant="idle" onClick={() => api.OpenInstanceFolder(server.id, '')}><Folder /> {t.instance.folder}</Button>
         </div>
-        <Button variant="danger" size="sm" onClick={() => setConfirmDelete(true)}>
-          <X size={12} /> {t.servers.deleteServer}
-        </Button>
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
           <InstanceIcon inst={server} size={64} />
@@ -88,10 +86,16 @@ export default function ServerPage({ id }: { id: string }) {
             </div>
           ))}
         </dl>
-        {address && <CopyAddress label={t.servers.address} address={address} />}
       </SidePanel>
 
       <div className="min-w-0 flex flex-col gap-6">
+        {/* The address friends type, big and first: players should never have to hunt for it. */}
+        <div className="flex flex-col gap-2">
+          {address && <CopyAddress big label={t.servers.addressKinds[address.kind]} address={address.address} />}
+          {server.public && address?.kind !== 'internet' && <p className="m-0 text-xs text-muted">{t.servers.addressPending}</p>}
+          <JoinFile server={server} />
+          {firstStart && <p className="m-0 px-4 py-3 rounded-md bg-gold-soft text-ink text-sm" role="status"><b>{fmt(t.servers.firstStart, { name: server.name })}.</b> {t.servers.firstStartBody}</p>}
+        </div>
         <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.servers.tabs[k] }))} value={tabs.includes(tab) ? tab : 'console'} onChange={setTab} />
         <div key={tab} className="animate-[fade-in_0.15s_ease-out]">
           {tab === 'console' && <ConsoleTab server={server} />}
@@ -99,16 +103,14 @@ export default function ServerPage({ id }: { id: string }) {
           {tab === 'internet' && <InternetTab server={server} />}
           {tab === 'backups' && <BackupsTab server={server} />}
           {tab === 'mods' && <FilesTab id={server.id} kind="mods" />}
+          {tab === 'datapacks' && <DatapacksTab id={server.id} server />}
           {tab === 'settings' && (
-            <div className="flex flex-col gap-8">
-              <ServerSettingsTab key={server.id} server={server} />
-              <SettingsTab key={`launch-${server.id}`} inst={server} />
-            </div>
+            <ServerSettingsTab key={server.id} server={server} />
           )}
         </div>
       </div>
 
-      {editing && <EditInstanceDialog inst={server} onClose={() => setEditing(false)} />}
+      {editing && <EditInstanceDialog inst={server} onClose={() => setEditing(false)} onDelete={() => { setEditing(false); setConfirmDelete(true) }} />}
       {confirmDelete && (
         <ConfirmDialog danger busy={deleting} title={t.servers.confirmDeleteTitle} confirmLabel={t.common.delete}
           body={deleteError ?? (server.running ? `${t.servers.confirmDelete} ${t.servers.confirmDeleteRunning}` : t.servers.confirmDelete)}

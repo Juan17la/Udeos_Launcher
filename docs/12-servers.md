@@ -27,8 +27,8 @@ Code map:
 `CreateServer` makes the instance and then writes three things into its
 folder:
 
-- `eula.txt` with `eula=true` — the create form makes the player accept
-  Mojang's EULA first; a server refuses to start without it.
+- `eula.txt` with `eula=true` — the create form says that creating the server
+  accepts Mojang's EULA (with a link to it); a server refuses to start without it.
 - `server.properties` with the server's name as `motd`, the first free
   **port** from 25565 upwards that no other Udeos server uses and no other
   program is listening on, and
@@ -47,6 +47,25 @@ creation, so renaming the server later does not change the address friends
 saved. Nothing is downloaded yet. Quilt servers are refused (Quilt ships no
 dedicated server installer the launcher can drive; most Quilt mods run on a
 Fabric server).
+
+The create form picks **Vanilla / With mods / From a modpack** (the latest
+release is preselected). **From a modpack** searches Modrinth modpacks, then
+`CreateServerFromModpack` runs as a background job (Activity button) and the
+server appears in the list when it is ready: `modpack.Manager.CreateServer`
+takes the pack's server side only (files marked `env.server: unsupported` are
+skipped, `server-overrides/` replaces `client-overrides/`, a pack's own
+`server.properties` is merged) and refuses a Quilt pack. A modpack's Details
+page has a **New server from this modpack** button that opens the form with it
+chosen. `initServer` (app_servers.go) is the shared bootstrap: EULA, port,
+defaults, owner.
+
+### Datapacks
+
+A server has a **Datapacks** tab (every loader, Vanilla included): datapacks go
+into `<level-name>/datapacks/` (the folder is made if the world is not
+generated yet). They are added from Addons (type Datapacks), by file, or by
+dropping a file anywhere on the tab. Game instances have the same tab with a
+world picker; see [Adding content](10-adding-content.md#datapacks).
 
 ## Starting it on this computer
 
@@ -218,6 +237,38 @@ public IP is private or in the CGNAT range, the forward exists but is
 useless and the tab says so. The forward is removed (`upnp.Unmap`) when
 access closes. No UPnP on the router → the tab explains how to forward the
 port by hand or suggests the relay.
+
+## The join file: friends without the mods
+
+A modded server is hard to join: the friend needs the same Minecraft version,
+the same loader and build, every mod, the resource pack. **Save file for
+friends** (server page, Fabric/Forge/NeoForge servers) writes a `.udeos` file
+of a few KB; a friend drops it on **New instance** (or chooses it) and the
+launcher builds the instance: version, loader, every mod, pack and shader
+downloaded and hash-checked, the server already in the multiplayer list.
+
+| Piece | Where |
+|-------|-------|
+| Export (`ExportServerJoinFile`) | `internal/modpack/joinfile.go` `ExportJoin`, button in `screens/server/JoinFile.tsx` |
+| Import (`PickJoinFile`, `ReadJoinFile`, `CreateInstanceFromFile`) | `modpack.Manager.CreateFromJoin`, **Import file** button on `screens/CreateInstance.tsx`, job in `state/useContentQueue.ts` (`enqueueJoinFile`) |
+| `servers.dat` writer | `content.WriteServersDat` (an existing list is never overwritten) |
+
+The file is a zip in the layout of a Modrinth modpack, so importing reuses the
+modpack code: `modrinth.index.json` (Minecraft version, loader build, and each
+file as download address + SHA-1/SHA-512 + size, found with one hash lookup on
+Modrinth) and `udeos.json` (`{name, address, resourcePack}`). Things to know:
+
+- Mods Modrinth marks **server-only** (`client_side: unsupported`) are left out;
+  the player does not need them.
+- A file that is **not on Modrinth** cannot be referenced, so it is put inside
+  (`overrides/`). The file is then bigger; the confirmation says how many.
+- The **address** is the internet one the server last had. A server that has
+  never run has none: the file is saved anyway and the UI says to start the
+  server once and save again.
+- The server's own **resource pack** (`resource-pack` in `server.properties`)
+  is downloaded into `resourcepacks/`, not switched on: the server offers it
+  again on joining. Datapacks are not included (they live on the server).
+- A Vanilla server has nothing to share: friends join with plain Minecraft.
 
 ## Pitfalls worth knowing
 

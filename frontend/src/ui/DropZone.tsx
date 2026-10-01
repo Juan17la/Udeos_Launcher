@@ -18,7 +18,7 @@ export default function DropZone({ text, hint, children, className = '', promine
     >
       {prominent ? (
         <>
-          <span aria-hidden className="flex-none grid place-items-center w-12 h-12 rounded-md bg-primary text-white shadow-primary"><Download size={22} /></span>
+          <span aria-hidden className="flex-none grid place-items-center w-12 h-12 rounded-md bg-primary text-on-primary shadow-primary"><Download size={22} /></span>
           <span className="flex-1 min-w-40 flex flex-col gap-1">
             <span className="text-base font-bold">{text}</span>
             {hint && <span className="text-xs text-muted">{hint}</span>}

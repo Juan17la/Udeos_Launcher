@@ -39,6 +39,21 @@ func TestNicknamesKeepActiveFirstAndDedupe(t *testing.T) {
 	}
 }
 
+// A custom theme keeps its colours per nickname; a bad colour falls back to the default.
+func TestCustomColors(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "profile.json")
+	c := Colors{Background: "#000000", Panel: "#101010", Primary: "#ff00aa", Secondary: "nope", Third: "#222222"}
+	p, _ := Save(path, Profile{Nickname: "Steve", Theme: "custom", Colors: c, Agreed: true})
+	if p.Theme != "custom" || p.Colors.Primary != "#ff00aa" || p.Colors.Secondary != DefaultColors.Secondary {
+		t.Fatalf("custom: %+v %s", p.Colors, p.Theme)
+	}
+	p, _ = Save(path, Profile{Nickname: "Alex", Nicknames: p.Nicknames, Theme: "light", Agreed: true})
+	p, _ = Save(path, Profile{Nickname: "Steve", Nicknames: p.Nicknames, Agreed: true})
+	if p.Theme != "custom" || p.Colors.Background != "#000000" {
+		t.Fatalf("back to Steve: %+v %s", p.Colors, p.Theme)
+	}
+}
+
 // Each nickname keeps its own language and theme; a new one starts with the current ones.
 func TestPrefsPerNickname(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "profile.json")

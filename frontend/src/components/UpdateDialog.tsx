@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
+import ErrorMessage from './ErrorMessage'
 import Dialog from '../ui/Dialog'
 import Button from '../ui/Button'
-import StatusMessage from '../ui/StatusMessage'
 import { useApp } from '../state'
 import { api, openExternal } from '../api/bridge'
 import type { Update } from '../api/types'
 import { fmt } from '../i18n/format'
-import { errorHeadline, messageOf } from '../utils/errors'
+import { messageOf } from '../utils/errors'
 
 /** Asks once per start when GitHub has a newer release: Update downloads and
  *  installs it (the launcher closes), Later hides it until the next start. */
@@ -30,7 +30,7 @@ export default function UpdateDialog() {
     </>}>
       <div className="flex flex-col gap-4">
         {fmt(t.update.body, { version: update.version })}
-        {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
+        {error && <ErrorMessage message={error} />}
       </div>
     </Dialog>
   )

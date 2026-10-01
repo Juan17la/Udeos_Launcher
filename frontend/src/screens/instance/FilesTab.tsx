@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { X } from '../../ui/icons'
 import Button from '../../ui/Button'
 import AutoLoader from '../../ui/Loader'
@@ -7,25 +7,25 @@ import ProjectIcon from '../../components/ProjectIcon'
 import { useApp, useContent } from '../../state'
 import { api } from '../../api/bridge'
 import { useFileList } from '../../hooks/useFileList'
-import { FILE_KINDS, FileKind } from '../../utils/instanceContent'
+import { FILE_KINDS, FileKind, datapackSource } from '../../utils/instanceContent'
 import { bytes } from '../../utils/format'
-import { AddZone, Feedback, FolderLink } from './TabParts'
+import { DropArea, Feedback, FolderLink, Toolbar } from './TabParts'
 import type { ContentEntry, FileEntry } from '../../api/types'
 
 type View = 'card' | 'compact'
 const VIEW_KEY = 'files:view'
 
-/** Mods, shader packs and resource packs: a drop zone plus Browse / Add from
- *  Modrinth, the file list, Remove per row. Two views of the list: cards
+/** Mods, shader packs and resource packs: one toolbar (Add from Addons, Ask AI,
+ *  Browse; dropping a file anywhere on the tab works), the file list, Remove per row. Two views of the list: cards
  *  (default: icon, title, description and version from Modrinth) and
  *  compact rows (file name and size). Files added by hand have no Modrinth
  *  record, so their card is the file name alone. */
-export default function FilesTab({ id, kind }: { id: string; kind: FileKind }) {
+export default function FilesTab({ id, kind, world = '' }: { id: string; kind: FileKind; /** datapacks: the world (saves/ folder; '' on a server) */ world?: string }) {
   const { t, go } = useApp()
   const { jobs } = useContent()
   // A Modrinth card opens its Details page (Add there stays locked to this instance).
   const details = (e: ContentEntry) => go({ name: 'detail', instanceId: id, result: { id: e.projectId, slug: '', title: e.title, author: '', description: e.description ?? '', iconUrl: e.iconUrl ?? '', downloads: 0, projectType: e.type, loaders: [] } })
-  const source = FILE_KINDS[kind]
+  const source = useMemo(() => (kind === 'datapacks' ? datapackSource(world) : FILE_KINDS[kind]), [kind, world])
   // A finished Addons install re-lists the tab (useFileList reloads when this changes).
   const finished = jobs.filter((j) => j.instanceId === id && j.status === 'done').length
   const { items, note, error, pick, remove, clearNote } = useFileList(id, source, t.instance.fileAdded, finished)
@@ -34,20 +34,19 @@ export default function FilesTab({ id, kind }: { id: string; kind: FileKind }) {
 
   useEffect(() => {
     let live = true
-    api.ListContent(id).then((entries) => { if (live) setMeta(new Map(entries.map((e) => [e.file, e]))) }).catch(() => {})
+    api.ListContent(id).then((entries) => { if (live) setMeta(new Map(entries.filter((e) => kind !== 'datapacks' || (e.type === 'datapack' && (!world || e.world === `saves/${world}`))).map((e) => [e.file, e]))) }).catch(() => {})
     return () => { live = false }
-  }, [id, items])
+  }, [id, items, kind, world])
 
   const pickView = (v: View) => { setView(v); try { localStorage.setItem(VIEW_KEY, v) } catch { /* private mode */ } }
 
   return (
-    <div className="flex flex-col gap-4">
-      <AddZone id={id} kind={t.instance.kinds[kind]} onPick={pick} modrinth={source.modrinth} />
-      <Feedback error={error} note={note} onClearNote={clearNote} />
-      <div className="flex items-center justify-between gap-4">
+    <DropArea className="flex flex-col gap-4">
+      <Toolbar id={id} kind={kind} onPick={pick} modrinth={source.modrinth}>
         <SegmentedControl options={[{ value: 'card', label: t.instance.views.card }, { value: 'compact', label: t.instance.views.compact }]} value={view} onChange={pickView} />
-        <FolderLink id={id} sub={source.folder} />
-      </div>
+        <FolderLink id={id} sub={source.folder} compact />
+      </Toolbar>
+      <Feedback error={error} note={note} onClearNote={clearNote} />
       <AutoLoader active={items === null} label={t.common.loading} />
       {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty[kind]}</p>}
       {view === 'card' ? (
@@ -55,7 +54,7 @@ export default function FilesTab({ id, kind }: { id: string; kind: FileKind }) {
           {items?.map((f) => { const e = meta.get(f.name); return <FileCard key={f.name} file={f} entry={e} onRemove={() => remove(f)} onOpen={e && (() => details(e))} /> })}
         </div>
       ) : items?.map((f) => <FileRow key={f.name} file={f} entry={meta.get(f.name)} onRemove={() => remove(f)} />)}
-    </div>
+    </DropArea>
   )
 }
 

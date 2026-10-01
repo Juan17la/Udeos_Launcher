@@ -1,8 +1,8 @@
-// Package ai turns a player's plain-language request ("a performance mod for
-// fabric") into content-search filters, so the Addons page can search
-// Modrinth for it. The model only ever picks filter values out of lists it
-// is given — every result, version and dependency still comes from Modrinth
-// through internal/modsearch.
+// Package ai is the addon advisor: it turns a player's plain-language
+// request ("make my game faster") into a plan of Modrinth searches, runs
+// them, and explains a few real results (advisor.go). The model only ever
+// picks filter values and ids out of lists it is given — every result,
+// version and dependency still comes from Modrinth through internal/modsearch.
 //
 // It asks a hosted model: Groq with the key built into release builds (see
 // Seal), or the player's own Groq, Claude, OpenAI, Gemini or Grok key. A
@@ -150,19 +150,6 @@ type Intent struct {
 	Sort        string   `json:"sort"`
 }
 
-// answer is the part of an Intent the model decides. Version and loader are
-// exact words in the request, read without it (see mentioned).
-type answer struct {
-	Type       string   `json:"type"`
-	Categories []string `json:"categories"`
-	Sort       string   `json:"sort"`
-	Query      string   `json:"query"`
-}
-
-func answerOf(i Intent) answer {
-	return answer{Type: i.Type, Categories: i.Categories, Sort: i.Sort, Query: i.Query}
-}
-
 // Allowed is every value an Intent may hold; anything else the model says is dropped.
 type Allowed struct {
 	Types      []string            // project types the page offers right now
@@ -254,84 +241,6 @@ func (m *Manager) Reset() (Status, error) {
 	return m.status(Settings{Provider: "groq"}), nil
 }
 
-// Parse asks the model which search the message describes. prev is the
-// search on screen, so follow-ups ("only fabric", "newer ones") refine it.
-func (m *Manager) Parse(ctx context.Context, message string, prev Intent, allow Allowed) (Intent, error) {
-	if len(allow.Types) == 0 {
-		return Intent{}, errors.New("no content type to search")
-	}
-	prev = validate(prev, allow)
-	message = cleanText(message, 300)
-	reply, err := m.ask(ctx, systemPrompt(allow), schema(allow), conversation(message, prev))
-	if err != nil {
-		return Intent{}, err
-	}
-	return intentOf(reply, message, prev, allow)
-}
-
-// Candidate is one Modrinth search result the model may recommend.
-type Candidate struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Downloads   int64  `json:"downloads"`
-}
-
-// Choice is one recommendation: a candidate's ID and why it fits the request.
-type Choice struct {
-	ID     string `json:"id"`
-	Reason string `json:"reason"`
-}
-
-// Pick asks the model which candidates (Modrinth's results for the request)
-// fit it best, up to max, best first, each with one short sentence in the
-// player's language on why. IDs are checked against candidates, so the
-// model can only recommend projects Modrinth returned; the reason is the one
-// piece of model-written text the player sees (shown as plain text).
-func (m *Manager) Pick(ctx context.Context, message string, candidates []Candidate, max int) ([]Choice, error) {
-	if len(candidates) == 0 {
-		return nil, nil
-	}
-	var list strings.Builder
-	ids := make([]string, len(candidates))
-	for i, c := range candidates {
-		c.Description = cleanText(c.Description, 200)
-		raw, _ := json.Marshal(c)
-		list.Write(raw)
-		list.WriteByte('\n')
-		ids[i] = c.ID
-	}
-	system := fmt.Sprintf(`A Minecraft player asked for addons. The user message holds their request and real search results from Modrinth, one JSON object per line.
-Pick the 1-%d results that fit the request best, best first. For each, write one short sentence (at most 20 words) telling the player why it fits, in the same language as the request. Use only ids from the list; never mention projects that are not in it.
-Reply with JSON only: {"picks": [{"id": "...", "reason": "..."}]}`, max)
-	items := map[string]any{
-		"type": "object", "additionalProperties": false, "required": []string{"id", "reason"},
-		"properties": map[string]any{"id": enum(ids), "reason": map[string]any{"type": "string"}},
-	}
-	reply, err := m.ask(ctx, system, object(field{"picks", map[string]any{"type": "array", "items": items}}),
-		[]chatMessage{{"user", "Request: " + cleanText(message, 300) + "\nResults:\n" + list.String()}})
-	if err != nil {
-		return nil, err
-	}
-	i, j := strings.Index(reply, "{"), strings.LastIndex(reply, "}")
-	if i < 0 || j < i {
-		return nil, errors.New("AI answer was not understood")
-	}
-	var out struct {
-		Picks []Choice `json:"picks"`
-	}
-	if err := json.Unmarshal([]byte(reply[i:j+1]), &out); err != nil {
-		return nil, fmt.Errorf("AI answer was not understood: %w", err)
-	}
-	var picks []Choice
-	for _, c := range out.Picks {
-		if slices.Contains(ids, c.ID) && !slices.ContainsFunc(picks, func(p Choice) bool { return p.ID == c.ID }) && len(picks) < max {
-			picks = append(picks, Choice{ID: c.ID, Reason: cleanText(c.Reason, 200)})
-		}
-	}
-	return picks, nil
-}
-
 // ask sends one conversation to the picked provider and returns its reply.
 // Claude's answer is held to schema; the others are asked for JSON in system.
 func (m *Manager) ask(ctx context.Context, system string, schema json.RawMessage, msgs []chatMessage) (string, error) {
@@ -353,61 +262,9 @@ func (m *Manager) ask(ctx context.Context, system string, schema json.RawMessage
 	return askChat(ctx, m.http, p.url, key, model, system, msgs)
 }
 
-// systemPrompt teaches the model the job and lists the categories it may pick.
-func systemPrompt(allow Allowed) string {
-	var b strings.Builder
-	b.WriteString(`You turn a Minecraft player's request into search filters for the Modrinth addon site.
-Reply with one JSON object only: {"type": ..., "categories": [...], "sort": ..., "query": ...}.
-- type: one of ` + strings.Join(allow.Types, ", ") + ` ("resourcepack" = textures). Pick it from the request; keep the current type only if the request does not say.
-- categories: 0-2 from the list for that type, when one fits the request.
-- sort: "downloads" for popular/best/top, "newest" for new, "updated" for recently updated, else "relevance".
-- query: 1-2 keywords from the request that no category covers (a theme or a project name), else "". Never invent names.
-Categories:
-`)
-	for _, t := range allow.Types {
-		if cats := allow.Categories[t]; len(cats) > 0 {
-			b.WriteString(t + ": " + strings.Join(cats, ", ") + "\n")
-		}
-	}
-	return b.String()
-}
-
 type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
-}
-
-// examples are worked turns, one chained conversation: each request refines
-// the filters the previous one produced.
-var examples = []struct {
-	request string
-	answer  answer
-}{
-	{"best performance mods for fabric 1.20.1", answer{"mod", []string{"optimization"}, "downloads", ""}},
-	{"something with dragons instead", answer{"mod", []string{}, "relevance", "dragons"}},
-	{"medieval textures", answer{"resourcepack", []string{}, "relevance", "medieval"}},
-	{"realistic shaders with nice shadows", answer{"shader", []string{"realistic", "shadows"}, "relevance", ""}},
-	{"a popular tech modpack", answer{"modpack", []string{"technology"}, "downloads", ""}},
-	{"storage mods", answer{"mod", []string{"storage"}, "relevance", ""}},
-	{"quiero mods de magia nuevos", answer{"mod", []string{"magic"}, "newest", ""}},
-}
-
-func turn(current answer, request string) string {
-	raw, _ := json.Marshal(current)
-	return "Current filters: " + string(raw) + "\nRequest: " + request
-}
-
-// conversation is the worked examples, then the player's message on top of
-// the search on screen (the system prompt goes separately).
-func conversation(message string, prev Intent) []chatMessage {
-	var msgs []chatMessage
-	shown := answer{Type: "mod", Categories: []string{}, Sort: "relevance"}
-	for _, ex := range examples {
-		raw, _ := json.Marshal(ex.answer)
-		msgs = append(msgs, chatMessage{"user", turn(shown, ex.request)}, chatMessage{"assistant", string(raw)})
-		shown = ex.answer
-	}
-	return append(msgs, chatMessage{"user", turn(answerOf(prev), message)})
 }
 
 // askChat asks an OpenAI-style chat-completions endpoint. Only model and
@@ -504,23 +361,6 @@ func statusError(code int, body, key string) error {
 	return fmt.Errorf("AI provider: %d %s %s", code, http.StatusText(code), body)
 }
 
-// intentOf reads the model's JSON (models may wrap it in prose or a
-// ```json fence) and turns it into a validated Intent.
-func intentOf(reply, message string, prev Intent, allow Allowed) (Intent, error) {
-	i, j := strings.Index(reply, "{"), strings.LastIndex(reply, "}")
-	if i < 0 || j < i {
-		return Intent{}, errors.New("AI answer was not understood")
-	}
-	var a answer
-	if err := json.Unmarshal([]byte(reply[i:j+1]), &a); err != nil {
-		return Intent{}, fmt.Errorf("AI answer was not understood: %w", err)
-	}
-	ldr, v := mentioned(message, allow)
-	in := Intent{Type: a.Type, Query: a.Query, Categories: a.Categories, Sort: a.Sort,
-		GameVersion: cmp.Or(v, prev.GameVersion), Loader: cmp.Or(ldr, prev.Loader)}
-	return validate(in, allow), nil
-}
-
 // mentioned reads the loader and Minecraft version straight from the
 // player's words, where they are exact tokens: models mix up forge/neoforge
 // and drop versions.
@@ -572,28 +412,6 @@ func object(fields ...field) json.RawMessage {
 	b.Write(req)
 	b.WriteByte('}')
 	return b.Bytes()
-}
-
-// schema is the JSON schema of an answer restricted to allow's values. No
-// maxItems/maxLength: structured-output APIs reject them, and validate cuts
-// both anyway.
-func schema(allow Allowed) json.RawMessage {
-	var cats []string
-	for _, t := range allow.Types {
-		cats = append(cats, allow.Categories[t]...)
-	}
-	slices.Sort(cats)
-	cats = slices.Compact(cats)
-	items := map[string]any{"type": "string"}
-	if len(cats) > 0 {
-		items = enum(cats)
-	}
-	return object( // same order as answer's fields
-		field{"type", enum(allow.Types)},
-		field{"categories", map[string]any{"type": "array", "items": items}},
-		field{"sort", enum(sorts)},
-		field{"query", map[string]any{"type": "string"}},
-	)
 }
 
 // validate keeps only values allow lists. Whatever the model says is

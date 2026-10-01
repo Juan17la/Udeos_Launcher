@@ -40,7 +40,7 @@ export function Checkbox({ label, className = '', ...rest }: CheckboxProps) {
   return (
     <label className={`inline-flex items-center gap-3 cursor-pointer text-sm select-none ${className}`}>
       <input type="checkbox" className="peer absolute w-0 h-0 opacity-0 pointer-events-none appearance-none rounded-md" {...rest} />
-      <span className="w-7 h-7 flex-none inline-flex items-center justify-center rounded-md bg-idle text-text shadow-neu transition-all duration-150 ease-in-out peer-checked:bg-primary peer-checked:text-white peer-focus-visible:outline-2 peer-focus-visible:outline-primary peer-focus-visible:outline-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
+      <span className="w-7 h-7 flex-none inline-flex items-center justify-center rounded-md bg-idle text-on-idle shadow-neu transition-all duration-150 ease-in-out peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary peer-focus-visible:outline-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
         <Check size={14} />
       </span>
       {label !== undefined && <span>{label}</span>}

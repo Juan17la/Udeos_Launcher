@@ -5,29 +5,15 @@ import { Input, Label } from '../../ui/Field'
 import SegmentedControl from '../../ui/SegmentedControl'
 import StatusMessage from '../../ui/StatusMessage'
 import { useApp } from '../../state'
-import { api, copyText } from '../../api/bridge'
+import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
 import { messageOf } from '../../utils/errors'
 import { Feedback } from '../instance/TabParts'
+import CopyAddress from '../../components/CopyAddress'
+import ErrorMessage from '../../components/ErrorMessage'
 import type { Server } from '../../api/types'
 
 type Mode = 'relay' | 'router'
-
-/** An address with a Copy button (the button says "Copied" for a moment). */
-export function CopyAddress({ label, address }: { label: string; address: string }) {
-  const { t } = useApp()
-  const [copied, setCopied] = useState(false)
-  const copy = () => { copyText(address); setCopied(true); setTimeout(() => setCopied(false), 1500) }
-  return (
-    <div className="flex items-center gap-3 px-4 py-2 rounded-md bg-panel-2 shadow-neu min-w-0">
-      <div className="flex-1 min-w-0 flex flex-col">
-        <span className="text-[11px] text-muted">{label}</span>
-        <span className="text-sm font-bold truncate select-text" title={address}>{address}</span>
-      </div>
-      <Button variant="ghost" size="sm" onClick={copy}>{copied ? t.servers.copied : t.servers.copy}</Button>
-    </div>
-  )
-}
 
 /** How friends join: the local address, and the internet address — through
  *  a free relay (works behind any router or CGNAT) or straight through the
@@ -76,8 +62,8 @@ export default function InternetTab({ server }: { server: Server }) {
             <p className="m-0 text-xs text-muted select-text">{fmt(ti.raw, { raw: publicRaw })}</p>
           )}
           {server.public && publicError && running && (
-            <StatusMessage kind="error" headline={ti.failed} detail={<>{publicError}<br />
-              {savedMode === 'router' ? fmt(ti.manual, { port: server.port, ip: lanIP || 'localhost' }) : ti.relayFailed}</>} />
+            <StatusMessage kind="error" headline={ti.failed}
+              detail={savedMode === 'router' ? fmt(ti.manual, { port: server.port, ip: lanIP || 'localhost' }) : ti.relayFailed} />
           )}
           <div className="flex justify-end">
             {server.public
@@ -90,9 +76,12 @@ export default function InternetTab({ server }: { server: Server }) {
         {server.loader === 'Vanilla' ? fmt(ti.needs, { version: server.version }) : fmt(ti.needsMods, { version: server.version, loader: server.loader })}
         {server.udeosLogin && ` ${ti.needsUdeos}`}
       </p>
-      {error && <StatusMessage kind="error" headline={t.errors.failed} detail={error} />}
+      {error && <ErrorMessage message={error} />}
 
-      <AddressSettings key={server.id} server={server} />
+      <details>
+        <summary className="cursor-pointer text-sm font-bold select-none">{ti.advanced}</summary>
+        <AddressSettings key={server.id} server={server} />
+      </details>
 
       {warning && (
         <Dialog title={ti.warnTitle} width={500} onClose={() => setWarning(false)} actions={<>

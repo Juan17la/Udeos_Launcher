@@ -133,6 +133,12 @@ func Arguments(p Params) []string {
 		if runtime.GOOS == "darwin" {
 			args = append(args, "-XstartOnFirstThread")
 		}
+		// The bundled Java 8u51 crashes the game at start ("GetAdaptersAddresses
+		// function failed", also under wine) when seeding SecureRandom on some
+		// Windows network setups; IPv4-only skips the adapter path that fails.
+		if p.Env.OS == "windows" {
+			args = append(args, "-Djava.net.preferIPv4Stack=true")
+		}
 		args = append(args,
 			"-Djava.library.path="+vars["natives_directory"],
 			"-Dminecraft.launcher.brand="+LauncherName,

@@ -27,7 +27,7 @@ export default function StatusMessage({ kind = 'neutral', headline, detail, asid
       className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'border-error shadow-error-glow' : ''} ${kind === 'success' ? 'animate-[pulse-primary_0.9s_ease-out]' : ''} ${accent === 'gold' ? 'border-gold-deep/70' : ''}`}>
       <div className="flex items-start gap-3">
         {kind !== 'neutral' && (
-          <span className={`flex-none inline-flex items-center justify-center w-7 h-7 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-white'}`}>
+          <span className={`flex-none inline-flex items-center justify-center w-7 h-7 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-on-primary'}`}>
             {kind === 'error' ? <X size={14} /> : <Check size={14} />}
           </span>
         )}
