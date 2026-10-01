@@ -1,55 +1,48 @@
 import InstanceIcon from '../components/InstanceIcon'
 import Decor, { DASHBOARD_DECOR } from '../ui/Decor'
 import Button from '../ui/Button'
+import NewTile from '../components/NewTile'
 import PlayButton from '../components/PlayButton'
 import { InstanceTags } from '../components/Tags'
 import { useApp } from '../state'
-import { fmt } from '../i18n/format'
 import { ago, hours, revealDelay } from '../utils/format'
+import { fmt } from '../i18n/format'
 import type { Instance } from '../api/types'
 
 export default function Dashboard() {
-  const { t, language, instances, go } = useApp()
-  const last = instances[0]
-
+  const { t, instances, go } = useApp()
+  // The instance played most recently, with the version it runs: its own panel on the left.
+  const last = instances.reduce<Instance | null>((best, i) => (i.lastPlayed && (!best || i.lastPlayed > best.lastPlayed!) ? i : best), null)
   return (
-    <main className="flex-1 relative overflow-clip grid grid-cols-[minmax(0,1fr)_330px] items-start gap-8 pt-8 px-10 pb-12">
+    <main className={`flex-1 relative overflow-clip grid items-start gap-x-8 gap-y-6 pt-8 px-10 pb-12 ${last ? 'grid-cols-[minmax(320px,380px)_minmax(0,1fr)]' : 'grid-cols-1'}`}>
       <Decor slots={DASHBOARD_DECOR} />
-
+      {last && <LastPlayed inst={last} />}
       <div className="relative z-1 min-w-0 flex flex-col gap-6">
-        <div>
-          <h2 className="mb-2">{t.dashboard.title}</h2>
-          <p className="m-0 text-muted">{t.dashboard.subtitle}</p>
+        <h2 className="m-0">{t.dashboard.title}</h2>
+        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(235px, 1fr))' }}>
+          <NewTile label={t.nav.newInstance} onClick={() => go({ name: 'create' })} />
+          {instances.map((inst, i) => <InstanceCard key={inst.id} inst={inst} index={i} />)}
         </div>
-        {instances.length === 0 ? (
-          <div className="flex flex-col items-center gap-4 text-muted text-center px-5 pt-12 pb-10">
-            <p className="m-0">{t.dashboard.empty}</p>
-            <Button variant="primary" onClick={() => go({ name: 'create' })}>{t.dashboard.createFirst}</Button>
-          </div>
-        ) : (
-          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
-            {instances.map((inst, i) => <InstanceCard key={inst.id} inst={inst} index={i} />)}
-          </div>
-        )}
       </div>
-
-      {last && (
-        <div className="panel relative z-1 flex flex-col items-center gap-4 text-center p-6 sticky top-24 h-[calc(100vh-9.5rem)] min-h-fit">
-          <span className="text-[11px] tracking-[0.12em] uppercase text-muted">{t.dashboard.lastPlayed}</span>
-          <InstanceIcon inst={last} size={120} />
-          <h3 className="m-0 whitespace-nowrap overflow-hidden text-ellipsis max-w-full">{last.name}</h3>
-          <InstanceTags inst={last} className="justify-center" />
-          <p className="m-0 text-[13px] text-muted">
-            {last.lastPlayed ? fmt(t.dashboard.playedAgo, { when: ago(last.lastPlayed, language), hours: hours(last.playTimeSec) }) : t.dashboard.neverPlayed}
-          </p>
-          {/* Pinned to the panel's bottom, both the same size. */}
-          <div className="mt-auto w-full flex flex-col gap-4">
-            <PlayButton inst={last} size="lg" />
-            <Button variant="secondary" size="lg" block onClick={() => go({ name: 'instance', id: last.id })}>{t.dashboard.openInstance}</Button>
-          </div>
-        </div>
-      )}
     </main>
+  )
+}
+
+/** The last instance played: icon, name, the version and loader it runs, when, and Play. */
+function LastPlayed({ inst }: { inst: Instance }) {
+  const { t, language, go } = useApp()
+  return (
+    <aside className="panel relative z-1 sticky top-8 h-[calc(100vh-var(--nav-h)-5rem)] flex flex-col items-center gap-6 p-8 text-center" aria-label={t.dashboard.lastPlayed}>
+      <h6 className="m-0 text-muted">{t.dashboard.lastPlayed}</h6>
+      <InstanceIcon inst={inst} size={112} />
+      <div className="w-full min-w-0 font-bold text-2xl leading-[1.2] truncate" title={inst.name}>{inst.name}</div>
+      <InstanceTags inst={inst} className="justify-center" />
+      <p className="m-0 text-sm text-muted">{fmt(t.dashboard.playedAgo, { when: ago(inst.lastPlayed!, language), hours: hours(inst.playTimeSec) })}</p>
+      <div className="w-full flex flex-col gap-3 mt-auto">
+        <PlayButton inst={inst} size="lg" />
+        <Button variant="idle" onClick={() => go({ name: 'instance', id: inst.id })}>{t.dashboard.manage}</Button>
+      </div>
+    </aside>
   )
 }
 
@@ -69,9 +62,10 @@ function InstanceCard({ inst, index }: { inst: Instance; index: number }) {
         </div>
       </div>
       <div className="flex items-center gap-4 text-xs text-muted">
-        {inst.loader !== 'Vanilla' && <span>{inst.counts.mods} {t.dashboard.mods}</span>}
-        <span>{inst.counts.resourcePacks} {t.dashboard.packs}</span>
-        <span>{inst.counts.worlds} {t.dashboard.worlds}</span>
+        {inst.counts.mods > 0 && <span>{inst.counts.mods} {t.dashboard.mods}</span>}
+        {inst.counts.resourcePacks > 0 && <span>{inst.counts.resourcePacks} {t.dashboard.packs}</span>}
+        {inst.counts.worlds > 0 && <span>{inst.counts.worlds} {t.dashboard.worlds}</span>}
+        {!inst.lastPlayed && <span>{t.dashboard.neverPlayed}</span>}
       </div>
       {/* Play must not also open the card. */}
       <div className="flex gap-4 mt-auto" onClick={(e) => e.stopPropagation()}>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronDown, Globe, Moon, Shield, Sun, User } from '../ui/icons'
+import { ThemeDialog } from './ThemePicker'
 import Button from '../ui/Button'
 import { useApp } from '../state'
 import { LANGUAGES } from '../i18n'
@@ -9,13 +10,13 @@ import { SkinFace } from './SkinView'
 /** Nickname button in the nav that opens a glass popover: Switch profile
  *  (opens the profiles modal), theme, language and the privacy & terms dialog. */
 export default function AccountMenu() {
-  const { t, theme, setTheme, language, setLanguage, nickname, setPrivacyOpen, skins } = useApp()
+  const { t, scheme, language, setLanguage, nickname, setPrivacyOpen, skins } = useApp()
   const face = skins?.skins.find((k) => k.id === skins.equipped[nickname])?.png
   const [open, setOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [profilesOpen, setProfilesOpen] = useState(false)
+  const [themeOpen, setThemeOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const dark = theme === 'dark'
   const currentLanguage = LANGUAGES.find((l) => l.code === language)
 
   useEffect(() => {
@@ -41,9 +42,9 @@ export default function AccountMenu() {
             <User size={16} /> {t.profiles.switch}
           </Button>
           <div className="h-px bg-idle/40" />
-          <Button variant="ghost" block className="justify-start" onClick={() => setTheme(dark ? 'light' : 'dark')}>
-            {dark ? <Sun size={16} /> : <Moon size={16} />}
-            {dark ? t.nav.themeToLight : t.nav.themeToDark}
+          <Button variant="ghost" block className="justify-start" onClick={() => { setThemeOpen(true); setOpen(false) }}>
+            {scheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
+            {t.nav.theme}
           </Button>
           <div className="h-px bg-idle/40" />
           <Button variant="ghost" block className="justify-start" onClick={() => setLangOpen((v) => !v)}>
@@ -68,6 +69,7 @@ export default function AccountMenu() {
         </div>
       )}
       {profilesOpen && <ProfileDialog onClose={() => setProfilesOpen(false)} />}
+      {themeOpen && <ThemeDialog onClose={() => setThemeOpen(false)} />}
     </div>
   )
 }

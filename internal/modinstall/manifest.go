@@ -17,17 +17,22 @@ import (
 
 // Entry is one file the launcher installed from the provider.
 type Entry struct {
-	ProjectID     string   `json:"projectId"`
-	VersionID     string   `json:"versionId"`
-	Title         string   `json:"title"`
-	VersionNumber string   `json:"versionNumber"`
-	Type          string   `json:"type"` // mod | resourcepack | shader
-	File          string   `json:"file"` // file name inside mods/, resourcepacks/ or shaderpacks/
-	SHA1          string   `json:"sha1"`
-	Incompatible  []string `json:"incompatible,omitempty"` // project ids this version declares incompatible
-	RequiredBy    string   `json:"requiredBy,omitempty"`   // project id it was pulled in for; "" = the player asked for it
-	Description   string   `json:"description,omitempty"`  // the provider's one-liner, for the content list's card view
-	IconURL       string   `json:"iconUrl,omitempty"`
+	ProjectID     string `json:"projectId"`
+	VersionID     string `json:"versionId"`
+	Title         string `json:"title"`
+	VersionNumber string `json:"versionNumber"`
+	Type          string `json:"type"` // mod | resourcepack | shader | datapack
+	File          string `json:"file"` // file name inside mods/, resourcepacks/, shaderpacks/ or the world's datapacks/
+	// World is the world folder (relative to the game folder, slash-separated) a datapack is in: "saves/My World" for an instance, "world" for a server.
+	World        string   `json:"world,omitempty"`
+	SHA1         string   `json:"sha1"`
+	Incompatible []string `json:"incompatible,omitempty"` // project ids this version declares incompatible (every version of them)
+	// IncompatibleVersions are version ids it declares incompatible when the
+	// conflict is with one release of a project, not the whole project.
+	IncompatibleVersions []string `json:"incompatibleVersions,omitempty"`
+	RequiredBy           string   `json:"requiredBy,omitempty"`  // project id it was pulled in for; "" = the player asked for it
+	Description          string   `json:"description,omitempty"` // the provider's one-liner, for the content list's card view
+	IconURL              string   `json:"iconUrl,omitempty"`
 }
 
 // manifestMu serialises writes to content.json files; adds are rare and short.
@@ -73,7 +78,7 @@ func Append(path string, entries []Entry) error {
 		return err
 	}
 	for _, e := range entries {
-		have = slices.DeleteFunc(have, func(h Entry) bool { return h.ProjectID != "" && h.ProjectID == e.ProjectID })
+		have = slices.DeleteFunc(have, func(h Entry) bool { return h.ProjectID != "" && h.ProjectID == e.ProjectID && h.World == e.World })
 		have = append(have, e)
 	}
 	return save(path, have)
@@ -88,11 +93,24 @@ func Forget(path, sub, fileName string) error {
 	if err != nil {
 		return err
 	}
-	kept := slices.DeleteFunc(have, func(h Entry) bool { return h.File == fileName && typeSubdir(h.Type) == sub })
+	kept := slices.DeleteFunc(have, func(h Entry) bool { return h.File == fileName && dirOf(h.Type, h.World) == sub })
 	if len(kept) == len(have) {
 		return nil
 	}
 	return save(path, kept)
+}
+
+// dirOf is the game sub-folder (slash-separated) an entry's file lives in: the
+// type's own folder, or for a datapack the datapacks/ folder of its world.
+// "" for a datapack with no world (it cannot be placed).
+func dirOf(t, world string) string {
+	if t == "datapack" {
+		if world == "" {
+			return ""
+		}
+		return world + "/datapacks"
+	}
+	return typeSubdir(t)
 }
 
 // typeSubdir maps a content type onto the game sub-folder it lives in.

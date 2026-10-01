@@ -10,7 +10,7 @@
 import steve from './default_skin.png'
 import alex from './default_skin_slim.png'
 
-export type Theme = 'light' | 'dark'
+export type Scheme = 'light' | 'dark'
 
 /** Minecraft's own skins (64×64): Steve is what a profile wears until it
  *  picks one (the game gets it too); a new skin starts from Steve or Alex. */
@@ -54,7 +54,7 @@ export const ICON_CHOICES: string[] = [
 export const iconLabel = (key: string) => key.replace(/_side$/, '').replace(/_standby$/, '').split('_').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
 
 /** Items floating behind the login and dashboard, per theme (cycled by Decor). */
-export const THEME_DECOR: Record<Theme, string[]> = {
+export const THEME_DECOR: Record<Scheme, string[]> = {
   light: ['diamond_pickaxe', 'diamond', 'apple', 'grass_block_side', 'emerald', 'iron_sword', 'golden_apple'],
   dark: ['ender_pearl', 'netherite_sword', 'netherite_ingot', 'golden_apple', 'end_crystal', 'nether_star', 'obsidian'],
 }

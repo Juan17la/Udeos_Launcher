@@ -24,19 +24,52 @@ type Profile struct {
 	UUID        string   `json:"uuid"`
 	Nicknames   []string `json:"nicknames"`
 	Language    string   `json:"language"` // "en" | "es"
-	Theme       string   `json:"theme"`    // "light" (default) | "dark"
+	Theme       string   `json:"theme"`    // "light" (default) | "dark" | "custom"
+	Colors      Colors   `json:"colors"`   // the palette of the "custom" theme
 	Agreed      bool     `json:"agreed"`   // accepted Privacy Policy & Terms of Use
 	MaxMemoryMB int      `json:"maxMemoryMB"`
 	JavaPath    string   `json:"javaPath,omitempty"` // optional override; empty = managed runtime
-	// Prefs is every nickname's language and theme (the active one's mirrors
-	// Language/Theme). Kept by Save from the file, never from the caller.
+	// Prefs is every nickname's language, theme and colours (the active one's mirrors
+	// Language/Theme/Colors). Kept by Save from the file, never from the caller.
 	Prefs map[string]Prefs `json:"prefs,omitempty"`
+}
+
+// Colors is the personalised theme: five #rrggbb picks. Everything else
+// (hover tints, text, shadows) is derived from them in the frontend, so the
+// text always contrasts whatever the player chooses.
+type Colors struct {
+	Background string `json:"background"`
+	Panel      string `json:"panel"`
+	Primary    string `json:"primary"`
+	Secondary  string `json:"secondary"`
+	Third      string `json:"third"`
+}
+
+// DefaultColors is where the personalised theme starts: a calm teal on deep blue.
+var DefaultColors = Colors{Background: "#11202B", Panel: "#1A2E3C", Primary: "#2DB6A3", Secondary: "#3B5A74", Third: "#27404F"}
+
+var hexRe = regexp.MustCompile(`^#[0-9a-fA-F]{6}$`)
+
+// normalize keeps only valid #rrggbb values, falling back to the default per colour.
+func (c *Colors) normalize() {
+	for _, f := range []struct {
+		v   *string
+		def string
+	}{
+		{&c.Background, DefaultColors.Background}, {&c.Panel, DefaultColors.Panel}, {&c.Primary, DefaultColors.Primary},
+		{&c.Secondary, DefaultColors.Secondary}, {&c.Third, DefaultColors.Third},
+	} {
+		if !hexRe.MatchString(*f.v) {
+			*f.v = f.def
+		}
+	}
 }
 
 // Prefs is what each nickname chooses for itself.
 type Prefs struct {
 	Language string `json:"language"`
 	Theme    string `json:"theme"`
+	Colors   Colors `json:"colors"`
 }
 
 // DefaultMaxMemoryMB is the JVM heap given to the game unless the player changes it.
@@ -85,7 +118,7 @@ func Save(path string, p Profile) (Profile, error) {
 	}
 	old, _ := Load(path) // none yet on first login
 	if pr, ok := old.Prefs[p.Nickname]; ok && old.Nickname != p.Nickname {
-		p.Language, p.Theme = pr.Language, pr.Theme
+		p.Language, p.Theme, p.Colors = pr.Language, pr.Theme, pr.Colors
 	}
 	p.Prefs = old.Prefs
 	p.UUID = OfflineUUID(p.Nickname)
@@ -101,9 +134,10 @@ func (p *Profile) normalize() {
 	if p.Language != "es" {
 		p.Language = "en"
 	}
-	if p.Theme != "dark" {
+	if p.Theme != "dark" && p.Theme != "custom" {
 		p.Theme = "light"
 	}
+	p.Colors.normalize()
 	if p.MaxMemoryMB < 512 {
 		p.MaxMemoryMB = DefaultMaxMemoryMB
 	}
@@ -118,9 +152,10 @@ func (p *Profile) normalize() {
 	prefs := map[string]Prefs{}
 	for _, n := range names {
 		if pr, ok := p.Prefs[n]; ok {
+			pr.Colors.normalize() // files from before the custom theme have none
 			prefs[n] = pr
 		}
 	}
-	prefs[p.Nickname] = Prefs{p.Language, p.Theme}
+	prefs[p.Nickname] = Prefs{p.Language, p.Theme, p.Colors}
 	p.Prefs = prefs
 }

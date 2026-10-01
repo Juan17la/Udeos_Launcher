@@ -1,4 +1,4 @@
-/* Theme source of truth for the pastel Minecraft design system
+/* Theme source of truth for the Udeos design system
    (docs/11-design-system.md). Everything a component needs — colors, the
    one radius, the neumorphic/glass shadows, the font, the transition — is
    registered once in @theme below and used as ordinary Tailwind utilities
@@ -31,16 +31,19 @@
   --default-transition-duration: 150ms;
   --default-transition-timing-function: ease-in-out;
 
-  /* Fills that differ per theme (Pastel Overworld / Pastel End) are the
-     runtime variables below; only the badge tints, ink and error are the
-     same in both. `primary` is mint in light and ender lavender in dark, so
-     it is named for its role, never its colour. */
+  /* Fills that differ per theme (light, dark, custom) are the runtime
+     variables below; only the badge tints, ink and error are the same in all.
+     `primary` is blue in light and purple in dark, so it is named for its
+     role, never its colour. `on-*` is the text that reads on that fill. */
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
   --color-secondary: var(--color-secondary);
   --color-secondary-hover: var(--color-secondary-hover);
   --color-idle: var(--color-idle);
   --color-idle-hover: var(--color-idle-hover);
+  --color-on-primary: var(--color-on-primary);
+  --color-on-secondary: var(--color-on-secondary);
+  --color-on-idle: var(--color-on-idle);
   --color-bg: var(--color-bg);
   --color-text: var(--color-text);
   --color-muted: var(--color-muted);
@@ -50,14 +53,14 @@
   --color-glass-border: var(--color-glass-border);
 
   /* Shared badges and accents. `ink` is the dark text on a light tag fill. */
-  --color-green-soft: #CBE3C3; /* Minecraft version badge */
-  --color-gold-soft: #F5DF98;  /* loader badge */
-  --color-gold: #F5DF98;       /* the loading ring */
-  --color-gold-deep: #E3B447;  /* first-install progress: warmer so a slow run reads as expected, not stuck */
-  --color-tag-gray: var(--color-tag-gray); /* light in both themes: tags keep ink text */
-  --color-ink: #36302B;
-  --color-error: #8A4C80;
-  --color-error-soft: #D4C1D9;
+  --color-green-soft: var(--color-green-soft); /* Minecraft version badge */
+  --color-gold-soft: var(--color-gold-soft);   /* loader badge */
+  --color-gold: var(--color-gold);             /* the loading ring, "starting" dots */
+  --color-gold-deep: var(--color-gold-deep);   /* first-install progress: a different shade so a slow run reads as expected, not stuck */
+  --color-tag-gray: var(--color-tag-gray);
+  --color-ink: var(--color-ink);               /* text on the three tag fills and the gold notes */
+  --color-error: #B83B4B;
+  --color-error-soft: #F4A3AE;
 
   /* Neumorphism: warm taupe shadow + white rim light on cream, deep violet
      shadow + faint lavender rim on obsidian. Coloured elevation under the
@@ -72,58 +75,80 @@
   --shadow-focus: var(--shadow-neu-inset), 0 0 0 4px color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
-/* ── Light: Pastel Overworld (the default) ───────────────────────────── */
+/* ── Light: white canvas, blue palette (the default) ─────────────────── */
 :root, :root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #F6F3EB;              /* soft birch cream canvas */
-  --color-panel: #FCFBF8;           /* warm off-white panels and cards */
-  --color-panel-2: #F3F0E8;         /* rows inside a panel */
-  --color-primary: #9BBF9D;         /* pastel mint: Play, New Instance */
-  --color-primary-hover: #86AE89;
-  --color-secondary: #9EC5CB;       /* pastel sky blue: Open instance */
-  --color-secondary-hover: #8BB6BD;
-  --color-idle: #DCD7CF;            /* warm pebble gray: profile button, inactive toggles */
-  --color-idle-hover: #D0CAC1;
-  --color-tag-gray: #DCD7CF;
-  --color-text: #36302B;            /* soft oak charcoal */
-  --color-muted: #8C847D;           /* muted earth brown */
-  --color-glass: rgba(252, 251, 248, 0.7);
-  --color-glass-border: rgba(255, 255, 255, 0.85);
-  --shadow-neu: 3px 3px 8px rgba(54, 48, 43, 0.08), -3px -3px 8px rgba(255, 255, 255, 0.85);
-  --shadow-neu-inset: inset 3px 3px 8px rgba(54, 48, 43, 0.06), inset -3px -3px 8px rgba(255, 255, 255, 0.85);
-  --shadow-primary: 0 4px 12px rgba(155, 191, 157, 0.35);
-  --shadow-secondary: 0 4px 12px rgba(158, 197, 203, 0.35);
+  --color-bg: #FFFFFF;
+  --color-panel: #F4F7FC;           /* cool off-white panels and cards */
+  --color-panel-2: #E8EEF8;         /* rows inside a panel */
+  --color-primary: #2563EB;         /* blue: Play, New Instance, selected */
+  --color-primary-hover: #1D4ED8;
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #BFDBFE;       /* soft sky blue: Open instance */
+  --color-secondary-hover: #A5CBFA;
+  --color-on-secondary: #0F172A;
+  --color-idle: #E2E8F0;            /* neutral slate: profile button, inactive toggles */
+  --color-idle-hover: #CBD5E1;
+  --color-on-idle: #0F172A;
+  --color-tag-gray: #E2E8F0;
+  --color-green-soft: #DBEAFE;      /* version tags: pale blue */
+  --color-gold-soft: #E0E7FF;       /* loader tags: pale indigo */
+  --color-gold: #93C5FD;
+  --color-gold-deep: #3B82F6;
+  --color-ink: #0F172A;
+  --color-text: #0F172A;
+  --color-muted: #64748B;
+  --color-glass: rgba(255, 255, 255, 0.75);
+  --color-glass-border: rgba(37, 99, 235, 0.15);
+  --shadow-neu: 3px 3px 8px rgba(15, 23, 42, 0.08), -3px -3px 8px rgba(255, 255, 255, 0.9);
+  --shadow-neu-inset: inset 3px 3px 8px rgba(15, 23, 42, 0.07), inset -3px -3px 8px rgba(255, 255, 255, 0.9);
+  --shadow-primary: 0 4px 12px rgba(37, 99, 235, 0.3);
+  --shadow-secondary: 0 4px 12px rgba(147, 197, 253, 0.4);
   --decor-glow: none;
 }
 
-/* ── Dark: Pastel End ────────────────────────────────────────────────── */
+/* ── Dark: full black, calm blue palette (the light theme's blue, toned down) ── */
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #29252E;              /* muted obsidian canvas */
-  --color-panel: #383240;           /* deep lavender-gray panels, cards, popups */
-  --color-panel-2: #4D4556;         /* charcoal-purple rows and secondary fills */
-  --color-primary: #AA8CC5;         /* pastel ender lavender: Play, active tab */
-  --color-primary-hover: #BBA1D3;
-  --color-secondary: #4D4556;       /* no End blue in the palette: the charcoal-purple fill */
-  --color-secondary-hover: #5A5164;
-  --color-idle: #4D4556;            /* profile button, inactive toggles */
-  --color-idle-hover: #5A5164;
-  --color-tag-gray: #AFA6B8;        /* soft muted violet, so ink text still reads */
-  --color-text: #EDE7F2;            /* off-white lavender */
-  --color-muted: #AFA6B8;           /* soft muted violet */
-  --color-glass: rgba(56, 50, 64, 0.7);
-  --color-glass-border: rgba(217, 195, 225, 0.08);
-  --shadow-neu: 6px 6px 14px rgba(15, 12, 20, 0.5), -6px -6px 14px rgba(217, 195, 225, 0.05);
-  --shadow-neu-inset: inset 3px 3px 8px rgba(15, 12, 20, 0.35), inset -3px -3px 8px rgba(217, 195, 225, 0.05);
-  --shadow-primary: 0 4px 12px rgba(170, 140, 197, 0.3);
-  --shadow-secondary: 0 4px 12px rgba(15, 12, 20, 0.35);
-  --decor-glow: drop-shadow(0 0 12px rgba(194, 145, 217, 0.4)); /* magenta halo behind the floating End items */
+  --color-bg: #000000;
+  --color-panel: #0A1018;           /* a breath above black, so panels read */
+  --color-panel-2: #131C28;         /* rows inside a panel */
+  --color-primary: #2F5DA8;         /* Play, New Instance, selected */
+  --color-primary-hover: #3B6EBD;
+  --color-on-primary: #F2F6FF;
+  --color-secondary: #132238;       /* Open instance */
+  --color-secondary-hover: #1B3150;
+  --color-on-secondary: #DCE8FA;
+  --color-idle: #121B27;            /* profile button, inactive toggles */
+  --color-idle-hover: #1C2838;
+  --color-on-idle: #E6EEF8;
+  --color-tag-gray: #1E2A3A;        /* tags are dark blue tints with light text */
+  --color-green-soft: #1A3556;      /* version tags */
+  --color-gold-soft: #25406B;       /* loader tags */
+  --color-gold: #6FA0E0;            /* the loading ring, "starting" dots */
+  --color-gold-deep: #3B6EBD;
+  --color-ink: #DCE8FA;
+  --color-text: #E6EEF8;
+  --color-muted: #8FA3BC;
+  --color-glass: rgba(10, 16, 24, 0.72);
+  --color-glass-border: rgba(90, 140, 220, 0.2);
+  /* Shadows vanish on black: a faint blue rim does the lifting. */
+  --shadow-neu: 0 0 0 1px rgba(90, 140, 220, 0.12), 0 6px 18px rgba(0, 0, 0, 0.6);
+  --shadow-neu-inset: inset 0 2px 8px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(90, 140, 220, 0.1);
+  --shadow-primary: 0 4px 16px rgba(47, 93, 168, 0.4);
+  --shadow-secondary: 0 4px 12px rgba(19, 34, 56, 0.6);
+  --decor-glow: drop-shadow(0 0 10px rgba(90, 140, 220, 0.35)); /* blue halo behind the floating items */
 }
+
+/* ── Custom: the player's own five colours; utils/theme.ts sets every variable above inline. ── */
 
 /* ── Base tag defaults (element selectors, not component classes — same
    role as Tailwind's own preflight layer) ──────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-html, body, #root { min-height: 100vh; }
+/* --nav-h is the real height of the top bar, measured by Nav (72px until then): every
+   page that must fit the window, and everything sticky under the bar, is sized from it. */
+:root { --nav-h: 72px; }
+html, body, #root { height: 100vh; overflow: hidden; }
 body {
   margin: 0; font-size: 15px; line-height: 1.55;
   color: var(--color-text); font-family: var(--font-mono);
@@ -134,6 +159,9 @@ input, textarea { -webkit-user-select: text; user-select: text; }
 /* Layered, so the size/weight utilities on a control still win. */
 @layer base { button, input, select, textarea { font: inherit; } }
 #root { display: flex; flex-direction: column; }
+/* The window never scrolls: the nav and the Back row are fixed rows and each page's
+   <main> is the one scroller under them, so nothing sticky has to follow the scroll. */
+#root > main { flex: 1 1 0; min-height: 0; overflow-x: hidden; overflow-y: auto; }
 /* Headings sit directly on the canvas, never inside a panel. */
 h1, h2, h3, h4, h5, h6 { font-family: var(--font-mono); font-weight: 700; line-height: 1.15; margin: 0 0 8px; }
 h1 { font-size: 40px; }
@@ -154,12 +182,10 @@ img { display: block; max-width: 100%; }
 /* Page change: the new page fades in while rising 6px, 200ms. Every screen's
    <main> is a direct child of #root and is remounted on navigation, so the
    one rule covers them all; reduced motion keeps only the fade. */
-@keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 #root > main { animation: page-in 0.2s ease-out; }
 @media (prefers-reduced-motion: reduce) { #root > main { animation-name: fade-in; } }
-/* Notifications slide in from the right edge. */
-@keyframes toast-in { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
 /* The launch modal: the instance's block hops, its shadow shrinks under it, the bar's stripes march. */
 @keyframes block-hop { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(-6deg); } }
 @keyframes block-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.6); opacity: 0.5; } }
@@ -173,22 +199,19 @@ img { display: block; max-width: 100%; }
 }
 
 /* Cards rise in once, when they mount (--reveal-delay, set per card index,
-   staggers them). Pure CSS on purpose — no scroll observer, no hidden
-   state toggled from JS — and nothing else touches opacity or transform:
-   WebKitGTK paints a card blank for a frame whenever its compositing layer
-   is created or dropped, or when a transition and an animation fight over
-   the same property. So:
-   - will-change pins the layer for the card's whole life (`translate`
-     because panel-hover lifts with it);
-   - the animation ends (and, fill-mode both, stays) on translateZ(0), the
-     transform panel-hover's transform-gpu sets, never `none`;
-   - transitions are limited to what hover changes (panel's transition-all
-     would also transition opacity/transform under the animation). */
-@keyframes rise-in { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: translateZ(0); } }
+   staggers the first ten; later cards have no animation at all).
+   Nothing here pins a compositing layer: WebKitGTK scrolls a page of cards
+   (30 per Addons page, each with its buttons and a big shadow) smoothly only
+   while the cards are plain paint. An earlier version kept every card on its
+   own layer (will-change, translateZ(0), a filled animation) to hide a white
+   flash on hover; 30 cards and their buttons made ~100 layers and the scroll
+   stuttered. So: no will-change, no transform on hover (see panel-hover), and
+   the animation is `backwards`, which releases the element when it ends. */
+@keyframes rise-in { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
 .reveal {
-  will-change: opacity, transform, translate;
-  transition-property: translate, box-shadow, background-color, color;
-  animation: rise-in 0.35s ease-out both;
+  /* Only what hover changes: a transition on opacity/transform would fight the entrance animation. */
+  transition-property: box-shadow, background-color, color;
+  animation: rise-in 0.3s ease-out backwards;
   animation-delay: var(--reveal-delay, 0ms);
 }
 /* Placeholder while something loads: a soft light sweeping across. */
@@ -205,14 +228,13 @@ img { display: block; max-width: 100%; }
 /* ── Surfaces (docs/11-design-system.md): look only, no layout, so the
    caller writes its own flex/gap/padding. ───────────────────────────── */
 /* Neumorphic panel: sits on the canvas with soft light-and-shadow. Forms,
-   side panels, cards; `panel-hover` lifts a clickable card. transform-gpu
-   (translateZ(0)) keeps the card on its own compositing layer all the
-   time: WebKitGTK otherwise creates the layer when the hover lift starts
-   and drops it when it ends, painting it blank for a frame (a white flash
-   on a quick hover in and out). will-change-transform was not enough:
-   Tailwind 4 lifts with the separate `translate` property, not `transform`. */
+   side panels, cards; `panel-hover` deepens a clickable card's shadow on
+   hover. Hover never moves or layers a card: a lift (transform) makes
+   WebKitGTK create and drop a compositing layer around it, which flashed on
+   a quick hover and, pinned permanently to hide that, made long lists scroll
+   badly. Shadow and colour changes are plain paint. */
 @utility panel { @apply rounded-md bg-panel shadow-neu transition-all; }
-@utility panel-hover { @apply transform-gpu hover:-translate-y-0.5 hover:shadow-glass; }
+@utility panel-hover { @apply hover:shadow-glass; }
 /* Glass: translucent and blurred. Dialogs, popovers, toasts, loaders, status messages. */
 @utility glass { @apply rounded-md bg-glass border border-glass-border backdrop-blur-lg shadow-glass; }
 /* Tag: add the fill — bg-tag-gray (neutral metadata), bg-green-soft (active /

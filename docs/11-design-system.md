@@ -82,6 +82,21 @@ second half maps each rule to where it lives in the code.
 | Secondary button (hover) | Pastel gold `#FFD369` | Pastel gold `#FFD369` |
 | Glass containers | Translucent dark fill + `backdrop-filter: blur(16px)` | Translucent light fill + `backdrop-filter: blur(16px)` |
 
+### Themes (2026-09-30, current)
+
+The launcher has three themes, chosen per profile (AccountMenu → Theme, and on the setup screen):
+
+- **Dark** — full black (`#000000`, panels `#0A1018`), a calm blue palette: the light theme's blue toned down (primary `#2F5DA8`, secondary `#132238`, loading ring `#6FA0E0`). The floating background items are drawn 2.4× stronger than in light.
+- Tags (`green-soft`, `gold-soft`, `tag-gray`), the ring (`gold`) and their text (`ink`) are theme variables too, so they follow each theme's palette.
+- **Light** — white (`#FFFFFF`, panels `#F4F7FC`), blue palette (primary `#2563EB`, secondary `#BFDBFE`).
+- **Custom** — the player picks five colours (background, panels, primary, secondary, third); `utils/theme.ts`
+  derives everything else (hover tints, muted text, shadows) and picks every text colour by WCAG contrast
+  (`--color-text`, `--color-on-primary`, `--color-on-secondary`, `--color-on-idle`). Never write `text-white` on a
+  themed fill: use `text-on-primary` / `text-on-secondary` / `text-on-idle`, so a custom colour stays readable.
+  Dark and light are the same variables in `tokens.css`; custom sets them inline on `<html>`.
+
+The two palettes below (Pastel Overworld / End) are history. `ghost` buttons are outlined with no fill, except the remove buttons in the profiles dialog.
+
 ### Revisions
 
 - **Palette (2026-09-18, current)** — Pastel Overworld (light, the default)
@@ -119,9 +134,13 @@ second half maps each rule to where it lives in the code.
 - **Slider selector**: option groups (Addons type tabs, instance tabs, the
   loader picker, the nav) are a recessed light-gray track with a green thumb
   that slides under the chosen option (`SegmentedControl`).
-- **Motion**: buttons lift 1px on hover and press to 98%; notifications slide
-  in from the right (`toast-in`); status messages fade in; the slider thumb
-  and every hover/active state transition in 150ms.
+- **Motion**: hover and press are colour and shadow only. Nothing moves or
+  scales on hover (buttons and cards used to lift): a transform gives the element a
+  compositing layer, and on a page of 30 cards and their buttons that made
+  scrolling stutter in WebKitGTK. Cards rise in once when they mount (the first
+  ten, staggered); background work and finished notes appear in the nav (Activity),
+  status messages fade in; the slider thumb and every hover/active state
+  transition in 150ms. Rule: no `will-change`, no `transform-gpu`, no transform on hover.
 - **Play**: while its instance is being prepared the Play button is disabled
   at full opacity with a gold loader ring running round its edge
   (`Button loading`); the install itself reports as a bottom-right

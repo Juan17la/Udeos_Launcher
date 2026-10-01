@@ -52,6 +52,8 @@ func (m *Manager) Apply(ctx context.Context, inst instance.Instance, plan Plan) 
 			_, err = content.AddResourcePack(gameDir, tasks[i].Path)
 		case "shader":
 			_, err = content.AddShaderPack(gameDir, tasks[i].Path)
+		case "datapack":
+			_, err = content.AddDatapack(gameDir, dirOf("datapack", plan.World), tasks[i].Path)
 		default:
 			err = errors.New("unknown content type " + it.Type)
 		}
@@ -59,15 +61,23 @@ func (m *Manager) Apply(ctx context.Context, inst instance.Instance, plan Plan) 
 			failed = fmt.Errorf("%s: %w", it.Title, err)
 			break
 		}
-		var incompatible []string
+		var incompatible, pinned []string
 		for _, d := range it.Version.Dependencies {
 			if d.Type == modsearch.DepIncompatible && d.ProjectID != "" {
-				incompatible = append(incompatible, d.ProjectID)
+				if d.VersionID != "" {
+					pinned = append(pinned, d.VersionID)
+				} else {
+					incompatible = append(incompatible, d.ProjectID)
+				}
 			}
 		}
+		world := ""
+		if it.Type == "datapack" {
+			world = plan.World
+		}
 		entries = append(entries, Entry{
-			ProjectID: it.Version.ProjectID, VersionID: it.Version.ID, Title: it.Title, VersionNumber: it.Version.VersionNumber,
-			Type: it.Type, File: files[i].Filename, SHA1: files[i].SHA1, Incompatible: incompatible, RequiredBy: it.RequiredBy,
+			World: world, ProjectID: it.Version.ProjectID, VersionID: it.Version.ID, Title: it.Title, VersionNumber: it.Version.VersionNumber,
+			Type: it.Type, File: files[i].Filename, SHA1: files[i].SHA1, Incompatible: incompatible, IncompatibleVersions: pinned, RequiredBy: it.RequiredBy,
 			Description: it.Info.Description, IconURL: it.Info.IconURL,
 		})
 	}
@@ -76,12 +86,30 @@ func (m *Manager) Apply(ctx context.Context, inst instance.Instance, plan Plan) 
 			failed = err
 		}
 	}
+	// A chosen version takes the old one's place, once the new one is safely in.
+	if plan.Replace != "" && failed == nil && len(files) > 0 && plan.Replace != files[0].Filename {
+		_ = content.Remove(gameDir, dirOf(plan.Type, plan.World), plan.Replace)
+	}
 	return entries, failed
+}
+
+// AddDatapack plans and applies a datapack into one world ("" version = the best one).
+func (m *Manager) AddDatapack(ctx context.Context, inst instance.Instance, projectID, versionID, world string) ([]Entry, error) {
+	plan, err := m.PlanDatapack(ctx, inst, projectID, versionID, world)
+	if err != nil {
+		return nil, err
+	}
+	return m.Apply(ctx, inst, plan)
 }
 
 // Add plans and applies in one go, for callers that already showed the plan.
 func (m *Manager) Add(ctx context.Context, inst instance.Instance, projectID string, projectType modsearch.ProjectType) ([]Entry, error) {
-	plan, err := m.Plan(ctx, inst, projectID, projectType)
+	return m.AddVersion(ctx, inst, projectID, projectType, "")
+}
+
+// AddVersion is Add for one release the player chose ("" = the best one).
+func (m *Manager) AddVersion(ctx context.Context, inst instance.Instance, projectID string, projectType modsearch.ProjectType, versionID string) ([]Entry, error) {
+	plan, err := m.PlanVersion(ctx, inst, projectID, projectType, versionID)
 	if err != nil {
 		return nil, err
 	}

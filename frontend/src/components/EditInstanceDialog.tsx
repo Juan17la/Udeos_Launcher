@@ -1,20 +1,20 @@
 import { useState } from 'react'
+import ErrorMessage from './ErrorMessage'
 import Dialog from '../ui/Dialog'
 import Button from '../ui/Button'
 import { Input, Label } from '../ui/Field'
-import StatusMessage from '../ui/StatusMessage'
 import IconPicker from './IconPicker'
 import InstanceIcon from './InstanceIcon'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { INSTANCE_NAME } from '../utils/validation'
-import { errorHeadline, messageOf } from '../utils/errors'
+import { messageOf } from '../utils/errors'
 import { serverIconPNG } from '../utils/serverIcon'
 import type { Instance } from '../api/types'
 
-/** Rename an instance and pick its icon. An instance made from a modpack
- *  can keep the pack's own icon (the first cell). */
-export default function EditInstanceDialog({ inst, onClose }: { inst: Instance; onClose: () => void }) {
+/** Rename an instance and pick its icon; `onDelete` adds its Delete button. An instance made
+ *  from a modpack can keep the pack's own icon (the first cell). */
+export default function EditInstanceDialog({ inst, onClose, onDelete }: { inst: Instance; onClose: () => void; onDelete?: () => void }) {
   const { t, refreshInstances } = useApp()
   const [name, setName] = useState(inst.name)
   const [icon, setIcon] = useState(inst.icon)
@@ -35,19 +35,21 @@ export default function EditInstanceDialog({ inst, onClose }: { inst: Instance; 
 
   return (
     <Dialog title={t.instance.edit} width={560} onClose={onClose} actions={<>
+      {/* The irreversible action lives here, far from Play, and quiet. */}
+      {onDelete && <Button variant="danger" size="sm" className="mr-auto" disabled={inst.running && !inst.server} onClick={onDelete}>{inst.server ? t.servers.deleteServer : t.instance.deleteInstance}</Button>}
       <Button variant="idle" onClick={onClose}>{t.common.cancel}</Button>
       <Button variant="primary" disabled={!valid} loading={busy} onClick={save}>{t.common.save}</Button>
     </>}>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4">
         <div>
           <Label htmlFor="edit-name">{t.create.name}</Label>
           <Input id="edit-name" type="text" value={name} maxLength={INSTANCE_NAME.maxLength} autoFocus onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') save() }} />
         </div>
-        <div className="flex flex-col gap-4">
-          <Label className="mb-0">{t.create.icon}</Label>
-          <IconPicker value={icon} onChange={setIcon} extra={inst.icon === 'modpack' ? <InstanceIcon inst={inst} size={32} /> : undefined} />
+        <div>
+          <Label>{t.create.icon}</Label>
+          <IconPicker inline value={icon} onChange={setIcon} extra={inst.icon === 'modpack' ? <InstanceIcon inst={inst} size={24} /> : undefined} />
         </div>
-        {error && <StatusMessage kind="error" headline={errorHeadline(error, t.errors)} detail={error} />}
+        {error && <ErrorMessage message={error} />}
       </div>
     </Dialog>
   )

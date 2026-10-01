@@ -9,7 +9,7 @@ import { fmt } from '../../i18n/format'
 import { useFileList } from '../../hooks/useFileList'
 import { WORLDS } from '../../utils/instanceContent'
 import { ago, bytes } from '../../utils/format'
-import { AddZone, Feedback, FolderLink } from './TabParts'
+import { DropArea, Feedback, FolderLink, Toolbar } from './TabParts'
 import type { World } from '../../api/types'
 
 /** Like the file tabs, plus Save to Device and a confirmation before a
@@ -30,10 +30,9 @@ export default function WorldsTab({ id }: { id: string }) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <AddZone id={id} kind={t.instance.kinds.worlds} onPick={pick} />
+    <DropArea className="flex flex-col gap-4">
+      <Toolbar id={id} kind="worlds" onPick={pick}><FolderLink id={id} sub={WORLDS.folder} compact /></Toolbar>
       <Feedback error={error} note={note} onClearNote={clearNote} />
-      <FolderLink id={id} sub={WORLDS.folder} />
       <AutoLoader active={items === null} label={t.common.loading} />
       {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty.worlds}</p>}
       {items?.map((w) => (
@@ -50,6 +49,6 @@ export default function WorldsTab({ id }: { id: string }) {
         <ConfirmDialog danger title={t.instance.confirmDeleteWorldTitle} body={fmt(t.instance.confirmDeleteWorld, { name: toDelete.name })} confirmLabel={t.common.delete}
           onConfirm={confirmRemove} onClose={() => setToDelete(null)} />
       )}
-    </div>
+    </DropArea>
   )
 }

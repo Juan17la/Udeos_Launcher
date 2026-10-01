@@ -9,22 +9,27 @@ import (
 
 func TestBuildFacets(t *testing.T) {
 	got := buildFacets(Query{Type: TypeMod})
-	if got != `[["project_type:mod"]]` {
+	if got != `[["project_type:mod"],["categories!=datapack"]]` {
 		t.Errorf("got %s", got)
 	}
 	got = buildFacets(Query{Type: TypeMod, GameVersion: "1.20.1", Loader: "Fabric"})
-	want := `[["project_type:mod"],["versions:1.20.1"],["categories:fabric"]]`
+	want := `[["project_type:mod"],["categories!=datapack"],["versions:1.20.1"],["categories:fabric"]]`
 	if got != want {
 		t.Errorf("got %s, want %s", got, want)
 	}
 	// A Quilt instance also takes Fabric mods: one OR-group with both tags.
 	got = buildFacets(Query{Type: TypeMod, Loader: "Quilt"})
-	if want = `[["project_type:mod"],["categories:quilt","categories:fabric"]]`; got != want {
+	if want = `[["project_type:mod"],["categories!=datapack"],["categories:quilt","categories:fabric"]]`; got != want {
 		t.Errorf("got %s, want %s", got, want)
 	}
 	// Categories are ANDed: each is its own group.
 	got = buildFacets(Query{Type: TypeMod, Categories: []string{"optimization", "utility"}})
-	if want = `[["project_type:mod"],["categories:optimization"],["categories:utility"]]`; got != want {
+	if want = `[["project_type:mod"],["categories!=datapack"],["categories:optimization"],["categories:utility"]]`; got != want {
+		t.Errorf("got %s, want %s", got, want)
+	}
+	// Datapacks are their own type and load on any loader: no loader group, and mods leave them out.
+	got = buildFacets(Query{Type: TypeDatapack, GameVersion: "1.20.1", Loader: "Fabric"})
+	if want = `[["project_type:datapack"],["versions:1.20.1"]]`; got != want {
 		t.Errorf("got %s, want %s", got, want)
 	}
 }

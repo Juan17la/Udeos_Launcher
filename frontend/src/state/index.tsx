@@ -1,28 +1,34 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, ReactNode } from 'react'
+import { scroller } from '../utils/scroll'
 import { DICTS, Language } from '../i18n'
 import type { Dict } from '../i18n/en'
 import { api, inWails, on } from '../api/bridge'
-import type { Instance, Profile, ProjectType, SearchResult, Server, SkinLibrary } from '../api/types'
+import type { AIIntent, CustomColors, Instance, Profile, ProjectType, SearchResult, Server, SkinLibrary } from '../api/types'
 import { useLaunchController, LaunchController } from './useLaunchController'
 import { useContentQueue, ContentQueue } from './useContentQueue'
+import { applyTheme, DEFAULT_COLORS, isDark, Theme } from '../utils/theme'
 
 export type { LaunchState } from './useLaunchController'
 export type { ContentJob } from './useContentQueue'
 
-export type Theme = 'light' | 'dark'
+export type { Theme } from '../utils/theme'
 
 /** Which screen is on stage. Kept as plain state — the app is small enough not to need a router. */
 export type Screen =
-  | { name: 'login' }
+  /** Setup: nickname, language and theme. First run, or adding a profile (adding: Cancel goes back). */
+  | { name: 'login'; adding?: boolean }
   | { name: 'dashboard' }
   /** server: the form makes a dedicated server instead of an instance. */
-  | { name: 'create'; server?: boolean }
+  /** modpack: the server form opens on "From a modpack" with this pack chosen. */
+  | { name: 'create'; server?: boolean; modpack?: SearchResult }
   | { name: 'instance'; id: string }
   | { name: 'servers' }
   | { name: 'server'; id: string }
   /** instanceId (from an instance's Add from Modrinth button) locks the results to
    *  that instance's version/loader and makes Add install with no picker. */
-  | { name: 'search'; instanceId?: string; type?: ProjectType; ai?: boolean }
+  | { name: 'search'; instanceId?: string; type?: ProjectType; prefill?: AIIntent }
+  /** The AI advisor, a full page. instanceId: the instance it is adding to (none: the player picks one on Add). */
+  | { name: 'ai'; instanceId?: string }
   /** Full-page view of one search result; instanceId keeps the instance lock
    *  alive across Details → Back. */
   | { name: 'detail'; result: SearchResult; instanceId?: string }
@@ -35,6 +41,12 @@ type Entry = { screen: Screen; scrollY: number }
 type AppState = {
   ready: boolean
   theme: Theme; setTheme: (t: Theme) => void
+  /** The five colours of the custom theme. */
+  colors: CustomColors; setColors: (c: CustomColors) => void
+  /** light or dark, whatever the theme (a custom one by its background): picks the decor and the skin lighting. */
+  scheme: 'light' | 'dark'
+  /** Shows a language/theme without saving it (the setup screen, before the profile exists). */
+  preview: (p: { language?: Language; theme?: Theme; colors?: CustomColors }) => void
   language: Language; setLanguage: (l: Language) => void
   t: Dict
   screen: Screen; go: (s: Screen) => void
@@ -47,7 +59,7 @@ type AppState = {
   /** Switch to, add (a new name) or remove a launcher profile. Each has its own
    *  instances; removing one moves its instances to the active profile (the
    *  next one when the active is removed; the last cannot be). Preferences are shared. */
-  setNickname: (name: string) => Promise<void>; removeNickname: (name: string) => Promise<void>
+  setNickname: (name: string, prefs?: { language: Language; theme: Theme; colors: CustomColors }) => Promise<void>; removeNickname: (name: string) => Promise<void>
   /** refreshInstances reloads both lists: game instances and servers. */
   instances: Instance[]; servers: Server[]; refreshInstances: () => Promise<void>
   /** The skin library and what each profile wears (the nav shows the active one's face). */
@@ -67,6 +79,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [theme, setThemeState] = useState<Theme>('light')
+  const [colors, setColorsState] = useState<CustomColors>(DEFAULT_COLORS)
   const [language, setLanguageState] = useState<Language>('en')
   // The screen on stage plus where the player came from (newest last), so
   // Back lands exactly where they were: an instance's page, or Addons with
@@ -78,19 +91,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const { screen, history, cameBack } = nav
   const go = useCallback((next: Screen) => {
     // Each history entry keeps its scroll so Back lands at the same spot; a new screen starts at the top.
-    const scrollY = window.scrollY
+    const scrollY = scroller()?.scrollTop ?? 0
     setNav((cur) => {
       if (JSON.stringify(cur.screen) === JSON.stringify(next)) return cur
       if (next.name === 'login' || next.name === 'dashboard') return { screen: next, history: [], cameBack: false }
+      // A finished creation form is never a place to come Back to: skip it, so Back lands where the form was opened from.
+      if (cur.screen.name === 'create' && (next.name === 'instance' || next.name === 'server' || next.name === 'servers')) return { screen: next, history: cur.history, cameBack: false }
       return { screen: next, history: cur.screen.name === 'login' ? cur.history : [...cur.history, { screen: cur.screen, scrollY }].slice(-20), cameBack: false }
     })
-    requestAnimationFrame(() => window.scrollTo({ top: 0 }))
+    requestAnimationFrame(() => scroller()?.scrollTo({ top: 0 }))
   }, [])
   const back = useCallback(() => {
     const last = history[history.length - 1]
     setNav({ screen: last?.screen ?? { name: 'dashboard' }, history: history.slice(0, -1), cameBack: !!last })
     // Two frames: the restored screen commits, then its (cached) content lays out.
-    requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: last?.scrollY ?? 0 })))
+    requestAnimationFrame(() => requestAnimationFrame(() => scroller()?.scrollTo({ top: last?.scrollY ?? 0 })))
   }, [history])
   const [instances, setInstances] = useState<Instance[]>([])
   const [servers, setServers] = useState<Server[]>([])
@@ -104,8 +119,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const refreshSkins = useCallback(async () => { setSkins(await api.ListSkins()) }, [])
   useEffect(() => { if (profile) refreshSkins() }, [profile, refreshSkins])
 
-  // A server started, stopped, finished loading or someone joined.
-  useEffect(() => on('server:state', () => { refreshInstances() }), [refreshInstances])
+  // A server started, stopped, finished loading or someone joined: only the
+  // servers changed, so skip re-scanning every instance's folders.
+  useEffect(() => on('server:state', () => { api.ListServers().then(setServers) }), [])
 
   const launch = useLaunchController(refreshInstances)
   const content = useContentQueue(refreshInstances)
@@ -113,7 +129,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Boot: load the profile; go straight to the dashboard when one exists.
   useEffect(() => {
     api.GetProfile().then(async (st) => {
-      setThemeState(st.profile.theme)
+      setThemeState(st.profile.theme); setColorsState(st.profile.colors ?? DEFAULT_COLORS)
       setLanguageState(st.profile.language)
       if (st.exists) {
         setProfile(st.profile)
@@ -128,7 +144,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else if (want) {
           setProfile(st.profile); await refreshInstances()
           const [name, id] = want.split(':')
-          go(name === 'instance' ? { name: 'instance', id } : name === 'server' ? { name: 'server', id } : name === 'servers' ? { name: 'servers' } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' }
+          go(name === 'ai' ? { name: 'ai', instanceId: id } : name === 'instance' ? { name: 'instance', id } : name === 'server' ? { name: 'server', id } : name === 'servers' ? { name: 'servers' } : name === 'create' ? { name: 'create' } : name === 'search' ? { name: 'search' }
             : name === 'skins' ? { name: 'skins' } : name === 'skinEditor' ? { name: 'skinEditor', id } : { name: 'dashboard' })
         }
       }
@@ -137,9 +153,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [refreshInstances])
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
+    applyTheme(theme, colors)
     document.documentElement.lang = language
-  }, [theme, language])
+  }, [theme, colors, language])
 
   const persistPrefs = useCallback(async (patch: Partial<Profile>) => {
     if (!profile) return
@@ -150,6 +166,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const setTheme = (t: Theme) => { setThemeState(t); persistPrefs({ theme: t }) }
   const setLanguage = (l: Language) => { setLanguageState(l); persistPrefs({ language: l }) }
+  // A colour picker fires on every drag: show each at once, save once it settles.
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
+  const setColors = (c: CustomColors) => { setColorsState(c); clearTimeout(saveTimer.current); saveTimer.current = setTimeout(() => persistPrefs({ colors: c }), 400) }
+  const preview = (p: { language?: Language; theme?: Theme; colors?: CustomColors }) => {
+    if (p.language) setLanguageState(p.language)
+    if (p.theme) setThemeState(p.theme)
+    if (p.colors) setColorsState(p.colors)
+  }
 
   // Each profile has its own instances, skins, language and theme: after a
   // switch (or a removal, whose instances and skins move to the active
@@ -157,11 +181,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // on the dashboard, since the page they were on may belong to the other profile.
   const switchTo = useCallback(async (patch: Partial<Profile>) => {
     const saved = await persistPrefs(patch)
-    if (saved) { setThemeState(saved.theme); setLanguageState(saved.language) }
+    if (saved) { setThemeState(saved.theme); setColorsState(saved.colors); setLanguageState(saved.language) }
     await refreshInstances()
     go({ name: 'dashboard' })
   }, [persistPrefs, refreshInstances, go])
-  const setNickname = useCallback((name: string) => switchTo({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])] }), [switchTo, profile])
+  const setNickname = useCallback((name: string, prefs?: { language: Language; theme: Theme; colors: CustomColors }) => switchTo({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])], ...prefs }), [switchTo, profile])
   const removeNickname = useCallback((name: string) => {
     const rest = (profile?.nicknames ?? []).filter((n) => n !== name)
     if (rest.length === 0) return Promise.resolve()
@@ -175,11 +199,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [refreshInstances])
 
   const value = useMemo<AppState>(() => ({
-    ready, theme, setTheme, language, setLanguage, t: DICTS[language],
+    ready, theme, setTheme, colors, setColors, preview, scheme: theme === 'custom' ? (isDark(colors.background) ? 'dark' : 'light') : theme, language, setLanguage, t: DICTS[language],
     screen, go, previous: history[history.length - 1]?.screen ?? null, back, cameBack, profile, saveProfile, nickname: profile?.nickname ?? '', setNickname, removeNickname,
     instances, servers, refreshInstances, skins, refreshSkins,
     privacyOpen, setPrivacyOpen,
-  }), [ready, theme, language, screen, history, cameBack, back, profile, instances, servers, skins, privacyOpen, refreshInstances, refreshSkins, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
+  }), [ready, theme, colors, language, screen, history, cameBack, back, profile, instances, servers, skins, privacyOpen, refreshInstances, refreshSkins, saveProfile, setNickname, removeNickname]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AppCtx.Provider value={value}>
