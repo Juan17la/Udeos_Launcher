@@ -129,17 +129,17 @@ export default function SkinEditor({ id }: { id?: string }) {
     try { await api.SaveSkin(id ?? '', name, model, tex.toBase64()); await refreshSkins(); leave() } catch (err) { setError(messageOf(err)); setBusy(false) }
   }
 
-  if (!ready) return <main className="flex-1 flex flex-col pt-8 px-10 pb-12"><AutoLoader active={!error} label={t.common.loading} /><Feedback error={error} note={null} onClearNote={() => {}} /></main>
+  if (!ready) return <main className="flex-1 flex flex-col pt-4 px-[clamp(16px,3vw,40px)] pb-6"><AutoLoader active={!error} label={t.common.loading} /><Feedback error={error} note={null} onClearNote={() => {}} /></main>
 
   const face = hover && faceAt(model, hover[0], hover[1])
   return (
-    <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
-      <div className="flex items-end justify-between gap-6 flex-wrap">
-        <div>
-          <h2 className="mb-2">{id ? fmt(e.editTitle, { name: saved?.name ?? '' }) : e.newTitle}</h2>
-          <p className="m-0 text-muted">{e.subtitle}</p>
+    <main className="flex-1 min-h-0 flex flex-col gap-4 pt-4 px-[clamp(16px,3vw,40px)] pb-6 overflow-y-hidden!">
+      <div className="flex items-end justify-between gap-6">
+        <div className="min-w-0">
+          <h2 className="mb-0 [@media(min-height:700px)]:mb-1 truncate">{id ? fmt(e.editTitle, { name: saved?.name ?? '' }) : e.newTitle}</h2>
+          <p className="m-0 text-muted truncate hidden [@media(min-height:700px)]:block">{e.subtitle}</p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex gap-4 flex-none">
           <Button variant="idle" disabled={busy} onClick={() => (dirty ? setConfirmLeave(true) : leave())}>{t.common.cancel}</Button>
           <Button variant="primary" loading={busy} disabled={!name.trim()} onClick={save}>{e.save}</Button>
         </div>
@@ -150,8 +150,9 @@ export default function SkinEditor({ id }: { id?: string }) {
       )}
       <Feedback error={error} note={null} onClearNote={() => {}} />
 
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-8">
-        <section className="flex flex-col gap-4 min-w-0">
+      {/* The page never scrolls: the side panel stays put, and the canvas column scrolls only when the window is too short for the canvas at its smallest. */}
+      <div className="flex-1 min-h-0 grid grid-cols-[auto_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[clamp(16px,3vw,32px)]">
+        <section className="flex flex-col gap-3 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden -m-3 p-3">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex gap-2">
               {TOOLS.map(({ tool: k, icon }) => (
@@ -176,7 +177,7 @@ export default function SkinEditor({ id }: { id?: string }) {
                 className={`flex-none w-7 h-7 rounded-md border-0 shadow-neu cursor-pointer transition-transform duration-150 hover:-translate-y-px ${c === color ? 'outline-2 outline-primary -outline-offset-2' : ''}`} style={{ background: c }} />
             ))}
           </div>
-          <div className="panel p-4 w-fit">
+          <div className="panel p-3 w-fit">
             <FlatSkin tex={tex} version={version} model={model} dark={scheme === 'dark'} hover={hover} onHover={setHover} onPaint={paint} onPick={pick} label={e.flat} />
           </div>
           <p className="m-0 text-xs text-muted h-4">
@@ -184,26 +185,32 @@ export default function SkinEditor({ id }: { id?: string }) {
           </p>
         </section>
 
-        <aside className="panel sticky top-8 flex flex-col gap-4 p-6 min-w-0">
+        <aside className="panel h-full min-h-0 overflow-y-auto flex flex-col gap-2.5 p-4 min-w-0">
           <div>
             <Label htmlFor="skin-name">{e.name}</Label>
             <Input id="skin-name" type="text" maxLength={32} placeholder={e.namePlaceholder} value={name} onChange={(ev) => { setName(ev.target.value); setDirty(true) }} />
           </div>
-          <div>
-            <Label>{e.model}</Label>
-            <SegmentedControl options={(['classic', 'slim'] as const).map((m) => ({ value: m, label: t.skins.models[m] }))} value={model} onChange={changeModel} />
-            <p className="m-0 mt-2 text-xs text-muted">{t.skins.modelHints[model]}</p>
+          {/* Label and control on one row, and the hint under it only where there is height for it (it is the tooltip otherwise): the panel fits the smallest window. */}
+          <div title={t.skins.modelHints[model]}>
+            <div className="flex items-center justify-between gap-3">
+              <Label className="mb-0">{e.model}</Label>
+              <SegmentedControl options={(['classic', 'slim'] as const).map((m) => ({ value: m, label: t.skins.models[m] }))} value={model} onChange={changeModel} />
+            </div>
+            <p className="m-0 mt-2 text-xs text-muted hidden [@media(min-height:700px)]:block">{t.skins.modelHints[model]}</p>
           </div>
-          <div>
-            <Label>{e.layer}</Label>
-            <SegmentedControl options={(['base', 'overlay'] as const).map((l) => ({ value: l, label: e.layers[l] }))} value={layer} onChange={setLayer} />
-            <p className="m-0 mt-2 text-xs text-muted">{e.layerHint}</p>
+          <div title={e.layerHint}>
+            <div className="flex items-center justify-between gap-3">
+              <Label className="mb-0">{e.layer}</Label>
+              <SegmentedControl options={(['base', 'overlay'] as const).map((l) => ({ value: l, label: e.layers[l] }))} value={layer} onChange={setLayer} />
+            </div>
+            <p className="m-0 mt-2 text-xs text-muted hidden [@media(min-height:700px)]:block">{e.layerHint}</p>
           </div>
-          <div className="flex justify-center rounded-md bg-panel-2 shadow-neu-inset py-4">
-            <SkinCanvas tex={tex} version={version} model={model} overlay={layer === 'overlay'} width={220} height={300} label={e.model3d}
+          {/* The preview takes whatever height the controls leave, never less than 100px. */}
+          <div className="relative flex-1 min-h-[100px] rounded-md bg-panel-2 shadow-neu-inset">
+            <SkinCanvas tex={tex} version={version} model={model} overlay={layer === 'overlay'} label={e.model3d}
               onPaint={(px, py, _face, first) => paint(px, py, first)} />
           </div>
-          <p className="m-0 text-[11px] text-muted text-center">{e.hint3d}</p>
+          <p className="m-0 text-[11px] text-muted text-center truncate" title={e.hint3d}>{e.hint3d}</p>
         </aside>
       </div>
 
@@ -257,7 +264,7 @@ function FlatSkin({ tex, version, model, dark, hover, onHover, onPaint, onPick, 
     return [Math.floor((ev.clientX - r.left) * 64 / r.width), Math.floor((ev.clientY - r.top) * 64 / r.height)]
   }
   return (
-    <canvas ref={ref} width={SIZE * dpr} height={SIZE * dpr} style={{ width: SIZE, height: SIZE }} role="img" aria-label={label} className="block rounded-md cursor-crosshair touch-none"
+    <canvas ref={ref} width={SIZE * dpr} height={SIZE * dpr} style={{ width: 'min(512px, max(260px, calc(100vh - var(--nav-h) - 23rem)))', aspectRatio: '1' }} role="img" aria-label={label} className="block rounded-md cursor-crosshair touch-none"
       onContextMenu={(ev) => ev.preventDefault()}
       onPointerDown={(ev) => {
         const p = texel(ev)

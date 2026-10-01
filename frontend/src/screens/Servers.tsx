@@ -4,6 +4,7 @@ import { InstanceTags } from '../components/Tags'
 import Button from '../ui/Button'
 import NewTile from '../components/NewTile'
 import CopyAddress from '../components/CopyAddress'
+import { ScrollBody } from '../components/SidePanel'
 import { useApp } from '../state'
 import type { Server } from '../api/types'
 
@@ -13,12 +14,15 @@ export default function Servers() {
   const { t, servers, go } = useApp()
   const create = () => go({ name: 'create', server: true })
   return (
-    <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
+    <main className="flex-1 min-h-0 flex flex-col gap-4 pt-4 px-[clamp(16px,3vw,40px)] pb-6 overflow-y-hidden!">
       <h2 className="m-0">{t.servers.title}</h2>
-      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
-        <NewTile label={t.servers.new} onClick={create} />
-        {servers.map((s) => <ServerCard key={s.id} server={s} />)}
-      </div>
+      {/* The title stays; only the cards scroll. */}
+      <ScrollBody>
+        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
+          <NewTile label={t.servers.new} onClick={create} />
+          {servers.map((s) => <ServerCard key={s.id} server={s} />)}
+        </div>
+      </ScrollBody>
     </main>
   )
 }

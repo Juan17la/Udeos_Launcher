@@ -163,6 +163,7 @@ declare global {
       EventsOff(name: string): void
       BrowserOpenURL(url: string): void
       ClipboardSetText(text: string): Promise<boolean>
+      OnFileDrop(cb: () => void, useDropTarget?: boolean): void
     }
   }
 }
@@ -209,6 +210,10 @@ export function copyText(text: string) {
  *  ignored. Browsers (the mock) give no paths, so nothing arrives there. */
 export function onFileDrop(cb: (paths: string[]) => void): () => void {
   if (!inWails || !window.runtime) return () => {}
+  // Windows (WebView2) has no native drop hook: the runtime only forwards the
+  // dropped files' paths to Go once OnFileDrop has installed its window
+  // listeners. Linux/macOS emit the event natively. Idempotent, so call it every time.
+  window.runtime.OnFileDrop(() => {}, false)
   return window.runtime.EventsOn('wails:file-drop', (...args: unknown[]) => {
     const [x, y, paths] = args as [number, number, string[]]
     const el = document.elementFromPoint(x, y)

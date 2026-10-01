@@ -77,12 +77,13 @@ How it is built:
   the game).
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
   Open folder, Delete with confirmation) and the tabs. The card is
-  `components/SidePanel` (shared with a server's page): exactly the window's
-  height under the back button (`h-[calc(100vh-12.5rem)]`), never the
-  list's, so the page does not scroll because of it and a long mods list
-  scrolls past it. In a short window the details scroll inside the card;
-  Play and the other actions stay at its bottom. The dashboard's Last played
-  panel is sized the same way (it has no back button: `9.5rem`). A vanilla instance shows Resource Packs, Worlds, Screenshots and
+  `components/SidePanel` (shared with a server's page): as tall as the
+  page, so it never moves or scrolls with the list. The page's `<main>` does
+  not scroll either (`SPLIT_MAIN`): the tab bar stays put and only the
+  content under it (`ScrollBody`) scrolls. The details are sized to fit the
+  smallest window (944×600 px of page, what 960×640 gives once the title bar
+  is taken); below 570 px of height the icon gives way before a scrollbar
+  appears. The dashboard's Last played panel works the same way. A vanilla instance shows Resource Packs, Worlds, Screenshots and
   Settings; Mods and Shaders appear only for modded instances. Worlds,
   Resource Packs, Mods and Shaders share the same drop zone pattern (drag a
   file onto the window, or Browse) and a Remove button per item; worlds also
@@ -94,6 +95,14 @@ How it is built:
   the instance's launch settings: a memory slider (up to the machine's RAM,
   red in the danger zone), Java executable (with a file picker) and extra
   JVM arguments. Every file tab has an "Open folder" link.
+
+**Fixed layout rule.** Panels, side cards, tab bars and the nav keep their
+size in any window: one row, never wrapping (`SegmentedControl` gives up
+padding, then cuts labels with "…" and a tooltip); tags and status lines are
+one line; cards of a grid have the same height. The only things that scroll
+are lists of cards (and long forms), inside their own `ScrollBody`, with the
+title or tab bar fixed above. Check a screen by screenshotting it at 944×600
+(`?screen=…` in `npm run dev`), in both languages.
 
 Every page but the dashboard starts with a **Back to …** button above its
 title (`components/BackButton`). It sticks under the nav on a strip of

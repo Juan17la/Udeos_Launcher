@@ -14,7 +14,7 @@ export default function DropZone({ text, hint, children, className = '', promine
     <div
       className={`flex items-center justify-center rounded-md border-dashed transition-all duration-150 ease-in-out ${look} ${className}`}
       style={{ ['--wails-drop-target' as string]: 'drop' }}
-      onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={() => setOver(false)} onDrop={(e) => { e.preventDefault(); setOver(false) }}
+      onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false) }} onDrop={(e) => { e.preventDefault(); setOver(false) }}
     >
       {prominent ? (
         <>
