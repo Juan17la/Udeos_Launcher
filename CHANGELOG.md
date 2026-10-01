@@ -5,6 +5,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.3.1-beta] — 2026-10-01
+
 ### Fixes
 
 - **Windows: dropping files works.** Dropped files were never handed to the
