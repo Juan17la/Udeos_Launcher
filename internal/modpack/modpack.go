@@ -47,15 +47,26 @@ func New(dirs paths.Dirs, provider modsearch.Provider, store *instance.Store, re
 type index struct {
 	Name  string `json:"name"`
 	Files []struct {
-		Path   string            `json:"path"`
-		Hashes map[string]string `json:"hashes"`
-		Env    struct {
-			Client string `json:"client"`
-		} `json:"env"`
-		Downloads []string `json:"downloads"`
-		FileSize  int64    `json:"fileSize"`
+		Path      string            `json:"path"`
+		Hashes    map[string]string `json:"hashes"`
+		Env       envSides          `json:"env"`
+		Downloads []string          `json:"downloads"`
+		FileSize  int64             `json:"fileSize"`
 	} `json:"files"`
 	Dependencies map[string]string `json:"dependencies"` // minecraft, fabric-loader | quilt-loader | forge | neoforge
+}
+
+// envSides is what a pack file says about each side: "required", "optional" or "unsupported".
+type envSides struct {
+	Client string `json:"client"`
+	Server string `json:"server"`
+}
+
+func (e envSides) of(server bool) string {
+	if server {
+		return e.Server
+	}
+	return e.Client
 }
 
 // IconKey is the Instance.Icon value meaning "the pack's own icon, at
@@ -68,23 +79,40 @@ const IconKey = "modpack"
 // The pack's icon becomes the instance's (icon is the fallback pixel icon
 // when it has none). A pack that fails to install leaves no half instance behind.
 func (m *Manager) Create(ctx context.Context, projectID, name, icon, mc, ldr string) (instance.Instance, []modinstall.Entry, error) {
+	return m.create(ctx, false, projectID, name, icon, mc, ldr)
+}
+
+// CreateServer is Create for a dedicated server: the pack's server side (files
+// the pack marks server-unsupported are skipped, server-overrides/ is unpacked
+// instead of client-overrides/) and no pack icon (the caller sets the server's
+// own). The caller turns the instance into a server (app_servers.go initServer).
+func (m *Manager) CreateServer(ctx context.Context, projectID, name, icon, mc, ldr string) (instance.Instance, []modinstall.Entry, error) {
+	return m.create(ctx, true, projectID, name, icon, mc, ldr)
+}
+
+func (m *Manager) create(ctx context.Context, server bool, projectID, name, icon, mc, ldr string) (instance.Instance, []modinstall.Entry, error) {
 	pack, idx, err := m.fetch(ctx, projectID, mc, ldr)
 	if err != nil {
 		return instance.Instance{}, nil, err
 	}
+	kind, version := loaderOf(idx.Dependencies)
+	if server && kind == loader.Quilt {
+		return instance.Instance{}, nil, errors.New("this modpack is for Quilt, and Quilt cannot run a server yet: pick a Fabric, Forge or NeoForge modpack")
+	}
 	if name == "" {
 		name = idx.Name
 	}
-	packIcon := m.fetchIcon(ctx, projectID)
-	if packIcon != "" {
-		icon = IconKey
+	packIcon := ""
+	if !server {
+		if packIcon = m.fetchIcon(ctx, projectID); packIcon != "" {
+			icon = IconKey
+		}
 	}
-	kind, version := loaderOf(idx.Dependencies)
 	inst, err := m.Instances.Create(name, idx.Dependencies["minecraft"], kind, version, icon)
 	if err != nil {
 		return instance.Instance{}, nil, err
 	}
-	entries, err := m.apply(ctx, inst, projectID, pack, idx)
+	entries, err := m.apply(ctx, inst, server, projectID, pack, idx)
 	if err == nil && packIcon != "" {
 		err = copyNew(packIcon, filepath.Join(m.Dirs.InstanceDir(inst.ID), "icon"))
 	}
@@ -122,7 +150,7 @@ func (m *Manager) AddTo(ctx context.Context, inst instance.Instance, projectID s
 	if err != nil {
 		return nil, err
 	}
-	return m.apply(ctx, inst, projectID, pack, idx)
+	return m.apply(ctx, inst, false, projectID, pack, idx)
 }
 
 // fetch picks the pack build for mc/ldr, downloads the .mrpack into the
@@ -195,16 +223,16 @@ func typeOf(p string) string {
 	return ""
 }
 
-// apply downloads the pack's client files into the cache, copies them into
-// the game directory, unpacks overrides/ and client-overrides/, then looks
-// the files up by hash to record them in content.json. Existing files are
-// never overwritten.
-func (m *Manager) apply(ctx context.Context, inst instance.Instance, projectID, pack string, idx *index) ([]modinstall.Entry, error) {
+// apply downloads the pack's client files (server files when server) into the
+// cache, copies them into the game directory, unpacks overrides/ and
+// client-overrides/ (server-overrides/), then looks the files up by hash to
+// record them in content.json. Existing files are never overwritten.
+func (m *Manager) apply(ctx context.Context, inst instance.Instance, server bool, projectID, pack string, idx *index) ([]modinstall.Entry, error) {
 	gameDir := m.Dirs.GameDir(inst.ID)
 	var tasks []download.Task
 	var files []int // index into idx.Files, parallel to tasks
 	for i, f := range idx.Files {
-		if f.Env.Client == "unsupported" || len(f.Downloads) == 0 {
+		if f.Env.of(server) == "unsupported" || len(f.Downloads) == 0 {
 			continue
 		}
 		if !safeRel(f.Path) {
@@ -225,7 +253,7 @@ func (m *Manager) apply(ctx context.Context, inst instance.Instance, projectID, 
 			return nil, err
 		}
 	}
-	if err := unpackOverrides(pack, gameDir); err != nil {
+	if err := unpackOverrides(pack, gameDir, server); err != nil {
 		return nil, err
 	}
 
@@ -289,15 +317,19 @@ func readIndex(pack string) (*index, error) {
 	return &idx, nil
 }
 
-// unpackOverrides writes overrides/ then client-overrides/ into gameDir,
-// skipping files that already exist.
-func unpackOverrides(pack, gameDir string) error {
+// unpackOverrides writes overrides/ then client-overrides/ (server-overrides/
+// for a server) into gameDir, skipping files that already exist.
+func unpackOverrides(pack, gameDir string, server bool) error {
 	r, err := zip.OpenReader(pack)
 	if err != nil {
 		return err
 	}
 	defer r.Close()
-	for _, prefix := range []string{"overrides/", "client-overrides/"} {
+	side := "client-overrides/"
+	if server {
+		side = "server-overrides/"
+	}
+	for _, prefix := range []string{"overrides/", side} {
 		for _, f := range r.File {
 			rel := strings.TrimPrefix(f.Name, prefix)
 			if rel == f.Name || rel == "" || f.FileInfo().IsDir() {

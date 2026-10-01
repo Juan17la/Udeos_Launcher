@@ -4,6 +4,7 @@ import { fmt } from '../i18n/format'
 import { api } from '../api/bridge'
 import Dialog from '../ui/Dialog'
 import Button from '../ui/Button'
+import ErrorMessage from './ErrorMessage'
 import InstanceIcon from './InstanceIcon'
 import { InstanceTags } from './Tags'
 import { Hourglass } from '../ui/icons'
@@ -23,7 +24,7 @@ export default function LaunchDialog() {
       <Button variant="primary" onClick={dismissLaunch}>{t.common.gotIt}</Button>
     </>}>
       {error ? (
-        <p className="m-0 text-xs text-muted break-words">{launch.message}</p>
+        <ErrorMessage message={launch.message} />
       ) : (
         <div className="flex flex-col gap-2 text-xs text-muted">
           <span>{fmt(t.launch.exitBody, { code: launch.exitCode })}</span>

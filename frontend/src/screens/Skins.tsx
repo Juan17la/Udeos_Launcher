@@ -58,10 +58,10 @@ export default function Skins() {
   const wornBy = skins ? Object.values(skins.equipped).filter((id) => id === deleting?.id).length : 0
 
   return (
-    <main className="h-[calc(100vh-4.5rem)] overflow-hidden grid grid-cols-[minmax(340px,38%)_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-x-8 gap-y-5 pt-6 px-10 pb-8">
+    <main className="h-[calc(100vh-var(--nav-h))] overflow-hidden grid grid-cols-[minmax(340px,38%)_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-x-8 gap-y-5 pt-6 px-10 pb-8">
       {dragging && (
         <div aria-hidden className="fixed inset-4 z-60 pointer-events-none flex flex-col items-center justify-center gap-3 rounded-md border-3 border-dashed border-primary bg-primary/15 backdrop-blur-sm">
-          <span className="grid place-items-center w-16 h-16 rounded-md bg-primary text-white shadow-primary"><Download size={28} /></span>
+          <span className="grid place-items-center w-16 h-16 rounded-md bg-primary text-on-primary shadow-primary"><Download size={28} /></span>
           <span className="text-lg font-bold">{s.drop}</span>
           <span className="text-xs text-muted">{s.dropHint}</span>
         </div>

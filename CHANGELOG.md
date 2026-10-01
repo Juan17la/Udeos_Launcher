@@ -5,6 +5,28 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [1.3.0-beta] — 2026-09-30
+
+Includes everything meant for 1.2.1-beta, which was never published.
+
+### Fixes
+
+- **Windows: Minecraft 1.12 and older (1.8.9...) start again.** The bundled
+  Java 8 crashed while reading the network adapters; those launches now use
+  IPv4 only.
+- **Windows: Update works.** The installer is started so Windows can ask for
+  permission.
+- **Servers:** a new server shows up at once; a starting server can be stopped.
+
+### Added
+
+- Themes: Dark (diamond blue), Light and Custom colours, saved per profile.
+- Ask AI as a full page that advises with reasons.
+- One-screen "Create & play" for instances and servers; Activity button in the nav.
+- Servers from Modrinth modpacks; `.udeos` join file for friends.
+- Datapacks, installed into a chosen world.
+- Smoother scrolling and a steadier header.
+
 ## [1.2.1-beta] — 2026-09-29
 
 A fix for updating from inside the launcher on Windows.

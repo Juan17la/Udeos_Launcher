@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import BackButton from '../components/BackButton'
 import { SkinCanvas } from '../components/SkinView'
 import Button from '../ui/Button'
 import { ConfirmDialog } from '../ui/Dialog'
@@ -37,7 +36,7 @@ const KEYS: Record<string, Tool> = { b: 'pencil', e: 'eraser', g: 'fill', i: 'pi
  *  and redo; the layer switch shows the second layer on the model and
  *  paints it there. Texels the game never reads cannot be painted. */
 export default function SkinEditor({ id }: { id?: string }) {
-  const { t, theme, skins, refreshSkins, back } = useApp()
+  const { t, scheme, skins, refreshSkins, back } = useApp()
   const e = t.skins.editor
   const saved = id ? skins?.skins.find((k) => k.id === id) : undefined
   const key = id ?? ''
@@ -135,7 +134,6 @@ export default function SkinEditor({ id }: { id?: string }) {
   const face = hover && faceAt(model, hover[0], hover[1])
   return (
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
-      <BackButton />
       <div className="flex items-end justify-between gap-6 flex-wrap">
         <div>
           <h2 className="mb-2">{id ? fmt(e.editTitle, { name: saved?.name ?? '' }) : e.newTitle}</h2>
@@ -179,14 +177,14 @@ export default function SkinEditor({ id }: { id?: string }) {
             ))}
           </div>
           <div className="panel p-4 w-fit">
-            <FlatSkin tex={tex} version={version} model={model} dark={theme === 'dark'} hover={hover} onHover={setHover} onPaint={paint} onPick={pick} label={e.flat} />
+            <FlatSkin tex={tex} version={version} model={model} dark={scheme === 'dark'} hover={hover} onHover={setHover} onPaint={paint} onPick={pick} label={e.flat} />
           </div>
           <p className="m-0 text-xs text-muted h-4">
             {hover && (face ? `${e.parts[face.box.part]} · ${e.faces[face.name]} · ${e.layers[face.box.layer]} (${hover[0]}, ${hover[1]})` : e.unused)}
           </p>
         </section>
 
-        <aside className="panel sticky top-30 flex flex-col gap-4 p-6 min-w-0">
+        <aside className="panel sticky top-8 flex flex-col gap-4 p-6 min-w-0">
           <div>
             <Label htmlFor="skin-name">{e.name}</Label>
             <Input id="skin-name" type="text" maxLength={32} placeholder={e.namePlaceholder} value={name} onChange={(ev) => { setName(ev.target.value); setDirty(true) }} />

@@ -2,6 +2,7 @@ package content
 
 import (
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"encoding/binary"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"path/filepath"
 )
 
 // Minimal NBT reader — enough to read level.dat (LevelName, LastPlayed).
@@ -150,4 +152,38 @@ func readPayload(r *bufio.Reader, typ byte) (any, error) {
 	default:
 		return nil, fmt.Errorf("unknown nbt tag %d", typ)
 	}
+}
+
+// WriteServersDat puts one server in the game's multiplayer list
+// (<gameDir>/servers.dat: uncompressed NBT, a list named "servers" of
+// {name, ip}). An existing list is left alone and reported as nil: the
+// player's own servers come first.
+func WriteServersDat(gameDir, name, ip string) error {
+	path := filepath.Join(gameDir, "servers.dat")
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	}
+	var b bytes.Buffer
+	str := func(s string) {
+		binary.Write(&b, binary.BigEndian, uint16(len(s)))
+		b.WriteString(s)
+	}
+	b.WriteByte(tagCompound)
+	str("") // root name
+	b.WriteByte(tagList)
+	str("servers")
+	b.WriteByte(tagCompound)
+	binary.Write(&b, binary.BigEndian, int32(1))
+	b.WriteByte(tagString)
+	str("ip")
+	str(ip)
+	b.WriteByte(tagString)
+	str("name")
+	str(name)
+	b.WriteByte(tagEnd) // the server
+	b.WriteByte(tagEnd) // the root
+	if err := os.MkdirAll(gameDir, 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(path, b.Bytes(), 0o644)
 }

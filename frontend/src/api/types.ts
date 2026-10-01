@@ -1,5 +1,8 @@
 // Mirrors of the Go structs returned by the App bindings (see launcher/app_*.go).
 
+/** The five colours a player picks for the custom theme; the rest is derived (utils/theme.ts). */
+export type CustomColors = { background: string; panel: string; primary: string; secondary: string; third: string }
+
 export type Profile = {
   /** The active player. */
   nickname: string
@@ -7,7 +10,9 @@ export type Profile = {
   /** Every saved nickname, the active one first; each has its own instances, skins, language and theme. */
   nicknames: string[]
   language: 'en' | 'es'
-  theme: 'light' | 'dark'
+  theme: 'light' | 'dark' | 'custom'
+  /** The palette of the 'custom' theme (kept for every profile, used only when theme is custom). */
+  colors: CustomColors
   agreed: boolean
   maxMemoryMB: number
   javaPath?: string
@@ -90,7 +95,7 @@ export type AppInfo = { version: string; os: string; arch: string; dataDir: stri
 export type World = { folder: string; name: string; lastPlayed: string; sizeBytes: number }
 export type FileEntry = { name: string; sizeBytes: number; modTime: string; isDir: boolean }
 
-export type ProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack'
+export type ProjectType = 'mod' | 'resourcepack' | 'shader' | 'modpack' | 'datapack'
 /** Search sort order; 'relevance' is Modrinth's default. There is no ascending order. */
 export type SortBy = 'relevance' | 'downloads' | 'newest' | 'updated'
 export type AIProvider = 'groq' | 'claude' | 'openai' | 'gemini' | 'grok'
@@ -102,10 +107,16 @@ export type AIStatus = { provider: AIProvider; model: string; hasKey: boolean; b
 /** A search the model read out of a chat message. Every value is one the
  *  backend allowed (the page's types, Modrinth's categories and versions); '' = any. */
 export type AIIntent = { type: ProjectType; query: string; categories: string[]; gameVersion: string; loader: string; sort: SortBy }
-/** One recommended Modrinth result; reason is the model's one-liner ('' when it could not give one). */
+/** One recommended Modrinth result; reason is the model's sentence for this player ('' when it could not give one). */
 export type AIPick = { result: SearchResult; reason: string }
-/** The chat's reply: the search it ran on Modrinth (total = all its results) and its picks from them. */
-export type AIAnswer = { intent: AIIntent; total: number; picks: AIPick[] }
+/** One message of the conversation, as sent back to the advisor. */
+export type AITurn = { role: 'user' | 'assistant'; text: string }
+/** One need the advisor found in the request: what it covers, its picks, and the Modrinth
+ *  search behind them (`total` results, openable in Addons through `intent`). */
+export type AIGroup = { label: string; intro: string; intent: AIIntent; total: number; picks: AIPick[] }
+/** The advisor's reply. `question` (and nothing else) when the request was too vague to search;
+ *  `summary` explains the approach; `groups` are the picks by need; `followUps` are things to ask next. */
+export type AIAnswer = { understood: string; question: string; summary: string; groups: AIGroup[]; followUps: string[] }
 /** Metadata shown while browsing. The full project (description, gallery,
  *  version and file list) is only fetched once the player adds it. */
 export type SearchResult = {
@@ -137,7 +148,18 @@ export type ProjectVersion = {
   files: { url: string; filename: string; sha1: string; sha512: string; size: number; primary: boolean }[]
   dependencies: { projectId: string; versionId: string; type: 'required' | 'optional' | 'incompatible' | 'embedded' }[]
 }
-export type ContentType = 'mod' | 'resourcepack' | 'shader'
+/** What a join file says: the server it is for, where friends find it, and its own resource pack (if it sets one). */
+export type JoinInfo = { name: string; address: string; resourcePack?: { url: string; sha1?: string } }
+/** ExportServerJoinFile: where it was saved ('' = cancelled) and what is in it. `embedded` files were not on Modrinth and travel inside. */
+export type JoinExport = { path: string; info: { references: number; embedded: number; sizeBytes: number; hasAddress: boolean } }
+export type ContentType = 'mod' | 'resourcepack' | 'shader' | 'datapack'
+/** One release of a project that runs on an instance. `conflictWith` names the installed mod it does not work with. */
+export type VersionChoice = {
+  id: string; number: string; name: string; type: 'release' | 'beta' | 'alpha'; datePublished: string
+  gameVersions: string[]; loaders: string[]; installed: boolean; conflictWith?: string
+}
+/** What to offer when adding failed on a conflict: other releases that fit, else similar projects that can be added now. */
+export type Alternatives = { versions: VersionChoice[]; similar: SearchResult[] }
 /** One version the plan will download; `reason` names the item that requires it (empty for the one the player asked for). */
 export type ContentPlanItem = { version: ProjectVersion; title: string; type: ContentType; reason: string; requiredBy: string }
 export type ContentPlan = {
@@ -148,9 +170,11 @@ export type ContentPlan = {
   items: ContentPlanItem[]
   alreadyInstalled: boolean
   warnings: string[]
+  /** The file of another release of the project that goes once this one is in. */
+  replace?: string
 }
 /** A file installed from Modrinth, as recorded in the instance's content.json. */
-export type ContentEntry = { projectId: string; versionId: string; title: string; versionNumber: string; type: ContentType; file: string; sha1: string; incompatible?: string[]; requiredBy?: string; description?: string; iconUrl?: string }
+export type ContentEntry = { projectId: string; versionId: string; title: string; versionNumber: string; type: ContentType; file: string; /** Datapacks: the world folder it is in ("saves/My World", or "world" on a server). */ world?: string; sha1: string; incompatible?: string[]; requiredBy?: string; description?: string; iconUrl?: string }
 /** Whole-project view for the Details page: full description and the Minecraft
  *  versions/loaders aggregated across every version (one call, no per-version fetch). */
 export type ProjectDetail = {
