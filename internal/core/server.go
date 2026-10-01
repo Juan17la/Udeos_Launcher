@@ -54,6 +54,7 @@ type serverProc struct {
 	saved   chan struct{}      // closed on "Saved the game" while a backup waits for it
 	public  context.CancelFunc // closes internet access (relay or router forward); nil when closed
 	exited  chan struct{}      // closed once the server is gone (stopped or failed to start)
+	cancel  context.CancelFunc // stops the preparation (downloads, Forge installer) before Java runs
 }
 
 var (
@@ -147,12 +148,17 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 		l.mu.Unlock()
 		return errors.New("this server is already running")
 	}
-	p := &serverProc{state: ServerState{Starting: true, Players: []string{}}, exited: make(chan struct{})}
+	ctx, cancel := context.WithCancel(ctx)
+	p := &serverProc{state: ServerState{Starting: true, Players: []string{}}, exited: make(chan struct{}), cancel: cancel}
 	l.servers[id] = p
 	l.mu.Unlock()
 	l.serverEmit(id, "")
 
 	fail := func(err error) error {
+		defer cancel()
+		if ctx.Err() != nil {
+			err = errors.New("start canceled")
+		}
 		l.note(id, "Could not start: "+err.Error())
 		l.mu.Lock()
 		delete(l.servers, id)
@@ -212,6 +218,9 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 		return fail(err)
 	}
 	cmd.Stderr = cmd.Stdout
+	if ctx.Err() != nil { // stopped while the files were getting ready
+		return fail(ctx.Err())
+	}
 	if err := cmd.Start(); err != nil {
 		return fail(fmt.Errorf("start java: %w", err))
 	}
@@ -221,11 +230,15 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 	l.mu.Unlock()
 	l.note(id, fmt.Sprintf("Started with %d MB of memory on port %d.", mem, port))
 	l.serverEmit(id, "")
+	if ctx.Err() != nil { // stopped in the instant between the last check and Java starting
+		_ = l.StopServer(id)
+	}
 	if inst.Public {
 		l.startPublic(id)
 	}
 
 	go func() {
+		defer cancel()
 		sc := bufio.NewScanner(out)
 		sc.Buffer(make([]byte, 0, 64*1024), 1024*1024)
 		for sc.Scan() {
@@ -298,9 +311,15 @@ func (l *Launcher) StopServer(id string) error {
 	l.mu.Lock()
 	p := l.servers[id]
 	preparing := p != nil && p.stdin == nil
+	if preparing {
+		p.state.Stopping = true
+	}
 	l.mu.Unlock()
 	if preparing {
-		return errors.New("the server is still getting its files ready: stop it once it has started")
+		// No process yet: cancelling ends the downloads / installer, and StartServer then fails as canceled.
+		p.cancel()
+		l.serverEmit(id, "")
+		return nil
 	}
 	if err := l.ServerCommand(id, "stop"); err != nil {
 		if p == nil || p.cmd == nil {
@@ -324,7 +343,14 @@ func (l *Launcher) StopServer(id string) error {
 	}
 	l.serverEmit(id, "")
 	go func() {
-		time.Sleep(60 * time.Second)
+		// A server still loading its world may ignore `stop` for a while: give it less time than a running one.
+		grace := 60 * time.Second
+		l.mu.Lock()
+		if !p.state.Ready {
+			grace = 15 * time.Second
+		}
+		l.mu.Unlock()
+		time.Sleep(grace)
 		l.mu.Lock()
 		alive := l.servers[id] == p
 		l.mu.Unlock()

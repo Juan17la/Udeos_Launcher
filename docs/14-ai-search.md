@@ -1,74 +1,103 @@
-# 14. AI search
+# 14. The AI advisor
 
 ## What the player sees
 
-The **Addons** page has an **Ask AI** button (so does an instance's Mods,
-Resource Packs and Shaders tab, next to **Search in Addons**). It opens a
-small chat above the filters: the player writes what they want — "popular
-performance mods for fabric 1.20.1", "a skyblock modpack", "medieval
-textures" — and the answer arrives **in the chat**. It says what was
-searched ("My picks from Modrinth for: Mods · optimization · 1.20.1 ·
-Fabric") and lists up to three projects. Each one shows its icon and name, a
-one-line reason why it fits (written by the AI, in the player's language),
-and the same **Add** and **Details** buttons as a result card. **See all N
-results** puts that search on the page (tab, text, version, loader, sort and
-Modrinth **categories**, shown as removable tags). Until then the page's own
-filters stay as they were. Follow-ups refine the chat's last search ("only
-forge", "newer ones").
+**Ask AI** is a full page (from the Addons header, or from an instance's
+Mods / Resource Packs / Shaders tab next to **Search in Addons**). The player
+says what they want to *do*, not what to search for: "my game lags on a weak
+PC", "mods to play with friends", "something spooky for survival". The advisor
+does not answer with the search the player could run themselves. It works out
+what they really need and answers like a person who knows the mods:
+
+- **What it understood** (one small line) and a written **summary** of the
+  approach: what it chose, how the pieces work together, what matters
+  (a library a mod needs, two mods that overlap, a heavy choice for a weak
+  PC). The wording differs from answer to answer.
+- The picks **grouped by need**. "Make my game faster" becomes a renderer,
+  game-logic optimisation and memory savings: three different searches, each
+  with a sentence saying what the group covers and up to three picks, each
+  with a reason written for this player. At most six picks in all.
+- A **question** instead, when the request is too vague to search well
+  ("something cool"): it asks what kind of fun before it searches.
+- **Follow-up chips** ("Add shaders too", "Make it lighter") and, per group,
+  **See all N in Addons** (opens Addons with that group's filters already set).
+  The conversation is remembered: "lighter", "without shaders" refine it.
+
+It knows the instance it is adding to: the instance's Minecraft version and
+loader are always applied, and what the instance **already has** is left out
+of the results (and told to the model, so it can explain how a pick goes with
+what is there). No instance in context: the advisor searches broadly, and
+**Add** asks which instance (only the ones the pick works on, the picker of
+the Addons page).
+
+**Add** on a pick is the page's own Add, with the same compatibility,
+dependency and incompatibility checks as always ([10](10-adding-content.md)).
+With an instance in context it installs straight into it; otherwise it asks
+which one first. The card reads **Adding…**, then **Added** (and, without an
+instance in context, "Added to <name>"). A failure shows in the Activity
+button like any install and offers alternatives when it is a conflict.
 
 Nothing is downloaded and nothing needs setting up: it works right away
-through **Groq**, with a key built into the launcher. The button in the
-panel's corner ("Groq (built-in)") opens its settings, where the player can
-use their own API key from **Groq, Claude, OpenAI, Gemini or Grok** instead,
-and pick a model from a list. Each provider and model is marked **free plan**
-(a free key from that provider works, with usage limits) or **paid** (needs
-API credit), with a one-line hint under the selects. The key stays on this
-computer; **Use built-in Groq** forgets it.
+through **Groq**, with a key built into the launcher. The button in the page
+header ("Groq (built-in)") opens its settings, where the player can use their
+own API key from **Groq, Claude, OpenAI, Gemini or Grok** instead, and pick a
+model from a list. Each provider and model is marked **free plan** (a free key
+from that provider works, with usage limits) or **paid** (needs API credit),
+with a one-line hint under the selects. The key stays on this computer;
+**Use built-in Groq** forgets it.
 
 ## Modrinth is the source of truth
 
-The model never invents an addon. It answers in two steps, and each one is
-checked.
+The model never invents an addon. It answers in **two calls with Modrinth in
+between** (`internal/ai/advisor.go`), and each step is checked.
 
-**1. Read the request.** The model only picks filter values, and only from
-lists the launcher gives it:
+**1. Plan** (`Manager.Plan`). The model gets the conversation so far, the
+instance (name, Minecraft version, loader, installed titles) and the new
+message, and returns what it understood plus up to **three goals**. A goal is
+a label, a filter set (type, 0-2 categories, sort, keywords) and up to three
+**names of well-known projects** it is sure exist. It may instead return a
+**question** (and no goals) for a vague request. The filter values can only
+come from the lists the launcher gives it:
 
-- **types**: the tabs the page offers right now (a Vanilla instance: resource
-  packs only; a server: mods only),
-- **categories**: Modrinth's own list (`GET /v2/tag/category`, cached like the
-  version list),
-- **versions**: Modrinth's release list, **loaders**: fabric, forge, quilt,
-  neoforge, **sort**: the four the page has.
+- **types**: what the page offers now (a Vanilla instance: resource packs
+  only; a server: mods only),
+- **categories**: Modrinth's own list (`GET /v2/tag/category`, cached),
+- **sort**: the four the page has.
 
-The prompt lists these values. Claude also receives them as a JSON schema
-(structured outputs), so it cannot answer with anything else. The other
-providers are only asked for "JSON only", so the launcher takes the first
-`{…}` in their reply. Either way, `ai.validate` checks every value again
-(the answer is untrusted input) and drops anything that is not on a list.
-The launcher then runs that search on Modrinth itself (`SearchContent`,
-cached like the page's).
+Claude also receives them as a JSON schema (structured outputs); the other
+providers are asked for "JSON only" and the launcher takes the first `{…}`.
+Either way `ai.validate` checks every value again (the answer is untrusted
+input) and drops anything that is not on a list. The **Minecraft version and
+loader** never come from the model: the instance's replace everything, else
+they are read from the player's own words (exact tokens: "neoforge",
+"1.20.1"). If the model returns nothing usable, the player's own words are
+searched.
 
-**2. Pick from the results.** The model gets the top 8 results (id, title,
-Modrinth's description, downloads) and returns up to 3 ids, each with a
-reason. Ids that are not in those 8 are dropped (`ai.Manager.Pick`), so every
-pick is a real Modrinth project. Its name, icon and versions come from
-Modrinth. The **reason is the only text the model writes** that the player
-sees. It is shown as plain text and cut to 200 characters. The descriptions
-it reads are third-party text, so a strange project description could at
-worst produce a strange reason, never a fake project. If this step fails
-(rate limit, unreadable answer), the chat still shows Modrinth's top 3 with
-their descriptions instead of reasons. The "My picks for…" line is a
-template filled with the search, not model text.
+**2. Search, then write** (`Manager.Advise`, `Compose`). The goals are searched
+on Modrinth **in parallel** (`SearchContent`, cached like the Addons page).
+Named projects are looked up by name and accepted only when the **title
+matches** (an exact title beats a longer one that starts with the name), so a
+wrong guess finds nothing instead of something else. Each project belongs to
+the first goal that found it, and what the instance already has never appears.
+The model then gets up to eight real results per goal (id, title, Modrinth's
+description, downloads) and writes the answer. Ids that are not in those lists
+are dropped, each project is used once, a group has at most three picks and the
+answer at most six, so every pick is a real Modrinth project. Its name, icon
+and versions come from Modrinth.
 
-With an instance in context its version and loader stay **locked**: the
-instance's values replace the AI's before the search runs. **Add** is the
-page's own Add, with the same compatibility, dependency and incompatibility
-checks as always ([10](10-adding-content.md)).
+**The text the model writes** (understood, summary, group intros, reasons,
+follow-ups, the question) is the only model text the player sees. It is shown
+as plain text and cut to a length. The descriptions it reads are third-party
+text, so a strange project description could at worst produce a strange
+sentence, never a fake project. If writing fails (rate limit, unreadable
+answer) the player still gets the top two results of each goal with their
+Modrinth descriptions instead of reasons.
 
 ## How it runs
 
 `internal/ai` (Go), bound in `app_ai.go` as `AIStatus`, `SetAI`, `ResetAI`
-and `AskAI`; the UI is `components/AIChat.tsx`. Requests go out from Go, so
+and `AskAI(message, types, history, instanceId)`; the UI is `screens/Advisor.tsx`
+(settings in `components/AISettings.tsx`). Requests go out from Go, so
 the webview never sees a key.
 
 - **Providers and models** (`providers` in `internal/ai/ai.go`): each
@@ -91,13 +120,12 @@ the webview never sees a key.
   settings. Claude uses Anthropic's Go SDK with structured outputs, low effort
   and server-side refusal fallbacks. The last two are only set on the default
   model (Haiku 4.5 rejects effort).
-- **Ask** (`AskAI`: read the request, search, pick): the first prompt lists
-  the categories and gives seven worked examples, followed by the current
-  filters and the message. The model only picks
-  **type, categories, sort and keywords**. The loader and Minecraft version
-  are read straight from the player's words (exact tokens: "neoforge",
-  "1.20.1") or kept from the current filters, and are stripped from the
-  keywords.
+- **Ask** (`AskAI` → `ai.Advise`): the plan prompt lists the categories and
+  teaches the model to think in needs, not keywords; the compose prompt asks
+  for an answer that sounds like a knowledgeable friend and forbids claims the
+  descriptions do not support. `ai.Searcher` is the seam to Modrinth (the app
+  passes its cached `SearchContent`), which keeps the whole flow testable with
+  a fake model and a fake Modrinth (`ai_test.go`).
 - **Errors**: a rejected key and a rate limit have their own wording (and
   headline in the UI). A provider's error text is cut short, and the key is
   never in it.
@@ -131,9 +159,9 @@ happens.
 
 That limit is **shared by every player** using the built-in key. For
 `openai/gpt-oss-20b` on Groq's free plan it is 30 requests/minute, 1,000
-requests/day and 8K tokens/minute. One question takes **two** requests (read,
-then pick) and about 2.5–3K tokens, so roughly 500 questions a day and two or
-three a minute fit across all players.
+requests/day and 8K tokens/minute. One question takes **two** requests (plan,
+then write) and about 4–5K tokens, so roughly 500 questions a day but only
+one or two a minute fit across all players.
 After that, players get the "Rate limited" message suggesting their own key.
 Moving the key to Groq's paid Developer plan raises the limits without any
 change to the launcher.

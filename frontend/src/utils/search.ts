@@ -1,17 +1,18 @@
 import { api } from '../api/bridge'
 import type { Instance, ProjectType, SearchGameVersion } from '../api/types'
 
-const ALL_TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack']
-const INSTANCE_TYPES: ProjectType[] = ['mod', 'resourcepack', 'shader', 'modpack']
-const VANILLA_TYPES: ProjectType[] = ['resourcepack']
+const ALL_TYPES: ProjectType[] = ['mod', 'datapack', 'resourcepack', 'shader', 'modpack']
+const INSTANCE_TYPES: ProjectType[] = ['mod', 'datapack', 'resourcepack', 'shader', 'modpack']
+const VANILLA_TYPES: ProjectType[] = ['datapack', 'resourcepack']
 
 /** Which project types the Search page offers. With an instance in context
- *  only what can go into it: a Vanilla instance takes resource packs only
- *  (its page has no Mods/Shaders tab either); a modded one also takes
- *  modpacks, whose mods are poured into it. */
+ *  only what can go into it: a Vanilla instance takes datapacks and resource
+ *  packs (its page has no Mods/Shaders tab either); a modded one also takes
+ *  modpacks, whose mods are poured into it. A server takes mods (when
+ *  modded) and datapacks. */
 export function allowedTypes(inst: Instance | undefined): ProjectType[] {
   if (!inst) return ALL_TYPES
-  if (inst.server) return ['mod'] // a server has no use for packs or shaders
+  if (inst.server) return inst.loader === 'Vanilla' ? ['datapack'] : ['mod', 'datapack'] // a server has no use for resource packs or shaders
   return inst.loader === 'Vanilla' ? VANILLA_TYPES : INSTANCE_TYPES
 }
 

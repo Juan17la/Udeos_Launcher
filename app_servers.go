@@ -16,6 +16,7 @@ import (
 	"udeos/launcher/internal/core"
 	"udeos/launcher/internal/instance"
 	"udeos/launcher/internal/loader"
+	"udeos/launcher/internal/modpack"
 	"udeos/launcher/internal/mojang"
 	"udeos/launcher/internal/profile"
 	"udeos/launcher/internal/server"
@@ -54,9 +55,6 @@ func (a *App) serverView(inst instance.Instance) ServerView {
 	if v.MaxPlayers == 0 {
 		v.MaxPlayers = 20
 	}
-	if ip := upnp.LocalIP(); ip != "" {
-		v.LanAddress = ip + ":" + strconv.Itoa(v.Port)
-	}
 	return v
 }
 
@@ -67,9 +65,18 @@ func (a *App) ListServers() []ServerView {
 	if err != nil {
 		return out
 	}
+	// ListInstances claims unowned instances too, but the UI calls both at once: claim here as well.
+	if err := a.launcher.Instances.Adopt(p.Nickname); err != nil {
+		return out
+	}
+	lan := upnp.LocalIP() // one lookup for all cards
 	for _, it := range a.launcher.Instances.List() {
 		if it.Server && it.Owner == p.Nickname {
-			out = append(out, a.serverView(it))
+			v := a.serverView(it)
+			if lan != "" {
+				v.LanAddress = lan + ":" + strconv.Itoa(v.Port)
+			}
+			out = append(out, v)
 		}
 	}
 	return out
@@ -84,24 +91,49 @@ func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG stri
 	if !loader.Valid(ldr) || ldr == loader.Quilt {
 		return ServerView{}, errors.New("servers run Vanilla, Fabric, Forge or NeoForge")
 	}
+	inst, err := a.launcher.Instances.Create(name, version, ldr, loaderVersion, icon)
+	if err != nil {
+		return ServerView{}, err
+	}
+	return a.initServer(inst, iconPNG)
+}
+
+// CreateServerFromModpack makes a server out of a Modrinth modpack: the pack's
+// build for gameVersion/ldr ("" = newest), its loader, its server-side files
+// and overrides. name defaults to the pack's name.
+func (a *App) CreateServerFromModpack(projectID, name, icon, iconPNG, gameVersion, ldr string) (ServerView, error) {
+	ctx, done := a.job("content")
+	defer done()
+	inst, _, err := a.launcher.Modpacks.CreateServer(ctx, projectID, name, icon, gameVersion, ldr)
+	if err != nil {
+		return ServerView{}, err
+	}
+	return a.initServer(inst, iconPNG)
+}
+
+// initServer turns a freshly created instance into a server: its folder gets
+// the EULA, a free port and the defaults (an existing server.properties, say
+// a modpack's, is merged, not replaced). A failure removes the instance.
+func (a *App) initServer(inst instance.Instance, iconPNG string) (ServerView, error) {
 	used := a.launcher.ServerPorts("")
 	port := 25565
 	for used[strconv.Itoa(port)] != "" || !core.PortFree(port) {
 		port++
-	}
-	inst, err := a.launcher.Instances.Create(name, version, ldr, loaderVersion, icon)
-	if err != nil {
-		return ServerView{}, err
 	}
 	dir := a.launcher.Dirs.GameDir(inst.ID)
 	// Create made the client's folders; a server only uses mods/ (removing an empty folder is safe).
 	for _, sub := range []string{"saves", "screenshots", "resourcepacks", "shaderpacks"} {
 		_ = os.Remove(filepath.Join(dir, sub))
 	}
-	err = errors.Join(
+	owner := ""
+	if p, perr := a.launcher.Profile(); perr == nil {
+		owner = p.Nickname
+	}
+	err := errors.Join(
 		// The address name is fixed now, so renaming the server later does not change the address friends saved.
+		// Owner is set now so the Servers page lists it at once (see ListServers).
 		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) {
-			i.Server, i.Public, i.Internet.Name, i.UdeosLogin = true, true, server.DefaultAddressName(inst.Name), true
+			i.Server, i.Public, i.Internet.Name, i.UdeosLogin, i.Owner = true, true, server.DefaultAddressName(inst.Name), true, owner
 		}),
 		os.WriteFile(filepath.Join(dir, "eula.txt"), []byte("# Accepted in Udeos Launcher: https://aka.ms/MinecraftEULA\neula=true\n"), 0o644),
 		server.WriteProperties(dir, map[string]string{"motd": inst.Name, "online-mode": "true", "enforce-secure-profile": "false", "server-port": strconv.Itoa(port)}),
@@ -359,4 +391,52 @@ func (a *App) RemoveBackup(id, name string) error {
 		return err
 	}
 	return content.Remove(dir, "backups", name)
+}
+
+// JoinExport is what ExportServerJoinFile did: where the file went ("" when
+// the player cancelled) and what is in it.
+type JoinExport struct {
+	Path string              `json:"path"`
+	Info modpack.JoinSummary `json:"info"`
+}
+
+// ExportServerJoinFile asks where to save and writes the server's join file:
+// a few KB that let a friend make an instance with the same Minecraft
+// version, loader, mods, packs and shaders, and the server already in their
+// multiplayer list. The address in it is the internet one the server had when
+// it last ran ("" if it never has: the UI says to start it once first).
+func (a *App) ExportServerJoinFile(id string) (JoinExport, error) {
+	inst, err := a.launcher.Instances.Get(id)
+	if err != nil {
+		return JoinExport{}, err
+	}
+	if !inst.Server {
+		return JoinExport{}, errors.New("this is not a server")
+	}
+	address := a.launcher.ServerStatus(id).PublicAddress
+	if address == "" && inst.Public {
+		address = inst.Internet.Address
+	}
+	dst, err := a.saveAs("Save join file", inst.Name+modpack.JoinExt, "*"+modpack.JoinExt, "Join file")
+	if err != nil || dst == "" {
+		return JoinExport{}, err
+	}
+	if !strings.HasSuffix(strings.ToLower(dst), modpack.JoinExt) {
+		dst += modpack.JoinExt
+	}
+	f, err := os.Create(dst)
+	if err != nil {
+		return JoinExport{}, err
+	}
+	ctx, done := a.job("content")
+	defer done()
+	sum, err := a.launcher.Modpacks.ExportJoin(ctx, inst, address, f)
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err != nil {
+		_ = os.Remove(dst)
+		return JoinExport{}, err
+	}
+	return JoinExport{Path: dst, Info: sum}, nil
 }

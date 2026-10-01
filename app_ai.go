@@ -1,8 +1,8 @@
 package main
 
 import (
+	"context"
 	"slices"
-	"strings"
 
 	"udeos/launcher/internal/ai"
 	"udeos/launcher/internal/modsearch"
@@ -22,70 +22,45 @@ func (a *App) SetAI(provider, key, model string) (ai.Status, error) {
 // ResetAI goes back to Groq with the built-in key.
 func (a *App) ResetAI() (ai.Status, error) { return a.ai.Reset() }
 
-// AIAnswer is the chat's reply to one message: the Modrinth search it ran
-// and the results it recommends, each with why.
-type AIAnswer struct {
-	Intent ai.Intent `json:"intent"`
-	Total  int       `json:"total"` // Modrinth results for Intent ("See all")
-	Picks  []AIPick  `json:"picks"`
+// modrinthSearcher lets the advisor search Modrinth the way the Addons page does
+// (same cache, same category checks).
+type modrinthSearcher struct{ a *App }
+
+func (s modrinthSearcher) Search(_ context.Context, in ai.Intent, limit int) ([]modsearch.Result, int, error) {
+	page, err := s.a.SearchContent(in.Type, in.Query, in.GameVersion, in.Loader, in.Sort, in.Categories, 0, limit)
+	return page.Results, page.Total, err
 }
 
-// AIPick is one recommended Modrinth result; Reason is "" when the model
-// could not be asked for one.
-type AIPick struct {
-	Result modsearch.Result `json:"result"`
-	Reason string           `json:"reason"`
-}
-
-// aiCandidates is how many top Modrinth results the model chooses from, and
-// aiPicks how many it recommends.
-const aiCandidates, aiPicks = 8, 3
-
-// AskAI answers a chat message: the model reads a search out of it, the
-// launcher runs that search on Modrinth, and the model picks the best few
-// results with a one-line reason each. types are the project types the page
-// offers (an instance narrows them); prev is the last search, so follow-ups
-// refine it. lockVersion/lockLoader are an instance's, and win over the
-// model's ("" = no instance).
-func (a *App) AskAI(message string, types []string, prev ai.Intent, lockVersion, lockLoader string) (AIAnswer, error) {
-	in, err := a.aiIntent(message, types, prev)
-	if err != nil {
-		return AIAnswer{}, err
-	}
-	if lockVersion != "" {
-		in.GameVersion, in.Loader = lockVersion, ""
-		if in.Type == "mod" || in.Type == "modpack" {
-			in.Loader = strings.ToLower(lockLoader)
+// AskAI is the advisor's reply to one message of the AI page. It works out
+// what the player needs, searches Modrinth for each need (for the instance's
+// Minecraft version and loader, leaving out what it already has), and writes
+// an answer: how the picks fit together and why each one. history is the
+// conversation so far, so follow-ups ("lighter", "without shaders") work.
+// types are the project types on offer (an instance narrows them);
+// instanceID is the instance the player is adding to ("" = none: they choose
+// one when they press Add). See docs/14-ai-search.md.
+func (a *App) AskAI(message string, types []string, history []ai.Turn, instanceID string) (ai.Answer, error) {
+	req := ai.Request{Message: message, History: history, Allow: a.aiAllowed(types)}
+	if instanceID != "" {
+		inst, err := a.launcher.Instances.Get(instanceID)
+		if err != nil {
+			return ai.Answer{}, err
+		}
+		req.Inst = ai.Context{Name: inst.Name, Version: inst.Version, Loader: inst.Loader}
+		// Hand-added files have no record and are not listed; the rest is what "already installed" means.
+		if have, err := a.launcher.Content.Installed(a.ctx, inst); err == nil {
+			for _, e := range have {
+				req.Inst.Installed = append(req.Inst.Installed, e.Title)
+				req.Installed = append(req.Installed, e.ProjectID)
+			}
 		}
 	}
-	page, err := a.SearchContent(in.Type, in.Query, in.GameVersion, in.Loader, in.Sort, in.Categories, 0, aiCandidates)
-	if err != nil {
-		return AIAnswer{}, err
-	}
-	answer := AIAnswer{Intent: in, Total: page.Total, Picks: []AIPick{}}
-	candidates := make([]ai.Candidate, len(page.Results))
-	for i, r := range page.Results {
-		candidates[i] = ai.Candidate{ID: r.ID, Title: r.Title, Description: r.Description, Downloads: r.Downloads}
-	}
-	// ponytail: if picking fails (rate limit, odd answer), the top results
-	// still help more than an error; they just come without reasons.
-	choices, err := a.ai.Pick(a.ctx, message, candidates, aiPicks)
-	if err != nil || len(choices) == 0 {
-		choices = nil
-		for _, c := range candidates[:min(aiPicks, len(candidates))] {
-			choices = append(choices, ai.Choice{ID: c.ID})
-		}
-	}
-	for _, c := range choices {
-		i := slices.IndexFunc(page.Results, func(r modsearch.Result) bool { return r.ID == c.ID })
-		answer.Picks = append(answer.Picks, AIPick{Result: page.Results[i], Reason: c.Reason})
-	}
-	return answer, nil
+	return a.ai.Advise(a.ctx, modrinthSearcher{a}, req)
 }
 
-// aiIntent reads a search out of the player's message; it only ever holds
-// the allowed types, Modrinth's own categories and versions, and known loaders.
-func (a *App) aiIntent(message string, types []string, prev ai.Intent) (ai.Intent, error) {
+// aiAllowed is every value the model may use: the allowed types, Modrinth's own
+// categories and versions, and known loaders. Anything else it says is dropped.
+func (a *App) aiAllowed(types []string) ai.Allowed {
 	allow := ai.Allowed{Categories: map[string][]string{}}
 	for _, t := range types {
 		if slices.Contains([]string{"mod", "modpack", "resourcepack", "shader"}, t) {
@@ -104,7 +79,16 @@ func (a *App) aiIntent(message string, types []string, prev ai.Intent) (ai.Inten
 			allow.Versions = append(allow.Versions, v.Version)
 		}
 	}
-	return a.ai.Parse(a.ctx, message, prev, allow)
+	return allow
+}
+
+// categoryType is the project type Modrinth files a type's categories under:
+// datapacks are "mod" projects there, so they use the mod categories.
+func categoryType(projectType string) string {
+	if projectType == string(modsearch.TypeDatapack) {
+		return string(modsearch.TypeMod)
+	}
+	return projectType
 }
 
 // knownCategories keeps the categories Modrinth has for projectType.
@@ -112,6 +96,7 @@ func (a *App) knownCategories(projectType string, categories []string) []string 
 	if len(categories) == 0 {
 		return nil
 	}
+	projectType = categoryType(projectType)
 	cats, err := a.launcher.Search.Categories(a.ctx)
 	if err != nil {
 		return nil

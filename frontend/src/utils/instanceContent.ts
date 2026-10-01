@@ -15,12 +15,12 @@ export type FileSource<T> = {
   folder: string
 }
 
-export type FileKind = 'mods' | 'shaders' | 'resourcepacks'
+export type FileKind = 'mods' | 'shaders' | 'resourcepacks' | 'datapacks'
 
 const entry = { key: (e: FileEntry) => e.name, name: (e: FileEntry) => e.name }
 
 /** Mods, shader packs and resource packs: plain files, all with a Modrinth counterpart. */
-export const FILE_KINDS: Record<FileKind, FileSource<FileEntry> & { modrinth: ProjectType }> = {
+export const FILE_KINDS: Record<Exclude<FileKind, 'datapacks'>, FileSource<FileEntry> & { modrinth: ProjectType }> = {
   mods: { ...entry, list: api.ListMods, add: api.AddMod, pick: api.PickMod, remove: api.RemoveMod, folder: 'mods', modrinth: 'mod' },
   shaders: { ...entry, list: api.ListShaders, add: api.AddShader, pick: api.PickShader, remove: api.RemoveShader, folder: 'shaderpacks', modrinth: 'shader' },
   resourcepacks: { ...entry, list: api.ListResourcePacks, add: api.AddResourcePack, pick: api.PickResourcePack, remove: api.RemoveResourcePack, folder: 'resourcepacks', modrinth: 'resourcepack' },
@@ -31,3 +31,9 @@ export const WORLDS: FileSource<World> = {
   list: api.ListWorlds, add: api.AddWorld, pick: api.PickWorld, remove: api.RemoveWorld,
   key: (w) => w.folder, name: (w) => w.name, folder: 'saves',
 }
+
+/** Datapacks live in a world: `world` is the saves/ folder name ('' on a server, which has one world). */
+export const datapackSource = (world: string): FileSource<FileEntry> & { modrinth: ProjectType } => ({
+  ...entry, modrinth: 'datapack', folder: world ? `saves/${world}/datapacks` : '',
+  list: (id) => api.ListDatapacks(id, world), add: (id, p) => api.AddDatapack(id, world, p), pick: (id) => api.PickDatapack(id, world), remove: (id, name) => api.RemoveDatapack(id, world, name),
+})
