@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import InstanceIcon from '../../components/InstanceIcon'
-import { Folder, Pencil, X } from '../../ui/icons'
+import { Folder, Pencil } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
 import SegmentedControl from '../../ui/SegmentedControl'
@@ -8,16 +8,16 @@ import { useApp } from '../../state'
 import { InstanceTags } from '../../components/Tags'
 import { ago, hours } from '../../utils/format'
 import PlayButton from '../../components/PlayButton'
-import BackButton from '../../components/BackButton'
 import SidePanel from '../../components/SidePanel'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
 import { api } from '../../api/bridge'
 import FilesTab from './FilesTab'
 import WorldsTab from './WorldsTab'
+import DatapacksTab from './DatapacksTab'
 import ScreenshotsTab from './ScreenshotsTab'
 import SettingsTab from './SettingsTab'
 
-type Tab = 'mods' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots' | 'settings'
+type Tab = 'mods' | 'datapacks' | 'resourcepacks' | 'shaders' | 'worlds' | 'screenshots' | 'settings'
 
 /** Last tab open per instance, so coming back (from Addons, say) reopens it. */
 const lastTab = new Map<string, Tab>()
@@ -26,7 +26,7 @@ export default function InstancePage({ id }: { id: string }) {
   const { t, language, instances, refreshInstances, go } = useApp()
   const inst = instances.find((i) => i.id === id)
   const vanilla = !inst || inst.loader === 'Vanilla'
-  const tabs: Tab[] = vanilla ? ['resourcepacks', 'worlds', 'screenshots', 'settings'] : ['mods', 'resourcepacks', 'shaders', 'worlds', 'screenshots', 'settings']
+  const tabs: Tab[] = vanilla ? ['datapacks', 'resourcepacks', 'worlds', 'screenshots', 'settings'] : ['mods', 'datapacks', 'resourcepacks', 'shaders', 'worlds', 'screenshots', 'settings']
   const [tab, setTabState] = useState<Tab>(() => { const last = lastTab.get(id); return last && tabs.includes(last) ? last : tabs[0] })
   const setTab = (k: Tab) => { lastTab.set(id, k); setTabState(k) }
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -51,18 +51,13 @@ export default function InstancePage({ id }: { id: string }) {
 
   return (
     <main className="flex-1 grid grid-cols-[minmax(300px,340px)_minmax(0,1fr)] items-start gap-x-8 gap-y-4 pt-8 px-10 pb-12">
-      <BackButton className="col-span-2" />
-      {/* Identity on top, numbers under it, actions at the bottom (Play
-         biggest, the irreversible Delete last and quietest). */}
+      {/* Identity on top, numbers under it, actions at the bottom (Play biggest; Delete is in Edit). */}
       <SidePanel actions={<>
         <PlayButton inst={inst} size="lg" />
         <div className="grid grid-cols-2 gap-3">
           <Button variant="idle" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
           <Button variant="idle" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
         </div>
-        <Button variant="danger" size="sm" disabled={inst.running} onClick={() => setConfirmDelete(true)}>
-          <X size={12} /> {t.instance.deleteInstance}
-        </Button>
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
           <InstanceIcon inst={inst} size={64} />
@@ -90,13 +85,14 @@ export default function InstancePage({ id }: { id: string }) {
         {/* Keyed by tab, so switching tabs replays a short fade (no movement). */}
         <div key={tab} className="animate-[fade-in_0.15s_ease-out]">
           {tab === 'worlds' && <WorldsTab id={inst.id} />}
+          {tab === 'datapacks' && <DatapacksTab id={inst.id} />}
           {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
           {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
           {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
         </div>
       </div>
 
-      {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} />}
+      {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} onDelete={() => { setEditing(false); setConfirmDelete(true) }} />}
       {confirmDelete && (
         <ConfirmDialog danger title={t.instance.confirmDeleteTitle} body={t.instance.confirmDelete} confirmLabel={t.common.delete}
           onConfirm={remove} onClose={() => setConfirmDelete(false)} />

@@ -49,3 +49,19 @@ func (a *App) ListSearchGameVersions() ([]modsearch.GameVersion, error) {
 	}
 	return out, nil
 }
+
+// ListCategories returns the Modrinth category names (optimization, magic,
+// adventure, …) that apply to one content type, for the search page's filter chips.
+func (a *App) ListCategories(projectType string) ([]string, error) {
+	cats, err := a.launcher.Search.Categories(a.ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := []string{}
+	for _, c := range cats {
+		if string(c.ProjectType) == categoryType(projectType) {
+			out = append(out, c.Name)
+		}
+	}
+	return out, nil
+}

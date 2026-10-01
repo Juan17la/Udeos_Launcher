@@ -42,7 +42,7 @@ export default function ConsoleTab({ server }: { server: Server }) {
   return (
     <div className="flex flex-col gap-4">
       <div ref={box} onScroll={(e) => { const b = e.currentTarget; stick.current = b.scrollHeight - b.scrollTop - b.clientHeight < 40 }}
-        className="h-[calc(100vh-24rem)] min-h-64 overflow-y-auto rounded-md bg-panel-2 shadow-neu-inset px-4 py-3 text-xs leading-relaxed select-text">
+        className="h-[calc(100vh-var(--nav-h)-27rem)] min-h-56 overflow-y-auto rounded-md bg-panel-2 shadow-neu-inset px-4 py-3 text-xs leading-relaxed select-text">
         {lines.length === 0 && <p className="m-0 text-muted">{t.servers.console.empty}</p>}
         {lines.map((l, i) => <div key={i} className={`whitespace-pre-wrap break-words ${tone(l)}`}>{l}</div>)}
       </div>

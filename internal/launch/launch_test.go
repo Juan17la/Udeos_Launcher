@@ -66,3 +66,14 @@ func TestLegacyArguments(t *testing.T) {
 		}
 	}
 }
+
+func TestLegacyWindowsAvoidsAdapterCrash(t *testing.T) {
+	p := params(t, legacy)
+	p.Env.OS = "windows"
+	if !strings.Contains(strings.Join(Arguments(p), " "), "-Djava.net.preferIPv4Stack=true") {
+		t.Error("legacy windows launch must pass preferIPv4Stack")
+	}
+	if strings.Contains(strings.Join(Arguments(params(t, modern)), " "), "preferIPv4Stack") {
+		t.Error("modern launch must not")
+	}
+}

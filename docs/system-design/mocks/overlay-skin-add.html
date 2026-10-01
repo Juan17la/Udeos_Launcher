@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add skin — Udeos Launcher mock</title>
+<link rel="stylesheet" href="styles.css">
+<script>try{var q=new URLSearchParams(location.search).get('theme');if(q)localStorage.setItem('udeos-mock-theme',q);var t=localStorage.getItem('udeos-mock-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand"><span style="position:relative;display:inline-block;flex:none;width:36px;height:36px"><img class="pixel " src="assets/icons/ender_pearl.png" width="36" height="36" alt="" style=""><img class="pixel " src="assets/icons/mace.png" width="28.8" height="28.8" alt="" style="position:absolute;right:0;bottom:-5%;transform:rotate(-78deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))"></span><span class="word">Udeos Launcher</span></div>
+  <div class="mid"><div class="seg" role="radiogroup"><a href="dashboard.html" class="">Instances</a><a href="servers.html" class="">Servers</a><a href="skins.html" class="on">Skins</a><a href="search.html" class="">Addons</a></div></div>
+  <div class="end">
+    <div class="relative" style="flex:none">
+      <button type="button" class="btn idle " style="max-width:200px"><span class="face" style="width:18px;height:18px;background-size:144px 144px;background-position:-18px -18px"></span><span class="truncate">CraftyFox</span></button>
+      
+    </div>
+    <a class="btn primary " href="create-instance.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Instance</a>
+  </div>
+</nav>
+<main style="min-height:60vh"><h2 class="mb1">Skins</h2></main><div class="backdrop"><div class="glass dialog" role="dialog" style="width:560px"><div class="in"><div class="title">Add skin</div><div class="body"><div class="flex gap6"><div class="wells flex items-center" style="padding:16px 12px;flex:none;width:164px"><div class="skin " style="--u:5px"><i class="leg-r"></i><i class="leg-l"></i><i class="body"></i><i class="arm-r "></i><i class="arm-l "></i><i class="head"></i><i class="hat"></i></div></div><div class="grow minw0 flex col gap4"><div><label class="label ">Name</label><input class="input " type="text" placeholder="" value="Knight" style=""></div><div><label class="label ">Model</label><div class="seg" role="radiogroup"><button type="button" class="on">Classic</button><button type="button" class="">Slim</button></div><p class="m0 mt2 text-xs muted">Its arms look classic: change it if the preview looks wrong. Arms 4 pixels wide, like Steve.</p></div><label class="check on"><span class="box"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span><span>Wear it now</span></label></div></div></div><div class="acts"><button type="button" class="btn idle ">Cancel</button><button type="button" class="btn primary ">Add skin</button></div></div></div></div>
+</body>
+</html>

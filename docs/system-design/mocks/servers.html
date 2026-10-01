@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Servers — Udeos Launcher mock</title>
+<link rel="stylesheet" href="styles.css">
+<script>try{var q=new URLSearchParams(location.search).get('theme');if(q)localStorage.setItem('udeos-mock-theme',q);var t=localStorage.getItem('udeos-mock-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand"><span style="position:relative;display:inline-block;flex:none;width:36px;height:36px"><img class="pixel " src="assets/icons/ender_pearl.png" width="36" height="36" alt="" style=""><img class="pixel " src="assets/icons/mace.png" width="28.8" height="28.8" alt="" style="position:absolute;right:0;bottom:-5%;transform:rotate(-78deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))"></span><span class="word">Udeos Launcher</span></div>
+  <div class="mid"><div class="seg" role="radiogroup"><a href="dashboard.html" class="">Instances</a><a href="servers.html" class="on">Servers</a><a href="skins.html" class="">Skins</a><a href="search.html" class="">Addons</a></div></div>
+  <div class="end">
+    <div class="relative" style="flex:none">
+      <button type="button" class="btn idle " style="max-width:200px"><span class="face" style="width:18px;height:18px;background-size:144px 144px;background-position:-18px -18px"></span><span class="truncate">CraftyFox</span></button>
+      
+    </div>
+    <a class="btn primary " href="create-instance.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Instance</a>
+  </div>
+</nav>
+<main>
+  <div class="flex items-end justify-between gap6 wrap"><div><h2 class="mb2">Your Servers</h2><p class="m0 muted">Host a world on this computer for your friends to join.</p></div><a class="btn primary " href="create-server.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Server</a></div>
+  <div class="grid-cards grid-cards-server"><div class="panel panel-hover flex col gap4" style="padding:20px"><div class="flex items-center gap4"><img class="pixel " src="assets/icons/grass_block_side.png" width="44" height="44" alt="" style=""><div class="grow flex col gap2"><div class="bold text-lg truncate" style="line-height:1.2">Friends SMP</div><div class="flex wrap gap2 "><span class="tag green"><img class="pixel " src="assets/icons/grass_block_side.png" width="11" height="11" alt="" style="">1.21.1</span><span class="tag gold">Vanilla</span></div></div></div>
+    <div class="flex items-center justify-between gap4 text-xs muted"><span class="inline-flex items-center gap2 text-xs" style="display:inline-flex;align-items:center;gap:8px"><span class="dot" style="background:var(--primary)"></span>Online · 2/10 players</span><span class="truncate">udeoslauncher.friends-smp.nip.io</span></div>
+    <div class="flex gap4 mt-auto"><button type="button" class="btn idle grow"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Stop</button><a class="btn idle grow" href="server-console.html">Manage</a></div></div><div class="panel panel-hover flex col gap4" style="padding:20px"><div class="flex items-center gap4"><img class="pixel " src="assets/icons/gold_block.png" width="44" height="44" alt="" style=""><div class="grow flex col gap2"><div class="bold text-lg truncate" style="line-height:1.2">Creative Build</div><div class="flex wrap gap2 "><span class="tag green"><img class="pixel " src="assets/icons/grass_block_side.png" width="11" height="11" alt="" style="">1.20.1</span><span class="tag gold">Fabric 0.16.9</span></div></div></div>
+    <div class="flex items-center justify-between gap4 text-xs muted"><span class="inline-flex items-center gap2 text-xs" style="display:inline-flex;align-items:center;gap:8px"><span class="dot" style="background:var(--muted)"></span>Stopped</span><span class="truncate">192.168.1.20:25566</span></div>
+    <div class="flex gap4 mt-auto"><button type="button" class="btn primary grow"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg> Start</button><a class="btn idle grow" href="server-console.html">Manage</a></div></div></div></main>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Server — Internet — Udeos Launcher mock</title>
+<link rel="stylesheet" href="styles.css">
+<script>try{var q=new URLSearchParams(location.search).get('theme');if(q)localStorage.setItem('udeos-mock-theme',q);var t=localStorage.getItem('udeos-mock-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
+</head>
+<body>
+<nav class="nav">
+  <div class="brand"><span style="position:relative;display:inline-block;flex:none;width:36px;height:36px"><img class="pixel " src="assets/icons/ender_pearl.png" width="36" height="36" alt="" style=""><img class="pixel " src="assets/icons/mace.png" width="28.8" height="28.8" alt="" style="position:absolute;right:0;bottom:-5%;transform:rotate(-78deg);filter:drop-shadow(0 1px 2px rgba(0,0,0,.2))"></span><span class="word">Udeos Launcher</span></div>
+  <div class="mid"><div class="seg" role="radiogroup"><a href="dashboard.html" class="">Instances</a><a href="servers.html" class="on">Servers</a><a href="skins.html" class="">Skins</a><a href="search.html" class="">Addons</a></div></div>
+  <div class="end">
+    <div class="relative" style="flex:none">
+      <button type="button" class="btn idle " style="max-width:200px"><span class="face" style="width:18px;height:18px;background-size:144px 144px;background-position:-18px -18px"></span><span class="truncate">CraftyFox</span></button>
+      
+    </div>
+    <a class="btn primary " href="create-instance.html"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Instance</a>
+  </div>
+</nav>
+<main class="two-col" style="display:grid;gap:16px 32px">
+  <div class="back "><a class="btn ghost sm " href="servers.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg> Back to Servers</a></div>
+  <div class="panel side"><div class="scroll"><div class="ident"><img class="pixel " src="assets/icons/grass_block_side.png" width="64" height="64" alt="" style=""><h3 class="m0 w-full truncate">Friends SMP</h3><div class="flex wrap gap2 justify-center"><span class="tag green"><img class="pixel " src="assets/icons/grass_block_side.png" width="11" height="11" alt="" style="">1.21.1</span><span class="tag gold">Vanilla</span></div><span class="inline-flex items-center gap2 text-xs" style="display:inline-flex;align-items:center;gap:8px"><span class="dot" style="background:var(--primary)"></span>Online · 2/10 players</span></div><dl class="stats"><div><dt>Players</dt><dd class="truncate">2/10</dd></div><div><dt>Port</dt><dd class="truncate">25565</dd></div><div><dt>Memory</dt><dd class="truncate">2048 MB</dd></div><div><dt>Run time</dt><dd class="truncate">12 h</dd></div></dl><div class="copyaddr"><div class="grow flex col minw0"><span class="text-11 muted">Address</span><span class="text-sm bold truncate">udeoslauncher.friends-smp.nip.io</span></div><button type="button" class="btn ghost sm ">Copy</button></div></div><div class="actions"><button type="button" class="btn idle lg block "><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Stop</button><div class="grid-2" style="gap:12px"><a class="btn idle " href="overlay-edit-instance.html"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3.5l3.5 3.5L8 19.5H4.5V16z"/></svg> Edit</a><button type="button" class="btn idle "><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Folder</button></div><button type="button" class="btn danger sm "><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Delete server</button></div></div>
+  <div class="minw0 flex col gap6"><div class="seg" role="radiogroup"><a href="server-console.html" class="">Console</a><a href="server-players.html" class="">Players</a><a href="server-internet.html" class="on">Internet</a><a href="server-backups.html" class="">Backups</a><a href="server-settings.html" class="">Settings</a></div><div><div class="flex col gap4">
+  <div><h4 class="mb1">Play with friends</h4><p class="m0 text-sm muted">Share an address. Friends add it under Multiplayer → Add Server.</p></div>
+  <div class="panel flex col" style="padding:24px;gap:24px">
+    <div class="flex col gap3"><p class="m0 text-sm muted">For players on your Wi-Fi.</p><div class="copyaddr"><div class="grow flex col minw0"><span class="text-11 muted">Same network</span><span class="text-sm bold truncate">192.168.1.20:25565</span></div><button type="button" class="btn ghost sm ">Copy</button></div></div>
+    <div class="flex col gap3"><p class="m0 text-sm muted">For players anywhere.</p><div class="copyaddr"><div class="grow flex col minw0"><span class="text-11 muted">Internet</span><span class="text-sm bold truncate">udeoslauncher.friends-smp.nip.io</span></div><button type="button" class="btn ghost sm ">Copy</button></div><div class="flex justify-end"><button type="button" class="btn idle ">Close access</button></div></div></div>
+  <p class="m0 text-sm muted">Friends need Minecraft 1.21.1. They also need Udeos Launcher: only Udeos players can join, so skins show (Settings → Who can join).</p>
+  <div class="flex col gap4 mt4"><div><h4 class="mb1">Internet address</h4><p class="m0 text-sm muted">How players outside your network reach this server.</p></div>
+    <div class="panel flex col" style="padding:24px;gap:24px">
+      <div class="flex col gap3"><label class="label m0">Connection</label><div class="seg" role="radiogroup"><button type="button" class="on">Relay</button><button type="button" class="">Router</button></div><p class="m0 text-sm muted">Works on any connection, nothing to set up. Goes through a free relay.</p></div>
+      <div><label class="label ">Address name</label><input class="input " type="text" placeholder="" value="udeoslauncher.friends-smp" style=""><p class="m0 mt2 text-sm muted">Becomes udeoslauncher.friends-smp.&lt;IP&gt;.nip.io (free, no account). The number after ":" makes it unique.</p></div>
+      <details><summary class="text-sm bold" style="cursor:pointer">Your own relay</summary><div class="grid-2 mt4"><div><label class="label ">Relay server</label><input class="input " type="text" placeholder="bore.pub" value="" style=""></div><div><label class="label ">Secret</label><input class="input " type="password" placeholder="Only if your relay has one" value="" style=""></div></div><p class="m0 mt2 text-sm muted">Any bore relay works (github.com/ekzhang/bore). Empty: bore.pub.</p></details>
+      <div class="flex justify-end"><button type="button" class="btn primary ">Save</button></div></div></div></div></div></div></main>
+</body>
+</html>

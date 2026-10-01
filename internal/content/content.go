@@ -280,6 +280,12 @@ func AddShaderPack(gameDir, src string) (FileEntry, error) {
 	return addPack(gameDir, "shaderpacks", src, "shader pack", "shaders", func(zip string) bool { return zipHasDir(zip, "shaders/") })
 }
 
+// AddDatapack copies a datapack (.zip or folder with pack.mcmeta) into sub/,
+// the world's datapacks/ folder relative to gameDir.
+func AddDatapack(gameDir, sub, src string) (FileEntry, error) {
+	return addPack(gameDir, sub, src, "datapack", "pack.mcmeta", func(zip string) bool { return zipHasAny(zip, "pack.mcmeta") })
+}
+
 // addPack copies a pack folder (holding marker) or .zip (passing zipOK) into sub/.
 func addPack(gameDir, sub, src, kind, marker string, zipOK func(string) bool) (FileEntry, error) {
 	st, err := os.Stat(src)
@@ -326,6 +332,9 @@ func AddMod(gameDir, src, loader string) (FileEntry, error) {
 	}
 	name := filepath.Base(src)
 	if st.IsDir() || !strings.EqualFold(filepath.Ext(name), ".jar") {
+		if !st.IsDir() && zipHasAny(src, "pack.mcmeta") {
+			return FileEntry{}, errors.New("that is a datapack: add it in the Datapacks tab")
+		}
 		return FileEntry{}, errors.New("mods must be .jar files")
 	}
 	markers, known := modMarkers[loader]

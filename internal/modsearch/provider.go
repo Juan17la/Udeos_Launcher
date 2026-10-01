@@ -23,6 +23,8 @@ const (
 	TypeResourcePack ProjectType = "resourcepack"
 	TypeShader       ProjectType = "shader"
 	TypeModpack      ProjectType = "modpack"
+	// TypeDatapack: Modrinth files datapacks under project_type "mod" (loader tag "datapack"); the search facets split them out.
+	TypeDatapack ProjectType = "datapack"
 )
 
 // LoaderNames are the provider loader tags an instance's loader accepts: Quilt
@@ -151,6 +153,9 @@ type ProjectInfo struct {
 	ProjectType ProjectType `json:"projectType"`
 	Description string      `json:"description"`
 	IconURL     string      `json:"iconUrl"`
+	// ClientSide: required | optional | unsupported ("" = unknown). "unsupported"
+	// is a server-only mod, which a player joining the server does not need.
+	ClientSide string `json:"clientSide,omitempty"`
 }
 
 // ProjectDetail is the whole-project view for the Details page: Modrinth
