@@ -34,20 +34,20 @@ export default function Nav() {
     : current === 'skins' ? { label: t.skins.new, go: () => go({ name: 'skinEditor' }) }
     : { label: t.nav.newInstance, go: () => go({ name: 'create' }) }
   return (
-    <nav ref={bar} className="relative shrink-0 z-50 bg-bg flex items-center flex-wrap gap-4 py-4 px-6 after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-linear-to-b after:from-bg after:to-transparent after:pointer-events-none">
-      <div className="flex items-center gap-3 font-bold text-xl whitespace-nowrap mr-auto">
+    <nav ref={bar} className="relative shrink-0 z-50 bg-bg flex items-center gap-4 py-4 px-6 after:content-[''] after:absolute after:inset-x-0 after:top-full after:h-3 after:bg-linear-to-b after:from-bg after:to-transparent after:pointer-events-none">
+      <div className="flex items-center gap-3 font-bold text-xl whitespace-nowrap mr-auto flex-none">
         <Logo size={36} />
         {/* The wordmark gives way below 1100px so the four page links stay on one row. */}
         <span className="hidden min-[1100px]:inline">{t.app.name}</span>
       </div>
 
-      <div className="flex items-center justify-center flex-1">
+      <div className="flex items-center justify-center flex-1 min-w-0">
         <SegmentedControl aria-label={t.app.name}
           options={[{ value: 'dashboard', label: t.nav.dashboard }, { value: 'servers', label: t.nav.servers }, { value: 'skins', label: t.nav.skins }, { value: 'search', label: t.nav.search }]}
           value={current} onChange={(v) => go({ name: v as 'dashboard' | 'servers' | 'skins' | 'search' })} />
       </div>
 
-      <div className="flex items-center gap-4 ml-auto">
+      <div className="flex items-center gap-4 ml-auto flex-none">
         <Activity />
         <AccountMenu />
         {!creating && <Button variant="primary" onClick={make.go}><Plus size={16} /> {make.label}</Button>}

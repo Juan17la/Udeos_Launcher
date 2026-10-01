@@ -5,6 +5,15 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixes
+
+- **Windows: dropping files works.** Dropped files were never handed to the
+  launcher on Windows (no drop zone reacted). Fixed for the Mods, Worlds,
+  Skins and other drop zones.
+- **Tight windows:** the instance and server tab bars stay on one row, side
+  panels and cards keep their size, and only the cards scroll, with the
+  panels and tab bars fixed. The skin editor fits the window too.
+
 ## [1.3.0-beta] — 2026-09-30
 
 Includes everything meant for 1.2.1-beta, which was never published.
