@@ -219,7 +219,8 @@ jobs:
         id: notes
         shell: bash
         run: |
-          title="Udeos Launcher $(echo "$VERSION" | sed -E 's/-alpha/ Alpha/; s/-beta/ Beta/; s/-rc/ RC /')"
+          # The title is only the version, e.g. 2.0.0-Beta.
+          title="$(echo "$VERSION" | sed -E 's/-alpha/-Alpha/; s/-beta/-Beta/; s/-rc/-RC/')"
           echo "title=$title" >> "$GITHUB_OUTPUT"
           # Plain-language notes for players, written per release; the
           # download table is appended below them.
