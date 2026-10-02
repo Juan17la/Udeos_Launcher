@@ -5,6 +5,18 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.0.0-beta] — 2026-10-02
+
+### Changes
+
+- **First start in steps.** The welcome screen asks one thing at a time:
+  name, language, then theme (and the privacy agreement). Back and Next move
+  between steps; the typed name survives a language change.
+- **Clearer theme picker.** Dark, Light and Custom are a list with a short
+  explanation each. Custom shows a light/dark switch and a round colour
+  picker.
+- The release title on GitHub is now only the version (`2.0.0-Beta`).
+
 ## [1.3.1-beta] — 2026-10-01
 
 ### Fixes
