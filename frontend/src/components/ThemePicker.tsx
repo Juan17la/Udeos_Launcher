@@ -1,6 +1,7 @@
 import Dialog from '../ui/Dialog'
 import Button from '../ui/Button'
 import SegmentedControl from '../ui/SegmentedControl'
+import { Moon, Sun } from '../ui/icons'
 import { useApp } from '../state'
 import { DEFAULT_COLORS, isDark, paletteFrom, Theme } from '../utils/theme'
 import type { CustomColors } from '../api/types'
@@ -13,29 +14,33 @@ export default function ThemePicker({ theme, colors, onTheme, onColors }: { them
   const { t } = useApp()
   const s = t.theme
   const dark = isDark(colors.background)
+  const order: Theme[] = ['light', 'dark', 'custom']
   return (
-    <div className="flex flex-col gap-3">
-      <SegmentedControl aria-label={s.title} value={theme} onChange={onTheme}
-        options={[{ value: 'dark' as Theme, label: s.dark }, { value: 'light' as Theme, label: s.light }, { value: 'custom' as Theme, label: s.custom }]} />
-      <p className="m-0 text-xs text-muted">{s.hints[theme]}</p>
-      {theme === 'custom' && (
-        <>
-          <SegmentedControl aria-label={s.title} value={dark ? 'dark' : 'light'} onChange={(m) => onColors(paletteFrom(colors.primary, m === 'dark'))}
-            options={[{ value: 'dark', label: s.dark }, { value: 'light', label: s.light }]} />
-          <label className="flex items-center gap-3 px-3 py-2 rounded-md bg-panel-2 cursor-pointer">
-            <input type="color" value={colors.primary} onChange={(e) => onColors(paletteFrom(e.target.value, dark))}
-              className="w-10 h-10 p-0.5 rounded-md border-0 bg-idle shadow-neu cursor-pointer" />
+    <div role="radiogroup" aria-label={s.title} className="flex flex-col gap-2">
+      {order.map((v) => (
+        <div key={v} className={`rounded-md bg-panel-2 border-2 ${theme === v ? 'border-primary' : 'border-transparent'}`}>
+          <button type="button" role="radio" aria-checked={theme === v} onClick={() => onTheme(v)}
+            className="w-full flex items-center gap-3 px-3 py-2 bg-transparent border-0 text-left cursor-pointer text-text">
+            <span className={`w-4 h-4 shrink-0 rounded-full border-2 border-primary ${theme === v ? 'bg-primary' : ''}`} />
             <span className="flex-1 min-w-0 flex flex-col">
-              <span className="text-sm font-bold">{s.accent}</span>
-              <span className="text-xs text-muted">{s.accentHint}</span>
+              <span className="text-sm font-bold">{s[v]}</span>
+              <span className="text-xs text-muted">{s.hints[v]}</span>
             </span>
-            <span className="text-xs text-muted uppercase">{colors.primary}</span>
-          </label>
-          <div className="flex items-center justify-end">
-            <Button variant="ghost" size="sm" onClick={() => onColors(DEFAULT_COLORS)}>{s.reset}</Button>
-          </div>
-        </>
-      )}
+          </button>
+          {v === 'custom' && theme === 'custom' && (
+            <div className="flex items-center gap-3 px-3 pb-3">
+              <SegmentedControl aria-label={s.title} value={dark ? 'dark' : 'light'} onChange={(m) => onColors(paletteFrom(colors.primary, m === 'dark'))}
+                options={[{ value: 'light', label: <Sun size={18} />, title: s.light }, { value: 'dark', label: <Moon size={18} />, title: s.dark }]} />
+              <label title={s.accent} className="relative w-10 h-10 shrink-0 rounded-full overflow-hidden shadow-neu cursor-pointer">
+                <input type="color" value={colors.primary} onChange={(e) => onColors(paletteFrom(e.target.value, dark))}
+                  className="absolute -inset-2 w-[200%] h-[200%] p-0 border-0 cursor-pointer" />
+              </label>
+              <span className="text-xs text-muted uppercase flex-1">{colors.primary}</span>
+              <Button variant="ghost" size="sm" onClick={() => onColors(DEFAULT_COLORS)}>{s.reset}</Button>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }
