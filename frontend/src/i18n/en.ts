@@ -21,7 +21,7 @@ const en = {
     otherVersions: 'Other versions of the same mod', similar: 'Similar mods that work', see: 'See options',
   },
   activity: { title: 'Background tasks', hide: 'Hide', done: 'Done' },
-  common: { back: 'Back to {name}', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
+  common: { next: 'Next', prev: 'Back', back: 'Back to {name}', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
   profiles: {
     title: 'Profiles', active: 'Active', instances: '{n} instance(s)', switch: 'Switch profile',
     hint: 'Each profile is a player name with its own instances. Switching shows only that profile\'s instances.',

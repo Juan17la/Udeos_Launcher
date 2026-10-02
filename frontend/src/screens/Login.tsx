@@ -23,6 +23,8 @@ export default function Login({ adding = false }: { adding?: boolean }) {
   const [agreed, setAgreed] = useState(adding)
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [step, setStep] = useState(0) // 0 nickname, 1 language, 2 theme
+  const last = step === 2
 
   const name = NICKNAME.normalize(nickname)
   const valid = NICKNAME.test(nickname)
@@ -41,49 +43,58 @@ export default function Login({ adding = false }: { adding?: boolean }) {
   const openPrivacy = (e: React.MouseEvent) => { e.preventDefault(); e.stopPropagation(); setPrivacyOpen(true) }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 px-6 py-10 relative overflow-hidden animate-[page-in_0.2s_ease-out]">
+    // <main> is the page scroller (see tokens.css); my-auto centres while it fits and scrolls from the top when it doesn't. Keyed by language like the other pages (App.tsx), but inside Login so the typed nickname survives.
+    <main key={language} className="flex flex-col items-center gap-6 px-6 py-10 relative animate-[page-in_0.2s_ease-out]">
       <Decor slots={LOGIN_DECOR} opacity={0.12} />
 
       {/* Heading on the canvas, never inside the panel. */}
-      <div className="relative z-1 flex flex-col items-center gap-4">
+      <div className="relative z-1 flex flex-col items-center gap-4 mt-auto">
         <Logo size={64} />
         <h1 className="m-0 text-center">{adding ? t.login.newProfile : t.app.name}</h1>
         {!adding && <span className="tag bg-tag-gray">{__APP_VERSION__}</span>}
       </div>
 
-      <div className="panel relative z-1 w-[min(440px,100%)] flex flex-col gap-5 p-6">
-        <div>
-          <Label htmlFor="nickname-input">{t.login.nickname}</Label>
-          <Input id="nickname-input" type="text" placeholder={t.login.placeholder} value={nickname} maxLength={NICKNAME.maxLength} autoFocus
-            onChange={(e) => setNickname(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit() }} />
-        </div>
-        {nickname.trim() !== '' && !valid && <StatusMessage kind="error" headline={t.errors.invalidNickname} />}
-        {taken && <StatusMessage kind="error" headline={t.login.nameTaken} />}
+      <div className="panel relative z-1 w-[min(440px,100%)] flex flex-col gap-5 p-6 mb-auto">
+        {step === 0 && <>
+          <div>
+            <Label htmlFor="nickname-input">{t.login.nickname}</Label>
+            <Input id="nickname-input" type="text" placeholder={t.login.placeholder} value={nickname} maxLength={NICKNAME.maxLength} autoFocus
+              onChange={(e) => setNickname(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && valid && !taken) setStep(1) }} />
+          </div>
+          {nickname.trim() !== '' && !valid && <StatusMessage kind="error" headline={t.errors.invalidNickname} />}
+          {taken && <StatusMessage kind="error" headline={t.login.nameTaken} />}
+        </>}
 
-        <div>
-          <Label htmlFor="login-language">{t.language.choose}</Label>
-          <Select id="login-language" value={language} onChange={(e) => preview({ language: e.target.value as 'en' | 'es' })}>
-            {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
-          </Select>
-        </div>
-
-        <div>
-          <Label>{t.theme.title}</Label>
-          <ThemePicker theme={theme} colors={colors} onTheme={(v) => preview({ theme: v })} onColors={(c) => preview({ colors: c })} />
-        </div>
-
-        {!adding && (
-          <Checkbox checked={agreed} onChange={(e) => setAgreed(e.target.checked)} label={
-            <span className="text-muted leading-[1.45]">
-              {t.login.agree} <a href="#" onClick={openPrivacy}>{t.login.privacyPolicy}</a> {t.login.and} <a href="#" onClick={openPrivacy}>{t.login.terms}</a>.
-            </span>
-          } />
+        {step === 1 && (
+          <div>
+            <Label htmlFor="login-language">{t.language.choose}</Label>
+            <Select id="login-language" value={language} onChange={(e) => preview({ language: e.target.value as 'en' | 'es' })}>
+              {LANGUAGES.map((l) => <option key={l.code} value={l.code}>{l.name}</option>)}
+            </Select>
+          </div>
         )}
+
+        {last && <>
+          <div>
+            <Label>{t.theme.title}</Label>
+            <ThemePicker theme={theme} colors={colors} onTheme={(v) => preview({ theme: v })} onColors={(c) => preview({ colors: c })} />
+          </div>
+          {!adding && (
+            <Checkbox checked={agreed} onChange={(e) => setAgreed(e.target.checked)} label={
+              <span className="text-muted leading-[1.45]">
+                {t.login.agree} <a href="#" onClick={openPrivacy}>{t.login.privacyPolicy}</a> {t.login.and} <a href="#" onClick={openPrivacy}>{t.login.terms}</a>.
+              </span>
+            } />
+          )}
+        </>}
         {error && <ErrorMessage message={error} />}
         <AutoLoader active={busy} />
-        <Button variant="primary" size="lg" block disabled={!valid || taken || !agreed || busy} onClick={submit}>{adding ? t.login.create : t.login.start}</Button>
-        {adding && <Button variant="ghost" size="sm" onClick={cancel}>{t.common.cancel}</Button>}
+        {last
+          ? <Button variant="primary" size="lg" block disabled={!valid || taken || !agreed || busy} onClick={submit}>{adding ? t.login.create : t.login.start}</Button>
+          : <Button variant="primary" size="lg" block disabled={step === 0 && (!valid || taken)} onClick={() => setStep(step + 1)}>{t.common.next}</Button>}
+        {step > 0 && <Button variant="ghost" size="sm" onClick={() => setStep(step - 1)}>{t.common.prev}</Button>}
+        {adding && step === 0 && <Button variant="ghost" size="sm" onClick={cancel}>{t.common.cancel}</Button>}
       </div>
-    </div>
+    </main>
   )
 }

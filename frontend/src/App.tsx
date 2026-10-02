@@ -25,7 +25,7 @@ function Shell() {
   if (!ready) return <AutoLoader overlay active />
   return (
     <>
-      {/* Keyed by language: changing it remounts the nav and the page, so every size and border is laid out fresh for the new text instead of carrying over the old language's. Login is excluded (its own language picker would wipe the typed nickname). */}
+      {/* Keyed by language: changing it remounts the nav and the page, so every size and border is laid out fresh for the new text instead of carrying over the old language's. Login is excluded (its own language picker would wipe the typed nickname) and remounts itself instead. */}
       <Fragment key={screen.name === 'login' ? 'login' : language}>
       {screen.name !== 'login' && <Nav />}
       {(['create', 'instance', 'search', 'ai', 'server', 'detail', 'skinEditor'] as const).some((n) => n === screen.name) && (
