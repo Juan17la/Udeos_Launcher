@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 
 /** Slider-style selector: a recessed light-gray track with a green thumb
@@ -6,7 +7,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
  *  window is too narrow the options give up padding first, then their labels
  *  are cut with "…" (the full label is the tooltip), never wrapped. */
 type Props<V extends string> = {
-  options: { value: V; label: string }[]
+  options: { value: V; label: ReactNode; title?: string }[]
   value: V
   onChange: (v: V) => void
   'aria-labelledby'?: string
@@ -46,8 +47,8 @@ export default function SegmentedControl<V extends string>({ options, value, onC
           key={o.value} type="button" role="radio" aria-checked={o.value === value}
           ref={(el) => { if (el) refs.current.set(o.value, el); else refs.current.delete(o.value) }}
           onClick={() => onChange(o.value)}
-          title={o.label}
-          className={`relative z-1 min-w-0 shrink px-[clamp(6px,0.9vw,16px)] py-2 text-[clamp(11.5px,1.25vw,13px)] font-bold leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis rounded-md border-0 bg-transparent cursor-pointer transition-all duration-150 ease-in-out ${o.value === value ? 'text-on-primary' : 'text-text hover:text-primary-hover active:scale-97'}`}
+          title={o.title ?? (typeof o.label === 'string' ? o.label : undefined)} aria-label={o.title}
+          className={`relative z-1 min-w-0 shrink ${typeof o.label === 'string' ? '' : 'inline-flex items-center justify-center'} px-[clamp(6px,0.9vw,16px)] py-2 text-[clamp(11.5px,1.25vw,13px)] font-bold leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis rounded-md border-0 bg-transparent cursor-pointer transition-all duration-150 ease-in-out ${o.value === value ? 'text-on-primary' : 'text-text hover:text-primary-hover active:scale-97'}`}
         >
           {o.label}
         </button>

@@ -23,7 +23,7 @@ const es: Dict = {
     otherVersions: 'Otras versiones del mismo mod', similar: 'Mods parecidos que funcionan', see: 'Ver opciones',
   },
   activity: { title: 'Tareas en segundo plano', hide: 'Ocultar', done: 'Listo' },
-  common: { save: 'Guardar', back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
+  common: { next: 'Siguiente', prev: 'Atrás', save: 'Guardar', back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   profiles: {
     title: 'Perfiles', active: 'Activo', instances: '{n} instancia(s)', switch: 'Cambiar de perfil',
     hint: 'Cada perfil es un nombre de jugador con sus propias instancias. Al cambiar solo verás las de ese perfil.',
