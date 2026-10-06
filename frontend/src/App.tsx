@@ -1,4 +1,5 @@
-import { Fragment } from 'react'
+import { Component, Fragment } from 'react'
+import type { ReactNode } from 'react'
 import { AppProvider, useApp } from './state'
 import BackButton from './components/BackButton'
 import Nav from './components/Nav'
@@ -7,6 +8,7 @@ import LaunchDialog from './components/LaunchDialog'
 import CloseDialog from './components/CloseDialog'
 import UpdateDialog from './components/UpdateDialog'
 import AutoLoader from './ui/Loader'
+import ErrorMessage from './components/ErrorMessage'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
 import CreateInstance from './screens/CreateInstance'
@@ -18,6 +20,17 @@ import Servers from './screens/Servers'
 import ServerPage from './screens/server/ServerPage'
 import Skins from './screens/Skins'
 import SkinEditor from './screens/SkinEditor'
+
+/** A page that throws while rendering shows the error instead of a blank window; Back or the nav leave it. */
+class PageGuard extends Component<{ screen: unknown; children: ReactNode }, { error?: Error }> {
+  state: { error?: Error } = {}
+  static getDerivedStateFromError(error: Error) { return { error } }
+  componentDidUpdate(prev: { screen: unknown }) { if (prev.screen !== this.props.screen && this.state.error) this.setState({ error: undefined }) }
+  render() {
+    if (!this.state.error) return this.props.children
+    return <main className="flex-1 pt-8 px-10"><ErrorMessage message={String(this.state.error.stack ?? this.state.error)} /></main>
+  }
+}
 
 function Shell() {
   const { ready, screen, language } = useApp()
@@ -31,6 +44,7 @@ function Shell() {
       {(['create', 'instance', 'search', 'ai', 'server', 'detail', 'skinEditor'] as const).some((n) => n === screen.name) && (
         <BackButton inner={screen.name === 'create' ? 'px-[max(2.5rem,calc(50%-280px))]' : ''} />
       )}
+      <PageGuard screen={screen}>
       {screen.name === 'login' && <Login key={String(!!screen.adding)} adding={screen.adding} />}
       {screen.name === 'dashboard' && <Dashboard />}
       {screen.name === 'create' && <CreateInstance key={`${!!screen.server}|${screen.modpack?.id ?? ''}`} server={screen.server} modpack={screen.modpack} />}
@@ -43,6 +57,7 @@ function Shell() {
       {screen.name === 'detail' && <ProjectDetail result={screen.result} instanceId={screen.instanceId} />}
       {screen.name === 'skins' && <Skins />}
       {screen.name === 'skinEditor' && <SkinEditor key={screen.id ?? ''} id={screen.id} />}
+      </PageGuard>
       </Fragment>
       <LaunchDialog />
       <PrivacyDialog />

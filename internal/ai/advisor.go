@@ -485,7 +485,8 @@ func (m *Manager) Advise(ctx context.Context, s Searcher, req Request) (Answer, 
 
 	composed, err := m.Compose(ctx, req.Message, req.History, req.Inst, plan.Understood, inputs)
 	if err != nil || len(composed.Groups) == 0 {
-		composed = Composed{}
+		// FollowUps must be [] not nil: JSON null crashes the AI page (blank window).
+		composed = Composed{FollowUps: []string{}}
 		for _, in := range inputs {
 			g := Group{Label: in.Label}
 			for _, c := range in.Candidates[:min(2, len(in.Candidates))] {
