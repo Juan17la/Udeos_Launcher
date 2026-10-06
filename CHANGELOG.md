@@ -5,6 +5,8 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [2.1.0-beta] — 2026-10-06
+
 ### Fixes
 
 - **Ask AI no longer leaves a blank window.** When the AI could not write its
