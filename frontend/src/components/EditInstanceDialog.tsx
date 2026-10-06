@@ -12,9 +12,9 @@ import { messageOf } from '../utils/errors'
 import { serverIconPNG } from '../utils/serverIcon'
 import type { Instance } from '../api/types'
 
-/** Rename an instance and pick its icon; `onDelete` adds its Delete button. An instance made
+/** Rename an instance and pick its icon. An instance made
  *  from a modpack can keep the pack's own icon (the first cell). */
-export default function EditInstanceDialog({ inst, onClose, onDelete }: { inst: Instance; onClose: () => void; onDelete?: () => void }) {
+export default function EditInstanceDialog({ inst, onClose }: { inst: Instance; onClose: () => void }) {
   const { t, refreshInstances } = useApp()
   const [name, setName] = useState(inst.name)
   const [icon, setIcon] = useState(inst.icon)
@@ -35,8 +35,6 @@ export default function EditInstanceDialog({ inst, onClose, onDelete }: { inst: 
 
   return (
     <Dialog title={t.instance.edit} width={560} onClose={onClose} actions={<>
-      {/* The irreversible action lives here, far from Play, and quiet. */}
-      {onDelete && <Button variant="danger" size="sm" className="mr-auto" disabled={inst.running && !inst.server} onClick={onDelete}>{inst.server ? t.servers.deleteServer : t.instance.deleteInstance}</Button>}
       <Button variant="idle" onClick={onClose}>{t.common.cancel}</Button>
       <Button variant="primary" disabled={!valid} loading={busy} onClick={save}>{t.common.save}</Button>
     </>}>
