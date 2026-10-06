@@ -56,6 +56,21 @@ export const User = ({ size = 16 }: P) => (
 export const Pencil = ({ size = 14 }: P) => (
   <svg {...base(size, 2.75)}><path d="M17 3.5l3.5 3.5L8 19.5H4.5V16z" /></svg>
 )
+export const Trash = ({ size = 14 }: P) => (
+  <svg {...base(size, 2.75)}><path d="M4 6.5h16M9.5 6.5V4h5v2.5M6.5 6.5l1 14h9l1-14" /></svg>
+)
+export const ZoomIn = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><circle cx="10.5" cy="10.5" r="6.5" /><path d="M20.5 20.5l-5.5-5.5M10.5 7.5v6M7.5 10.5h6" /></svg>
+)
+export const ZoomOut = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><circle cx="10.5" cy="10.5" r="6.5" /><path d="M20.5 20.5l-5.5-5.5M7.5 10.5h6" /></svg>
+)
+export const Reset = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6" /><path d="M3.5 3.5V8H8" /></svg>
+)
+export const Grid = ({ size = 16 }: P) => (
+  <svg {...base(size, 2.5)}><path d="M4 4h16v16H4zM9.33 4v16M14.67 4v16M4 9.33h16M4 14.67h16" /></svg>
+)
 export const Download = ({ size = 12 }: P) => (
   <svg {...base(size, 2.75)}><path d="M12 3.5v12M6.5 10l5.5 5.5 5.5-5.5M4.5 20.5h15" /></svg>
 )

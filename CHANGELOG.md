@@ -5,6 +5,25 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixes
+
+- **Ask AI no longer leaves a blank window.** When the AI could not write its
+  answer (busy, rate limit) the picks came back without follow-ups and the page
+  crashed; it now shows the picks. Any page that fails to draw shows the error
+  instead of a blank window, and Back still works.
+
+### Changes
+
+- **Delete is next to Edit.** Instances and servers have Edit, Folder and Delete
+  right under Play (Delete still asks first).
+- **Skin editor built around the 3D model.** The model fills the page and you
+  paint straight on it: the wheel zooms toward the pointer, right-drag turns,
+  Shift- or middle-drag moves, a pixel grid shows when zoomed in, and the
+  texel under the pointer is outlined. Hide parts (head, arms, legs…) to reach
+  what is behind them. Strokes no longer skip pixels on quick moves. Colour
+  palette with Minecraft's dye colours and skin tones; the flat skin moved to
+  the side panel. Keys: + / − zoom, 0 resets the view.
+
 ## [2.0.0-beta] — 2026-10-02
 
 ### Changes

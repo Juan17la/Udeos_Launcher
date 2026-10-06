@@ -366,7 +366,7 @@ func TestAdviseInvestigatesInsteadOfJustSearching(t *testing.T) {
 	// If writing the answer fails, the player still gets the top results of each goal.
 	composeFails = true
 	got, err = m.Advise(context.Background(), fm, req)
-	if err != nil || got.Summary != "" || len(got.Groups) != 1 || len(got.Groups[0].Picks) != 2 || got.Groups[0].Picks[0].Reason != "" {
+	if err != nil || got.Summary != "" || got.FollowUps == nil || len(got.Groups) != 1 || len(got.Groups[0].Picks) != 2 || got.Groups[0].Picks[0].Reason != "" {
 		t.Errorf("fallback: %+v %v", got, err)
 	}
 }

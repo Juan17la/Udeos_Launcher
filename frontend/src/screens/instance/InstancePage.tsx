@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import InstanceIcon from '../../components/InstanceIcon'
-import { Folder, Pencil } from '../../ui/icons'
+import { Folder, Pencil, Trash } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
 import SegmentedControl from '../../ui/SegmentedControl'
@@ -51,12 +51,13 @@ export default function InstancePage({ id }: { id: string }) {
 
   return (
     <main className={SPLIT_MAIN}>
-      {/* Identity on top, numbers under it, actions at the bottom (Play biggest; Delete is in Edit). */}
+      {/* Identity on top, numbers under it, actions at the bottom (Play biggest; Edit, Folder and Delete under it). */}
       <SidePanel actions={<>
         <PlayButton inst={inst} size="lg" />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Button variant="idle" size="sm" className="px-2!" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
           <Button variant="idle" size="sm" className="px-2!" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
+          <Button variant="danger" size="sm" className="px-2!" title={t.instance.deleteInstance} disabled={inst.running} onClick={() => setConfirmDelete(true)}><Trash /> {t.common.delete}</Button>
         </div>
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
@@ -95,7 +96,7 @@ export default function InstancePage({ id }: { id: string }) {
         </ScrollBody>
       </SplitColumn>
 
-      {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} onDelete={() => { setEditing(false); setConfirmDelete(true) }} />}
+      {editing && <EditInstanceDialog inst={inst} onClose={() => setEditing(false)} />}
       {confirmDelete && (
         <ConfirmDialog danger title={t.instance.confirmDeleteTitle} body={t.instance.confirmDelete} confirmLabel={t.common.delete}
           onConfirm={remove} onClose={() => setConfirmDelete(false)} />

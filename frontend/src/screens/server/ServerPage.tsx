@@ -4,7 +4,7 @@ import ServerButton, { ServerStatus, shareAddress } from '../../components/Serve
 import { InstanceTags } from '../../components/Tags'
 import SidePanel, { ScrollBody, SPLIT_MAIN, SplitColumn } from '../../components/SidePanel'
 import EditInstanceDialog from '../../components/EditInstanceDialog'
-import { Folder, Pencil } from '../../ui/icons'
+import { Folder, Pencil, Trash } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
 import SegmentedControl from '../../ui/SegmentedControl'
@@ -66,9 +66,10 @@ export default function ServerPage({ id }: { id: string }) {
     <main className={SPLIT_MAIN}>
       <SidePanel actions={<>
         <ServerButton server={server} size="lg" />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <Button variant="idle" size="sm" className="px-2!" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
           <Button variant="idle" size="sm" className="px-2!" onClick={() => api.OpenInstanceFolder(server.id, '')}><Folder /> {t.instance.folder}</Button>
+          <Button variant="danger" size="sm" className="px-2!" title={t.servers.deleteServer} onClick={() => setConfirmDelete(true)}><Trash /> {t.common.delete}</Button>
         </div>
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
@@ -111,7 +112,7 @@ export default function ServerPage({ id }: { id: string }) {
         </ScrollBody>
       </SplitColumn>
 
-      {editing && <EditInstanceDialog inst={server} onClose={() => setEditing(false)} onDelete={() => { setEditing(false); setConfirmDelete(true) }} />}
+      {editing && <EditInstanceDialog inst={server} onClose={() => setEditing(false)} />}
       {confirmDelete && (
         <ConfirmDialog danger busy={deleting} title={t.servers.confirmDeleteTitle} confirmLabel={t.common.delete}
           body={deleteError ?? (server.running ? `${t.servers.confirmDelete} ${t.servers.confirmDeleteRunning}` : t.servers.confirmDelete)}
