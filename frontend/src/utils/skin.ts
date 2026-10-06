@@ -121,7 +121,10 @@ export class SkinTexture {
 /** A data: URL for a base64 PNG, the format the backend sends skins in. */
 export const pngURL = (png: string) => `data:image/png;base64,${png}`
 
-export type View = { yaw: number; pitch: number }
+/** Camera: turn (radians), zoom (1 = the whole player fits) and pan (device pixels). */
+export type View = { yaw: number; pitch: number; zoom?: number; panX?: number; panY?: number }
+/** Editor extras: parts left out (to reach the ones behind) and a texel grid when zoomed in. */
+export type RenderOptions = { hidden?: ReadonlySet<Part>; grid?: boolean }
 /** A face as drawn: the affine map from its texture rect to the canvas, for hit tests. */
 export type Drawn = { face: Face; m: [number, number, number, number, number, number] }
 
@@ -129,22 +132,22 @@ const LIGHT: Vec = (() => { const l: Vec = [-0.4, -0.7, 1]; const n = Math.hypot
 
 /** Draws the player on ctx (whose canvas is w×h device pixels), filling
  *  its height, and returns the faces in drawing order (last = on top). */
-export function render(ctx: CanvasRenderingContext2D, tex: SkinTexture, model: SkinModel, view: View, overlay = true): Drawn[] {
+export function render(ctx: CanvasRenderingContext2D, tex: SkinTexture, model: SkinModel, view: View, overlay = true, opts: RenderOptions = {}): Drawn[] {
   const { width: w, height: h } = ctx.canvas
-  const scale = Math.min(h / 36, w / 20) // 32 texels tall plus room for the tilt
+  const scale = Math.min(h / 36, w / 20) * (view.zoom ?? 1) // 32 texels tall plus room for the tilt
   const [cy, sy, cp, sp] = [Math.cos(view.yaw), Math.sin(view.yaw), Math.cos(view.pitch), Math.sin(view.pitch)]
   const rot = ([x, y, z]: Vec): Vec => {
     const x1 = x * cy + z * sy, z1 = -x * sy + z * cy
     return [x1, y * cp + z1 * sp, -y * sp + z1 * cp]
   }
-  const ox = w / 2, oy = h / 2 - scale * 2 // the model spans y -14…18, so its middle is 2 below the body's centre
+  const ox = w / 2 + (view.panX ?? 0), oy = h / 2 - scale * 2 + (view.panY ?? 0) // the model spans y -14…18, so its middle is 2 below the body's centre
   const eps = 0.6 / scale // faces overlap by ~half a pixel so no seams show between them
   const drawn: Drawn[] = []
   ctx.setTransform(1, 0, 0, 1, 0, 0)
   ctx.clearRect(0, 0, w, h)
   ctx.imageSmoothingEnabled = false
   // Painter's order: boxes far to near (a part's second layer right after it), each box's front-facing sides.
-  const list = boxes(model).filter((b) => overlay || b.layer === 'base')
+  const list = boxes(model).filter((b) => (overlay || b.layer === 'base') && !opts.hidden?.has(b.part))
     .map((b) => ({ b, depth: rot(b.c)[2] }))
     .sort((a, b) => a.depth - b.depth)
   for (const { b } of list) {
@@ -158,10 +161,37 @@ export function render(ctx: CanvasRenderingContext2D, tex: SkinTexture, model: S
       ctx.setTransform(...m)
       ctx.drawImage(tex.shade(Math.round(light * 16)), fx, fy, fw, fh, -eps, -eps, fw + 2 * eps, fh + 2 * eps)
       drawn.push({ face: f, m })
+      // Each face's grid right after it, so nearer faces cover it like they cover the face; only once texels are big enough to aim at.
+      if (opts.grid && scale >= 10) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0)
+        ctx.strokeStyle = 'rgba(0,0,0,0.18)'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        for (let i = 0; i <= fw; i++) { ctx.moveTo(...apply(m, i, 0)); ctx.lineTo(...apply(m, i, fh)) }
+        for (let j = 0; j <= fh; j++) { ctx.moveTo(...apply(m, 0, j)); ctx.lineTo(...apply(m, fw, j)) }
+        ctx.stroke()
+      }
     }
   }
   ctx.setTransform(1, 0, 0, 1, 0, 0)
   return drawn
+}
+
+/** Point (s, t) of a face's texture rect (texels from its corner) on the canvas. */
+const apply = ([a, b, c, d, e, f]: Drawn['m'], s: number, t: number): [number, number] => [a * s + c * t + e, b * s + d * t + f]
+
+/** Outlines texel (px, py) where it shows on the drawn model (nothing if that face is turned away or hidden). */
+export function outlineTexel(ctx: CanvasRenderingContext2D, drawn: Drawn[], px: number, py: number, color: string) {
+  const hit = [...drawn].reverse().find(({ face: { rect: [x, y, w, h] } }) => px >= x && px < x + w && py >= y && py < y + h)
+  if (!hit) return
+  const [s, t] = [px - hit.face.rect[0], py - hit.face.rect[1]]
+  ctx.setTransform(1, 0, 0, 1, 0, 0)
+  ctx.strokeStyle = color
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  ctx.moveTo(...apply(hit.m, s, t)); ctx.lineTo(...apply(hit.m, s + 1, t)); ctx.lineTo(...apply(hit.m, s + 1, t + 1)); ctx.lineTo(...apply(hit.m, s, t + 1))
+  ctx.closePath()
+  ctx.stroke()
 }
 
 /** The texel under canvas point (x, y), from the topmost face drawn there. */

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { SkinCanvas } from '../components/SkinView'
+import { SkinCanvas, type CameraControls } from '../components/SkinView'
 import Button from '../ui/Button'
 import { ConfirmDialog } from '../ui/Dialog'
 import { Input, Label } from '../ui/Field'
 import AutoLoader from '../ui/Loader'
 import SegmentedControl from '../ui/SegmentedControl'
 import StatusMessage from '../ui/StatusMessage'
-import { Bucket, Eraser, Pencil, Pipette, Redo, Undo } from '../ui/icons'
+import { Bucket, Eraser, Grid, Pencil, Pipette, Redo, Reset, Undo, ZoomIn, ZoomOut } from '../ui/icons'
 import { useApp } from '../state'
 import { api } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import { messageOf } from '../utils/errors'
 import { Feedback } from './instance/TabParts'
-import { SkinTexture, allFaces, faceAt, pngURL, usedMask, type Layer } from '../utils/skin'
+import { SkinTexture, allFaces, faceAt, pngURL, usedMask, type Layer, type Part } from '../utils/skin'
 import { DEFAULT_SKINS } from '../assets'
 import type { SkinModel } from '../api/types'
 
@@ -29,12 +29,20 @@ const TOOLS: { tool: Tool; icon: JSX.Element }[] = [
   { tool: 'fill', icon: <Bucket /> }, { tool: 'picker', icon: <Pipette /> },
 ]
 const KEYS: Record<string, Tool> = { b: 'pencil', e: 'eraser', g: 'fill', i: 'picker' }
+/** Minecraft's sixteen dye colors, then skin tones: a start for any skin. */
+const PALETTE = ['#F9FFFE', '#9D9D97', '#474F52', '#1D1D21', '#835432', '#B02E26', '#F9801D', '#FED83D', '#80C71F', '#5E7C16', '#169C9C', '#3AB3DA',
+  '#3C44AA', '#8932B8', '#C74EBD', '#F38BAA', '#F9D4B4', '#E0AC69', '#C68642', '#8D5524', '#5A3B26']
+/** The parts toggle, laid out like the player facing you (its right arm on your left): grid area per part. */
+const DOLL: [Part, string][] = [['head', '1 / 2 / 2 / 4'], ['rightArm', '2 / 1 / 3 / 2'], ['body', '2 / 2 / 3 / 4'], ['leftArm', '2 / 4 / 3 / 5'], ['rightLeg', '3 / 2 / 4 / 3'], ['leftLeg', '3 / 3 / 4 / 4']]
 
-/** The skin editor: the flat 64×64 skin on the left, the model on the
- *  right; both are paintable. Pencil, eraser, fill (stays inside the face
- *  it starts on), color picker (also right-click on the flat skin), undo
- *  and redo; the layer switch shows the second layer on the model and
- *  paints it there. Texels the game never reads cannot be painted. */
+/** The skin editor: the 3D model fills the page and is painted directly
+ *  (wheel zooms toward the pointer, right-drag turns, middle/Shift-drag
+ *  moves, a texel grid shows when zoomed in); parts can be hidden to reach
+ *  the ones behind. The flat 64×64 skin sits in the side panel, also
+ *  paintable. Pencil, eraser, fill (stays inside the face it starts on),
+ *  color picker (also right-click on the flat skin), palette, undo and
+ *  redo; the layer switch shows the second layer and paints it. Texels the
+ *  game never reads cannot be painted. */
 export default function SkinEditor({ id }: { id?: string }) {
   const { t, scheme, skins, refreshSkins, back } = useApp()
   const e = t.skins.editor
@@ -50,6 +58,9 @@ export default function SkinEditor({ id }: { id?: string }) {
   const [color, setColor] = useState('#5a3b26')
   const [recent, setRecent] = useState<string[]>([])
   const [layer, setLayer] = useState<Layer>('base')
+  const [hidden, setHidden] = useState<ReadonlySet<Part>>(() => new Set())
+  const [grid, setGrid] = useState(true)
+  const camera = useRef<CameraControls | null>(null)
   const [hover, setHover] = useState<Texel | null>(null)
   const [dirty, setDirty] = useState(false)
   const [restored, setRestored] = useState(false)
@@ -118,6 +129,9 @@ export default function SkinEditor({ id }: { id?: string }) {
       if (mod && (k === 'y' || (k === 'z' && ev.shiftKey))) { ev.preventDefault(); step(redo, undo) }
       else if (mod && k === 'z') { ev.preventDefault(); step(undo, redo) }
       else if (!mod && !ev.altKey && KEYS[k]) setTool(KEYS[k])
+      else if (!mod && (k === '+' || k === '=')) camera.current?.zoom(1.25)
+      else if (!mod && k === '-') camera.current?.zoom(0.8)
+      else if (!mod && k === '0') camera.current?.reset()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -132,6 +146,8 @@ export default function SkinEditor({ id }: { id?: string }) {
   if (!ready) return <main className="flex-1 flex flex-col pt-4 px-[clamp(16px,3vw,40px)] pb-6"><AutoLoader active={!error} label={t.common.loading} /><Feedback error={error} note={null} onClearNote={() => {}} /></main>
 
   const face = hover && faceAt(model, hover[0], hover[1])
+  const pickColor = (c: string) => { setColor(c); if (tool === 'eraser' || tool === 'picker') setTool('pencil') }
+  const togglePart = (part: Part) => setHidden((cur) => { const next = new Set(cur); if (!next.delete(part)) next.add(part); return next })
   return (
     <main className="flex-1 min-h-0 flex flex-col gap-4 pt-4 px-[clamp(16px,3vw,40px)] pb-6 overflow-y-hidden!">
       <div className="flex items-end justify-between gap-6">
@@ -150,67 +166,72 @@ export default function SkinEditor({ id }: { id?: string }) {
       )}
       <Feedback error={error} note={null} onClearNote={() => {}} />
 
-      {/* The page never scrolls: the side panel stays put, and the canvas column scrolls only when the window is too short for the canvas at its smallest. */}
-      <div className="flex-1 min-h-0 grid grid-cols-[auto_minmax(0,1fr)] grid-rows-[minmax(0,1fr)] gap-[clamp(16px,3vw,32px)]">
-        <section className="flex flex-col gap-3 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden -m-3 p-3">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex gap-2">
-              {TOOLS.map(({ tool: k, icon }) => (
-                <Button key={k} square variant={tool === k ? 'primary' : 'idle'} title={e.tools[k]} aria-pressed={tool === k} onClick={() => setTool(k)}>{icon}</Button>
+      {/* The page never scrolls: toolbar, model and side panel all fit; only the side panel scrolls on a short window. */}
+      <div className="flex-1 min-h-0 grid grid-cols-[auto_minmax(0,1fr)_clamp(250px,24vw,320px)] grid-rows-[minmax(0,1fr)] gap-[clamp(12px,2vw,24px)]">
+        <nav className="panel p-2 flex flex-col gap-2 overflow-y-auto" aria-label={e.toolbar}>
+          {TOOLS.map(({ tool: k, icon }) => (
+            <Button key={k} square variant={tool === k ? 'primary' : 'idle'} title={e.tools[k]} aria-pressed={tool === k} onClick={() => setTool(k)}>{icon}</Button>
+          ))}
+          <hr className="w-full my-1 border-0 h-px bg-muted/30" />
+          <Button square variant="idle" title={e.undo} disabled={!undo.current.length} onClick={() => step(undo, redo)}><Undo /></Button>
+          <Button square variant="idle" title={e.redo} disabled={!redo.current.length} onClick={() => step(redo, undo)}><Redo /></Button>
+          <hr className="w-full my-1 border-0 h-px bg-muted/30" />
+          <Button square variant="idle" title={e.zoomIn} onClick={() => camera.current?.zoom(1.25)}><ZoomIn /></Button>
+          <Button square variant="idle" title={e.zoomOut} onClick={() => camera.current?.zoom(0.8)}><ZoomOut /></Button>
+          <Button square variant="idle" title={e.resetView} onClick={() => camera.current?.reset()}><Reset /></Button>
+          <Button square variant={grid ? 'primary' : 'idle'} title={e.grid} aria-pressed={grid} onClick={() => setGrid(!grid)}><Grid /></Button>
+        </nav>
+
+        <section className="relative min-w-0 min-h-0 rounded-md bg-panel-2 shadow-neu-inset overflow-hidden">
+          <SkinCanvas tex={tex} version={version} model={model} overlay={layer === 'overlay'} label={e.model3d} zoomable camera={camera}
+            hidden={hidden} grid={grid} hover={hover} onHover={setHover} onPaint={(px, py, _face, first) => paint(px, py, first)} />
+          {/* Over the model, out of its way: what to paint on (top), where the pointer is and how to move (bottom). */}
+          <div className="absolute top-3 left-3" title={e.layerHint}>
+            <SegmentedControl options={(['base', 'overlay'] as const).map((l) => ({ value: l, label: e.layers[l] }))} value={layer} onChange={setLayer} />
+          </div>
+          {/* The parts, laid out like the player facing you: click one to hide it and paint what is behind. */}
+          <div className="absolute top-3 right-3 flex flex-col items-center gap-1.5 p-2 rounded-md glass" title={e.showPartsHint}>
+            <span className="text-[11px] text-muted">{e.showParts}</span>
+            <div className="grid grid-cols-[repeat(4,12px)] grid-rows-[24px_36px_36px] gap-0.5" role="group" aria-label={e.showParts}>
+              {DOLL.map(([part, area]) => (
+                <button key={part} type="button" style={{ gridArea: area }} title={e.parts[part]} aria-label={e.parts[part]} aria-pressed={!hidden.has(part)} onClick={() => togglePart(part)}
+                  className={`rounded-[3px] border-0 cursor-pointer transition-colors duration-150 ${hidden.has(part) ? 'bg-transparent outline-1 outline-dashed outline-muted -outline-offset-1' : 'bg-primary hover:bg-primary-hover'}`} />
               ))}
             </div>
-            <div className="flex gap-2">
-              <Button square variant="idle" title={e.undo} disabled={!undo.current.length} onClick={() => step(undo, redo)}><Undo /></Button>
-              <Button square variant="idle" title={e.redo} disabled={!redo.current.length} onClick={() => step(redo, undo)}><Redo /></Button>
-            </div>
-            <label className="flex items-center gap-2 text-xs text-muted cursor-pointer" title={e.color}>
-              <input type="color" value={color} onChange={(ev) => { setColor(ev.target.value); if (tool === 'eraser' || tool === 'picker') setTool('pencil') }}
-                className="w-10 h-10 p-0.5 rounded-md border-0 bg-idle shadow-neu cursor-pointer" />
-              {color}
-            </label>
           </div>
-          {/* Always there, even empty: a row appearing after the first stroke would shift the canvas mid-stroke. */}
-          <div className="flex items-center gap-2 h-7 overflow-hidden" aria-label={e.recent}>
-            {recent.length === 0 && <span className="text-xs text-muted">{e.recent}</span>}
-            {recent.map((c) => (
-              <button key={c} type="button" title={c} onClick={() => { setColor(c); setTool('pencil') }}
-                className={`flex-none w-7 h-7 rounded-md border-0 shadow-neu cursor-pointer transition-transform duration-150 hover:-translate-y-px ${c === color ? 'outline-2 outline-primary -outline-offset-2' : ''}`} style={{ background: c }} />
-            ))}
+          <div className="absolute bottom-3 inset-x-3 flex justify-between items-end gap-4 text-xs pointer-events-none">
+            <span className={`truncate px-2 py-1 rounded-md glass ${hover ? '' : 'invisible'}`}>{hover && (face ? `${e.parts[face.box.part]} · ${e.faces[face.name]} · ${e.layers[face.box.layer]} (${hover[0]}, ${hover[1]})` : e.unused)}</span>
+            <span className="truncate px-2 py-1 rounded-md glass text-muted">{e.hint3d}</span>
           </div>
-          <div className="panel p-3 w-fit">
-            <FlatSkin tex={tex} version={version} model={model} dark={scheme === 'dark'} hover={hover} onHover={setHover} onPaint={paint} onPick={pick} label={e.flat} />
-          </div>
-          <p className="m-0 text-xs text-muted h-4">
-            {hover && (face ? `${e.parts[face.box.part]} · ${e.faces[face.name]} · ${e.layers[face.box.layer]} (${hover[0]}, ${hover[1]})` : e.unused)}
-          </p>
         </section>
 
-        <aside className="panel h-full min-h-0 overflow-y-auto flex flex-col gap-2.5 p-4 min-w-0">
+        <aside className="panel min-h-0 overflow-y-auto flex flex-col gap-4 p-4 min-w-0">
           <div>
             <Label htmlFor="skin-name">{e.name}</Label>
             <Input id="skin-name" type="text" maxLength={32} placeholder={e.namePlaceholder} value={name} onChange={(ev) => { setName(ev.target.value); setDirty(true) }} />
           </div>
-          {/* Label and control on one row, and the hint under it only where there is height for it (it is the tooltip otherwise): the panel fits the smallest window. */}
-          <div title={t.skins.modelHints[model]}>
-            <div className="flex items-center justify-between gap-3">
-              <Label className="mb-0">{e.model}</Label>
-              <SegmentedControl options={(['classic', 'slim'] as const).map((m) => ({ value: m, label: t.skins.models[m] }))} value={model} onChange={changeModel} />
+          <div title={t.skins.modelHints[model]} className="flex items-center justify-between gap-3">
+            <Label className="mb-0">{e.model}</Label>
+            <SegmentedControl options={(['classic', 'slim'] as const).map((m) => ({ value: m, label: t.skins.models[m] }))} value={model} onChange={changeModel} />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-3 cursor-pointer" title={e.color}>
+              <input type="color" value={color} onChange={(ev) => pickColor(ev.target.value)} className="w-10 h-10 p-0.5 rounded-md border-0 bg-idle shadow-neu cursor-pointer" />
+              <span className="text-sm font-bold">{e.color}</span>
+              <span className="text-xs text-muted tabular-nums">{color.toUpperCase()}</span>
+            </label>
+            <Swatches colors={PALETTE} color={color} onPick={pickColor} label={e.palette} />
+            {/* Always there, even empty: a row appearing after the first stroke would shift the panel mid-stroke. */}
+            <div className="min-h-6 flex items-center">
+              {recent.length ? <Swatches colors={recent} color={color} onPick={pickColor} label={e.recent} /> : <span className="text-xs text-muted">{e.recent}</span>}
             </div>
-            <p className="m-0 mt-2 text-xs text-muted hidden [@media(min-height:700px)]:block">{t.skins.modelHints[model]}</p>
           </div>
-          <div title={e.layerHint}>
-            <div className="flex items-center justify-between gap-3">
-              <Label className="mb-0">{e.layer}</Label>
-              <SegmentedControl options={(['base', 'overlay'] as const).map((l) => ({ value: l, label: e.layers[l] }))} value={layer} onChange={setLayer} />
-            </div>
-            <p className="m-0 mt-2 text-xs text-muted hidden [@media(min-height:700px)]:block">{e.layerHint}</p>
+
+          <div className="flex flex-col gap-2">
+            <Label className="mb-0">{e.flat}</Label>
+            <FlatSkin tex={tex} version={version} model={model} dark={scheme === 'dark'} hover={hover} onHover={setHover} onPaint={paint} onPick={pick} label={e.flat} />
           </div>
-          {/* The preview takes whatever height the controls leave, never less than 100px. */}
-          <div className="relative flex-1 min-h-[100px] rounded-md bg-panel-2 shadow-neu-inset">
-            <SkinCanvas tex={tex} version={version} model={model} overlay={layer === 'overlay'} label={e.model3d}
-              onPaint={(px, py, _face, first) => paint(px, py, first)} />
-          </div>
-          <p className="m-0 text-[11px] text-muted text-center truncate" title={e.hint3d}>{e.hint3d}</p>
         </aside>
       </div>
 
@@ -264,7 +285,7 @@ function FlatSkin({ tex, version, model, dark, hover, onHover, onPaint, onPick, 
     return [Math.floor((ev.clientX - r.left) * 64 / r.width), Math.floor((ev.clientY - r.top) * 64 / r.height)]
   }
   return (
-    <canvas ref={ref} width={SIZE * dpr} height={SIZE * dpr} style={{ width: 'min(512px, max(260px, calc(100vh - var(--nav-h) - 23rem)))', aspectRatio: '1' }} role="img" aria-label={label} className="block rounded-md cursor-crosshair touch-none"
+    <canvas ref={ref} width={SIZE * dpr} height={SIZE * dpr} style={{ width: '100%', aspectRatio: '1' }} role="img" aria-label={label} className="block rounded-md cursor-crosshair touch-none"
       onContextMenu={(ev) => ev.preventDefault()}
       onPointerDown={(ev) => {
         const p = texel(ev)
@@ -276,10 +297,22 @@ function FlatSkin({ tex, version, model, dark, hover, onHover, onPaint, onPick, 
       }}
       onPointerMove={(ev) => {
         const p = texel(ev)
-        if (!hover || p[0] !== hover[0] || p[1] !== hover[1]) onHover(p)
+        if (!hover || p[0] !== hover[0] || p[1] !== hover[1]) onHover(p[0] >= 0 && p[1] >= 0 && p[0] < 64 && p[1] < 64 ? p : null)
         if (stroke.current) { for (const [x, y] of line(stroke.current, p).slice(1)) onPaint(x, y, false); stroke.current = p }
       }}
       onPointerUp={() => { stroke.current = null }} onPointerCancel={() => { stroke.current = null }} onPointerLeave={() => onHover(null)} />
+  )
+}
+
+/** A row of color buttons; the current color is ringed. */
+function Swatches({ colors, color, onPick, label }: { colors: string[]; color: string; onPick: (c: string) => void; label: string }) {
+  return (
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(22px,1fr))] gap-1.5 w-full" role="group" aria-label={label}>
+      {colors.map((c) => (
+        <button key={c} type="button" title={c} aria-label={c} aria-pressed={c.toLowerCase() === color.toLowerCase()} onClick={() => onPick(c.toLowerCase())}
+          className={`aspect-square rounded-sm border-0 shadow-neu cursor-pointer transition-transform duration-150 hover:-translate-y-px ${c.toLowerCase() === color.toLowerCase() ? 'outline-2 outline-text outline-offset-1' : ''}`} style={{ background: c }} />
+      ))}
+    </div>
   )
 }
 
