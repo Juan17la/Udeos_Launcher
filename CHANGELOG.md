@@ -5,7 +5,19 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## [2.1.0-beta] — 2026-10-06
+### Changes
+
+- New license: Udeos Launcher now uses the PolyForm Noncommercial License
+  1.0.0 instead of MIT. You can still use, study, change and share it for free
+  for anything noncommercial; selling it or using it to make money is reserved
+  to the author.
+- New documentation: a user guide for players (getting started, instances,
+  addons, Ask AI, servers, skins, troubleshooting) and reorganised technical
+  pages, including how the launcher connects to Mojang, the mod loaders and
+  Modrinth. The README now shows what the launcher can do, with screenshots.
+- Some texts in the app read more naturally (no long dashes).
+
+## [2.1.0-beta] - 2026-10-06
 
 ### Fixes
 
@@ -26,7 +38,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   palette with Minecraft's dye colours and skin tones; the flat skin moved to
   the side panel. Keys: + / − zoom, 0 resets the view.
 
-## [2.0.0-beta] — 2026-10-02
+## [2.0.0-beta] - 2026-10-02
 
 ### Changes
 
@@ -38,7 +50,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   picker.
 - The release title on GitHub is now only the version (`2.0.0-Beta`).
 
-## [1.3.1-beta] — 2026-10-01
+## [1.3.1-beta] - 2026-10-01
 
 ### Fixes
 
@@ -49,7 +61,7 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   panels and cards keep their size, and only the cards scroll, with the
   panels and tab bars fixed. The skin editor fits the window too.
 
-## [1.3.0-beta] — 2026-09-30
+## [1.3.0-beta] - 2026-09-30
 
 Includes everything meant for 1.2.1-beta, which was never published.
 
@@ -71,7 +83,7 @@ Includes everything meant for 1.2.1-beta, which was never published.
 - Datapacks, installed into a chosen world.
 - Smoother scrolling and a steadier header.
 
-## [1.2.1-beta] — 2026-09-29
+## [1.2.1-beta] - 2026-09-29
 
 A fix for updating from inside the launcher on Windows.
 
@@ -82,7 +94,7 @@ A fix for updating from inside the launcher on Windows.
   so Windows can ask for permission. Launchers older than 1.2.1-beta still
   have the bug: download this installer by hand once.
 
-## [1.2.0-beta] — 2026-09-29
+## [1.2.0-beta] - 2026-09-29
 
 The fourth beta: each profile keeps its own skins, language and theme, new
 instances can start playing right away, and old versions open on Windows
@@ -116,7 +128,7 @@ again. Optimization is still pending.
 - The project detail page's sidebar (versions, loaders, your instances)
   scrolls on its own, so a long instance list no longer scrolls the page.
 
-## [1.1.0-beta] — 2026-09-28
+## [1.1.0-beta] - 2026-09-28
 
 The third beta. Everything from 1.0.0-beta, plus an AI helper for finding
 addons, updates from inside the launcher and a round of visual polish.
@@ -174,7 +186,7 @@ Optimization is still pending (see the end of this section).
   and the launcher can use more memory and CPU than it should. This is the
   next thing we work on.
 
-## [1.0.0-beta] — 2026-09-25
+## [1.0.0-beta] - 2026-09-25
 
 The second beta. Everything from 0.10.0-beta, plus skins, servers,
 profiles with their own instances and many fixes. Grouped by area below.
@@ -294,7 +306,7 @@ profiles with their own instances and many fixes. Grouped by area below.
 - Servers that require a Microsoft account will not let Udeos players in.
 - The installers are not code-signed yet (Windows and macOS warn once).
 
-## [0.10.0-beta] — 2026-09-18
+## [0.10.0-beta] - 2026-09-18
 
 First public release. Installers for Windows, macOS and Linux are on the
 [Releases page](https://github.com/Juan17la/Udeos_Launcher/releases); notes
@@ -302,21 +314,21 @@ for players in [docs/releases/0.10.0-beta.md](docs/releases/0.10.0-beta.md).
 
 ### Added
 
-- **No Microsoft account needed** — pick a nickname and play offline against
+- **No Microsoft account needed**: pick a nickname and play offline against
   Mojang's public CDN.
 - **Instances** with their own Worlds, Screenshots and Resource Packs tabs;
   vanilla installs come straight from Mojang's version manifest.
-- **Mod loaders** — Fabric and Forge instances, installed automatically on
+- **Mod loaders**: Fabric and Forge instances, installed automatically on
   first Play (no separate installer to run), with writable Mods and Shaders
   tabs.
-- **Content search** (Modrinth) — browse mods, resource packs, shaders and
+- **Content search** (Modrinth): browse mods, resource packs, shaders and
   modpacks, filtered by game version and loader, with results cached for
   offline use.
-- **Add to instance** — install a search result directly into a compatible
+- **Add to instance**: install a search result directly into a compatible
   instance, with dependency resolution and incompatibility checks before
   anything downloads; a full project details page with every published
   version.
-- **Automatic Java runtime** — the matching Mojang JRE is downloaded on first
+- **Automatic Java runtime**: the matching Mojang JRE is downloaded on first
   play; nothing to install by hand.
 - Installers for Windows (NSIS + portable `.zip`), macOS (universal `.dmg`,
   Intel and Apple Silicon) and Linux (`.deb`, `.rpm`, portable `.tar.gz`),
@@ -336,8 +348,8 @@ for players in [docs/releases/0.10.0-beta.md](docs/releases/0.10.0-beta.md).
   take both.
 - **Project details** in two columns: versions, loaders and the instances
   that can take the project (each with its own Add) on the left; the
-  project page — categories, client/server side, license, links, gallery
-  and the full description — on the right.
+  project page (categories, client/server side, license, links, gallery
+  and the full description) on the right.
 - **Memory slider** in the instance settings, capped at the machine's RAM
   and red in the danger zone (below 1 GB, or leaving less than 2 GB).
 - The top bar stays in view while a page scrolls.
