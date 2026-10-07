@@ -1,8 +1,8 @@
-# 8. Mod loaders: Fabric, Quilt, Forge and NeoForge
+# Mod loaders: Fabric, Quilt, Forge and NeoForge
 
 ## What the player sees
 
-On the create form the player picks **Vanilla**, **Forge**, **NeoForge**, **Fabric** or **Quilt**,
+On the create form the player picks Vanilla, Forge, NeoForge, Fabric or Quilt,
 then a Minecraft version. Nothing else: no loader version to choose, no
 installer to download, no "run the installer once" step. The version list is
 filtered to what the chosen loader actually supports, and a note under the
@@ -14,18 +14,18 @@ as a tag: `Forge 47.4.10`, `NeoForge 21.1.172`, `Fabric 0.16.9`, `Quilt 0.29.1`.
 NeoForge matters for anything past 1.20.1: most mods that used to ship a
 Forge build (Create, JEI, …) publish NeoForge builds for 1.21+ instead, so a
 Forge 1.21.1 instance finds "no build" where a NeoForge one installs fine.
-The refusal now says so — *"Create has no build for Minecraft 1.21.1 with
+The refusal says so: *"Create has no build for Minecraft 1.21.1 with
 Forge (its 1.21.1 builds are for neoforge)"*.
 
-The first **Play** downloads the game as usual, then the loader, then starts
-the modded game. Modded instances get a **Mods** tab where `.jar` files can
-be dropped or browsed, listed and removed, and a **Shaders** tab with the
+The first Play downloads the game as usual, then the loader, then starts
+the modded game. Modded instances get a Mods tab where `.jar` files can
+be dropped or browsed, listed and removed, and a Shaders tab with the
 same controls for shader packs.
 
 ## How a loader becomes "just another version"
 
 All three loaders are expressed the same way the official launcher expresses them:
-a small **version JSON that `inheritsFrom` a vanilla version**. It names a
+a small version JSON that `inheritsFrom` a vanilla version. It names a
 different `mainClass`, adds a few libraries and a few arguments, and leaves
 assets, the client jar, Java and everything else to the parent.
 
@@ -111,7 +111,7 @@ The data directory already has the `versions/<mc>/<mc>.jar` and `libraries/`
 layout the installer expects; the launcher only adds the empty
 `launcher_profiles.json` the installer insists on. The Java used is the
 Mojang runtime of that Minecraft version (the installer for 1.20.1 wants
-Java 17, the one for 1.12.2 wants Java 8 — exactly the runtimes those
+Java 17, the one for 1.12.2 wants Java 8, exactly the runtimes those
 versions declare). The installer's console output is streamed line by line to
 the progress overlay, since patching takes 30 seconds to a few minutes. When
 it exits successfully the launcher checks the patched jar named by the
@@ -123,7 +123,7 @@ the installer wrote and saves the JSON under its own id.
 NeoForge forked Forge's installer, so it takes the Forge path with two
 differences: the version listing comes from
 `maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge`
-(the build number carries the game version — `21.1.172` is 1.21.1, `21.0.x`
+(the build number carries the game version: `21.1.172` is 1.21.1, `21.0.x`
 is 1.21; betas and the 1.20.1-era `net/neoforged/forge` artifacts are left
 out), and the installer jar is
 `maven.neoforged.net/releases/net/neoforged/neoforge/<build>/neoforge-<build>-installer.jar`

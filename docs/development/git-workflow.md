@@ -1,16 +1,16 @@
-# 7. Git workflow
+# Git workflow
 
-The history is organised as **one branch per feature**, merged into `main`
+The history is organised as one branch per feature, merged into `main`
 with a merge commit, so `git log --graph` shows one bump per feature and the
 individual commits underneath it.
 
 Branch names say what kind of change they carry:
 
-- `feature/…` — player-facing functionality (`feature/mod-loaders`,
+- `feature/…`: player-facing functionality (`feature/mod-loaders`,
   `feature/content-search`).
-- `fix/…` — a bug fix that stands on its own (`fix/launch-natives`).
-- `chore/…` — tooling, scaffolding, restructuring.
-- `docs/…` — documentation only.
+- `fix/…`: a bug fix that stands on its own (`fix/launch-natives`).
+- `chore/…`: tooling, scaffolding, restructuring.
+- `docs/…`: documentation only.
 
 Each feature follows the same shape:
 

@@ -1,9 +1,9 @@
 # 1. Hierarchy
 
-Two hierarchies matter: the **domain** one (what the player owns) and the
+Two hierarchies matter: the domain one (what the player owns) and the
 **code** one (which layer may call which).
 
-## Domain hierarchy — what contains what
+## Domain hierarchy: what contains what
 
 ```
 Launcher
@@ -34,7 +34,7 @@ Rules that follow from this tree:
    changes which instances you see. Removing a profile never deletes anything:
    its instances move to the profile that takes over.
 2. **A server is an instance with `Server = true`.** Same store, same owner,
-   same launch settings, same `mods/` folder — only the page and the process
+   same launch settings, same `mods/` folder; only the page and the process
    differ. Game-instance lists skip servers; server lists add live state
    (running, players, address).
 3. **Content belongs to exactly one instance.** Nothing is shared between
@@ -51,22 +51,22 @@ Rules that follow from this tree:
 | `cache/` (search pages, loader lists, downloaded addon files) | `instances/<id>/.minecraft/` (worlds, options, logs) |
 | | `instances/<id>/content.json` (what was installed from Modrinth) |
 
-Full layout: [Data on disk](../05-data-on-disk.md).
+Full layout: [Data on disk](../architecture/data-on-disk.md).
 
-## Content hierarchy — what an addon is made of (Modrinth side)
+## Content hierarchy: what an addon is made of (Modrinth side)
 
 ```
-Project            "Sodium" — the thing shown as a card (id, title, author, icon)
+Project            "Sodium": the thing shown as a card (id, title, author, icon)
 └── Version        one release: which Minecraft versions + loaders it runs on
     ├── File       the .jar / .zip / .mrpack to download (SHA-1 verified)
     └── Dependency required | optional | incompatible | embedded → another Project
 ```
 
-Browsing shows **Projects**. Adding to an instance picks one **Version** that
-matches the instance's Minecraft version and loader, downloads its **File**, and
-walks its **required Dependencies**.
+Browsing shows Projects. Adding to an instance picks one Version that
+matches the instance's Minecraft version and loader, downloads its File, and
+walks its required Dependencies.
 
-## Code hierarchy — which layer calls which
+## Code hierarchy: which layer calls which
 
 ```
 frontend/src/screens/*          ← what the player sees (pages)
@@ -93,7 +93,7 @@ internal/{install, jre, loader, launch, instance, profile, content,
 
 Direction is strictly downward: `internal/*` packages never import the UI, and
 screens never call the network. Details of each layer:
-[Architecture](../01-architecture.md).
+[Architecture](../architecture/overview.md).
 
 ### Frontend folders, by responsibility
 

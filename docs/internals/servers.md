@@ -1,8 +1,8 @@
-# 12. Servers: hosting a world and letting friends in
+# Servers: hosting a world and letting friends in
 
 ## What a server is
 
-A server is an **instance with the `Server` flag**: the same store, owner
+A server is an instance with the `Server` flag: the same store, owner
 (profile), launch settings (memory, Java, JVM flags) and `mods/` folder as a
 game instance. Its game folder (`instances/<id>/.minecraft`) *is* the server
 folder: `server.properties`, `eula.txt`, the world, `whitelist.json`,
@@ -27,7 +27,7 @@ Code map:
 `CreateServer` makes the instance and then writes three things into its
 folder:
 
-- `eula.txt` with `eula=true` — the create form says that creating the server
+- `eula.txt` with `eula=true`: the create form says that creating the server
   accepts Mojang's EULA (with a link to it); a server refuses to start without it.
 - `server.properties` with the server's name as `motd`, the first free
   **port** from 25565 upwards that no other Udeos server uses and no other
@@ -36,36 +36,36 @@ folder:
   launcher's own skin server instead of Microsoft, so skins show and Udeos
   players (who have no Microsoft account) get in; players of other launchers
   cannot. Settings can switch it to "Anyone" (`online-mode=false`) or
-  "Microsoft accounts". Details in [Skins](13-skins.md#server-login-who-can-join).
+  "Microsoft accounts". Details in [Skins](skins.md#server-login-who-can-join).
 - `server-icon.png` (64×64) when an icon was chosen: the picture next to the
   server in the multiplayer list.
-- `Instance.Public` on: a new server is **open to the internet** whenever it
+- `Instance.Public` on: a new server is open to the internet whenever it
   runs (the create form says so; the Internet tab closes it).
 
-It also fixes the **address name** (`udeoslauncher.<server name>`) at
+It also fixes the address name (`udeoslauncher.<server name>`) at
 creation, so renaming the server later does not change the address friends
 saved. Nothing is downloaded yet. Quilt servers are refused (Quilt ships no
 dedicated server installer the launcher can drive; most Quilt mods run on a
 Fabric server).
 
-The create form picks **Vanilla / With mods / From a modpack** (the latest
-release is preselected). **From a modpack** searches Modrinth modpacks, then
+The create form picks Vanilla / With mods / From a modpack (the latest
+release is preselected). From a modpack searches Modrinth modpacks, then
 `CreateServerFromModpack` runs as a background job (Activity button) and the
 server appears in the list when it is ready: `modpack.Manager.CreateServer`
 takes the pack's server side only (files marked `env.server: unsupported` are
 skipped, `server-overrides/` replaces `client-overrides/`, a pack's own
 `server.properties` is merged) and refuses a Quilt pack. A modpack's Details
-page has a **New server from this modpack** button that opens the form with it
+page has a New server from this modpack button that opens the form with it
 chosen. `initServer` (app_servers.go) is the shared bootstrap: EULA, port,
 defaults, owner.
 
 ### Datapacks
 
-A server has a **Datapacks** tab (every loader, Vanilla included): datapacks go
+A server has a Datapacks tab (every loader, Vanilla included): datapacks go
 into `<level-name>/datapacks/` (the folder is made if the world is not
 generated yet). They are added from Addons (type Datapacks), by file, or by
 dropping a file anywhere on the tab. Game instances have the same tab with a
-world picker; see [Adding content](10-adding-content.md#datapacks).
+world picker; see [Adding content](content-installation.md#datapacks).
 
 ## Starting it on this computer
 
@@ -76,7 +76,7 @@ through two events: `server:log` (a console line) and `server:state`
 1. **Mark it starting.** An entry goes into `l.servers[id]` right away so a
    second Start is refused and the card shows "Starting".
 2. **Prepare the files** (`prepareServer`):
-   - load the version JSON (same code path as the game) and pick **Java** the
+   - load the version JSON (same code path as the game) and pick Java the
      same way Play does (the instance's own Java, else the profile's, else
      the Mojang runtime the version asks for, downloaded if missing);
    - **Vanilla / Fabric**: download Mojang's `server.jar` (hash-checked, skipped
@@ -96,7 +96,7 @@ through two events: `server:log` (a console line) and `server:state`
 4. **Read the port** from `server.properties` (25565 when missing) and make
    sure it is free (`serverPort` in `internal/core/port.go`):
    - free → use it;
-   - held by a **Java** process that is not one of this launcher's games or
+   - held by a Java process that is not one of this launcher's games or
      servers (almost always a server left running when the launcher was
      killed or crashed; it also holds the world's `session.lock`) → it gets
      SIGTERM, which makes a Minecraft server save and quit, and is killed
@@ -118,7 +118,7 @@ through two events: `server:log` (a console line) and `server:state`
 6. **Watch the console.** stdout and stderr are read line by line; the last
    500 lines are kept for the Console tab. Three kinds of lines change the
    state:
-   - `…]: Done (…)! For help…` → **Ready**: players can join;
+   - `…]: Done (…)! For help…` → Ready: players can join;
    - `…]: <name> joined the game` / `left the game` → the online list;
    - `Saved the game` / `Saved the world` → a waiting backup may continue.
 7. **Open to the internet** if the server's `Public` switch is on (below).
@@ -126,7 +126,7 @@ through two events: `server:log` (a console line) and `server:state`
    to the instance and the entry is removed.
 
 Typing in the Console tab writes the line to the server's stdin (a leading
-`/` is dropped). **Stop** types `stop`, marks the state `Stopping` (the card
+`/` is dropped). Stop types `stop`, marks the state `Stopping` (the card
 says "Stopping…") and kills the process if it is still alive 60 seconds
 later; if the console does not take `stop` (its pipe is broken) the process
 is killed at once. `StopServerWait` does the same and returns once the process is gone
@@ -157,7 +157,7 @@ wait until it has started.
 |------|---------|--------------|
 | This computer | `localhost:<port>` | Nothing in between |
 | Same Wi-Fi / LAN | `<this computer's LAN IP>:<port>` (Internet tab) | The LAN IP is the address of the network card that would reach the internet (`upnp.LocalIP`: a UDP "dial" that sends no packet). The OS firewall must let Java accept connections |
-| Anywhere | The internet address (Internet tab) | **Relay** (default) or **Router** mode, below |
+| Anywhere | The internet address (Internet tab) | Relay (default) or Router mode, below |
 
 Opening to the internet happens in `startPublic`; `stopPublic` cancels it.
 Each server has one running mode at a time, chosen in the Internet tab
@@ -168,7 +168,7 @@ Each server has one running mode at a time, chosen in the Internet tab
 Most home connections cannot accept connections from the internet: the
 router has no UPnP, or the provider shares one public IP between many homes
 (CGNAT, the `100.64.0.0/10` range). The relay works around both, because the
-launcher only ever **dials out**.
+launcher only ever dials out.
 
 It speaks the protocol of [bore](https://github.com/ekzhang/bore); the free
 public relay `bore.pub` is the default and anyone can run their own
@@ -191,7 +191,7 @@ Messages are JSON followed by a 0 byte, on TCP port 7835:
 - **Control connection** (`tunnel.Open`): `Hello` with the port wanted
   (0 = any); the relay answers `Hello` with the public port it opened, then
   sends a heartbeat every 500 ms. If nothing arrives for 30 seconds the
-  launcher treats the relay as gone and closes the socket — closing it is
+  launcher treats the relay as gone and closes the socket. Closing it is
   what frees the port on the relay, so the reconnect can get it back.
 - **One connection per player** (`tunnel.forward`): for every `Connection(id)`
   the launcher opens a new connection to the relay, sends `Accept(id)`, dials
@@ -243,14 +243,14 @@ port by hand or suggests the relay.
 A modded server is hard to join: the friend needs the same Minecraft version,
 the same loader and build, every mod, the resource pack. **Save file for
 friends** (server page, Fabric/Forge/NeoForge servers) writes a `.udeos` file
-of a few KB; a friend drops it on **New instance** (or chooses it) and the
+of a few KB; a friend drops it on New instance (or chooses it) and the
 launcher builds the instance: version, loader, every mod, pack and shader
 downloaded and hash-checked, the server already in the multiplayer list.
 
 | Piece | Where |
 |-------|-------|
 | Export (`ExportServerJoinFile`) | `internal/modpack/joinfile.go` `ExportJoin`, button in `screens/server/JoinFile.tsx` |
-| Import (`PickJoinFile`, `ReadJoinFile`, `CreateInstanceFromFile`) | `modpack.Manager.CreateFromJoin`, **Import file** button on `screens/CreateInstance.tsx`, job in `state/useContentQueue.ts` (`enqueueJoinFile`) |
+| Import (`PickJoinFile`, `ReadJoinFile`, `CreateInstanceFromFile`) | `modpack.Manager.CreateFromJoin`, Import file button on `screens/CreateInstance.tsx`, job in `state/useContentQueue.ts` (`enqueueJoinFile`) |
 | `servers.dat` writer | `content.WriteServersDat` (an existing list is never overwritten) |
 
 The file is a zip in the layout of a Modrinth modpack, so importing reuses the
@@ -258,14 +258,14 @@ modpack code: `modrinth.index.json` (Minecraft version, loader build, and each
 file as download address + SHA-1/SHA-512 + size, found with one hash lookup on
 Modrinth) and `udeos.json` (`{name, address, resourcePack}`). Things to know:
 
-- Mods Modrinth marks **server-only** (`client_side: unsupported`) are left out;
+- Mods Modrinth marks server-only (`client_side: unsupported`) are left out;
   the player does not need them.
-- A file that is **not on Modrinth** cannot be referenced, so it is put inside
+- A file that is not on Modrinth cannot be referenced, so it is put inside
   (`overrides/`). The file is then bigger; the confirmation says how many.
-- The **address** is the internet one the server last had. A server that has
+- The address is the internet one the server last had. A server that has
   never run has none: the file is saved anyway and the UI says to start the
   server once and save again.
-- The server's own **resource pack** (`resource-pack` in `server.properties`)
+- The server's own resource pack (`resource-pack` in `server.properties`)
   is downloaded into `resourcepacks/`, not switched on: the server offers it
   again on joining. Datapacks are not included (they live on the server).
 - A Vanilla server has nothing to share: friends join with plain Minecraft.
@@ -274,7 +274,7 @@ Modrinth) and `udeos.json` (`{name, address, resourcePack}`). Things to know:
 
 - **Deadlines on connections that outlive their handshake.** Go deadlines
   are absolute points in time, not per-call timeouts. `tunnel.send` sets a
-  write deadline for the handshake message and **clears it afterwards**. A
+  write deadline for the handshake message and clears it afterwards. A
   version that left it set cut every relayed player about 10 seconds after
   they joined: the `Accept` connection becomes the player's connection, and
   the first write after the deadline failed. The server could still be

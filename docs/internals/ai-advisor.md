@@ -1,48 +1,48 @@
-# 14. The AI advisor
+# AI advisor
 
 ## What the player sees
 
 **Ask AI** is a full page (from the Addons header, or from an instance's
-Mods / Resource Packs / Shaders tab next to **Search in Addons**). The player
+Mods / Resource Packs / Shaders tab next to Search in Addons). The player
 says what they want to *do*, not what to search for: "my game lags on a weak
 PC", "mods to play with friends", "something spooky for survival". The advisor
 does not answer with the search the player could run themselves. It works out
 what they really need and answers like a person who knows the mods:
 
-- **What it understood** (one small line) and a written **summary** of the
+- **What it understood** (one small line) and a written summary of the
   approach: what it chose, how the pieces work together, what matters
   (a library a mod needs, two mods that overlap, a heavy choice for a weak
   PC). The wording differs from answer to answer.
-- The picks **grouped by need**. "Make my game faster" becomes a renderer,
+- The picks grouped by need. "Make my game faster" becomes a renderer,
   game-logic optimisation and memory savings: three different searches, each
   with a sentence saying what the group covers and up to three picks, each
   with a reason written for this player. At most six picks in all.
-- A **question** instead, when the request is too vague to search well
+- A question instead, when the request is too vague to search well
   ("something cool"): it asks what kind of fun before it searches.
 - **Follow-up chips** ("Add shaders too", "Make it lighter") and, per group,
   **See all N in Addons** (opens Addons with that group's filters already set).
   The conversation is remembered: "lighter", "without shaders" refine it.
 
 It knows the instance it is adding to: the instance's Minecraft version and
-loader are always applied, and what the instance **already has** is left out
+loader are always applied, and what the instance already has is left out
 of the results (and told to the model, so it can explain how a pick goes with
 what is there). No instance in context: the advisor searches broadly, and
 **Add** asks which instance (only the ones the pick works on, the picker of
 the Addons page).
 
 **Add** on a pick is the page's own Add, with the same compatibility,
-dependency and incompatibility checks as always ([10](10-adding-content.md)).
+dependency and incompatibility checks as always (see [Content installation](content-installation.md)).
 With an instance in context it installs straight into it; otherwise it asks
-which one first. The card reads **Adding…**, then **Added** (and, without an
+which one first. The card reads Adding…, then Added (and, without an
 instance in context, "Added to <name>"). A failure shows in the Activity
 button like any install and offers alternatives when it is a conflict.
 
 Nothing is downloaded and nothing needs setting up: it works right away
-through **Groq**, with a key built into the launcher. The button in the page
+through Groq, with a key built into the launcher. The button in the page
 header ("Groq (built-in)") opens its settings, where the player can use their
-own API key from **Groq, Claude, OpenAI, Gemini or Grok** instead, and pick a
-model from a list. Each provider and model is marked **free plan** (a free key
-from that provider works, with usage limits) or **paid** (needs API credit),
+own API key from Groq, Claude, OpenAI, Gemini or Grok instead, and pick a
+model from a list. Each provider and model is marked free plan (a free key
+from that provider works, with usage limits) or paid (needs API credit),
 with a one-line hint under the selects. The key stays on this computer;
 **Use built-in Groq** forgets it.
 
@@ -53,7 +53,7 @@ between** (`internal/ai/advisor.go`), and each step is checked.
 
 **1. Plan** (`Manager.Plan`). The model gets the conversation so far, the
 instance (name, Minecraft version, loader, installed titles) and the new
-message, and returns what it understood plus up to **three goals**. A goal is
+message, and returns what it understood plus up to three goals. A goal is
 a label, a filter set (type, 0-2 categories, sort, keywords) and up to three
 **names of well-known projects** it is sure exist. It may instead return a
 **question** (and no goals) for a vague request. The filter values can only
@@ -74,7 +74,7 @@ they are read from the player's own words (exact tokens: "neoforge",
 searched.
 
 **2. Search, then write** (`Manager.Advise`, `Compose`). The goals are searched
-on Modrinth **in parallel** (`SearchContent`, cached like the Addons page).
+on Modrinth in parallel (`SearchContent`, cached like the Addons page).
 Named projects are looked up by name and accepted only when the **title
 matches** (an exact title beats a longer one that starts with the name), so a
 wrong guess finds nothing instead of something else. Each project belongs to
@@ -135,7 +135,7 @@ the webview never sees a key.
 
 ## The built-in Groq key
 
-The repository is public, so the key is **not in it**. The GitHub secret
+The repository is public, so the key is not in it. The GitHub secret
 `GROQ_API_KEY` holds it. The release workflow scrambles it with
 `go run ./internal/ai/seal` (XOR with a pad, then hex) and stamps the result
 in, the way the version is stamped:
@@ -157,9 +157,9 @@ for the launcher. Groq's free tier is rate-limited rather than billed, so
 abuse can use up the limit but never costs money. Rotate the key if that
 happens.
 
-That limit is **shared by every player** using the built-in key. For
+That limit is shared by every player using the built-in key. For
 `openai/gpt-oss-20b` on Groq's free plan it is 30 requests/minute, 1,000
-requests/day and 8K tokens/minute. One question takes **two** requests (plan,
+requests/day and 8K tokens/minute. One question takes two requests (plan,
 then write) and about 4–5K tokens, so roughly 500 questions a day but only
 one or two a minute fit across all players.
 After that, players get the "Rate limited" message suggesting their own key.
