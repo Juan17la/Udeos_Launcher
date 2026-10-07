@@ -38,7 +38,7 @@ func (s modrinthSearcher) Search(_ context.Context, in ai.Intent, limit int) ([]
 // conversation so far, so follow-ups ("lighter", "without shaders") work.
 // types are the project types on offer (an instance narrows them);
 // instanceID is the instance the player is adding to ("" = none: they choose
-// one when they press Add). See docs/14-ai-search.md.
+// one when they press Add). See docs/internals/ai-advisor.md.
 func (a *App) AskAI(message string, types []string, history []ai.Turn, instanceID string) (ai.Answer, error) {
 	req := ai.Request{Message: message, History: history, Allow: a.aiAllowed(types)}
 	if instanceID != "" {

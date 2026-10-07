@@ -20,13 +20,13 @@ type Props = { result: SearchResult; filters?: SearchFilters; onClose: () => voi
 
 /** Which instances can take the project: detection fetches ProjectDetail
  *  once (aggregate versions/loaders, see utils/compat.ts). When Modrinth
- *  cannot be reached every instance is offered instead — the backend still
+ *  cannot be reached every instance is offered instead; the backend still
  *  plans precisely and the toast reports a mismatch. */
 type Detected = { detail: ProjectDetail | null; choices: Instance[] }
 
 /** Picks the instance a search result goes into. One click on an instance
  *  starts the install (queued in useContent, shown as a toast) and closes
- *  the dialog — no confirmation step, no progress modal. A modpack offers,
+ *  the dialog: no confirmation step, no progress modal. A modpack offers,
  *  first, a new instance made from it (name prefilled with its title), then
  *  the compatible instances its mods can be poured into. */
 export default function AddInstancePickerDialog({ result, filters, onClose }: Props) {

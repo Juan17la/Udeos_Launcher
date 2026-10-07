@@ -13,7 +13,7 @@ export type { ContentJob } from './useContentQueue'
 
 export type { Theme } from '../utils/theme'
 
-/** Which screen is on stage. Kept as plain state — the app is small enough not to need a router. */
+/** Which screen is on stage. Kept as plain state; the app is small enough not to need a router. */
 export type Screen =
   /** Setup: nickname, language and theme. First run, or adding a profile (adding: Cancel goes back). */
   | { name: 'login'; adding?: boolean }

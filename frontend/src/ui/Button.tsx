@@ -1,11 +1,11 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 
-/** Button variants from the design system (docs/11-design-system.md):
- *  primary   — pastel mint (Overworld) / ender lavender (End): Play, New Instance
- *  secondary — pastel sky blue (Overworld) / charcoal-purple (End): Open instance
- *  idle      — warm pebble gray / charcoal-purple, for neutral actions and anything unselected
- *  danger    — pastel end purple-red
- *  ghost     — outlined, no fill */
+/** Button variants from the design system (docs/architecture/design-system.md):
+ *  primary:   pastel mint (Overworld) / ender lavender (End): Play, New Instance
+ *  secondary: pastel sky blue (Overworld) / charcoal-purple (End): Open instance
+ *  idle:      warm pebble gray / charcoal-purple, for neutral actions and anything unselected
+ *  danger:    pastel end purple-red
+ *  ghost:     outlined, no fill */
 export type ButtonVariant = 'primary' | 'secondary' | 'idle' | 'danger' | 'ghost'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 

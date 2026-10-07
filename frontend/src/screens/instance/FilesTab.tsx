@@ -74,8 +74,8 @@ function FileRow({ file, entry, onRemove }: ItemProps) {
   )
 }
 
-/** Card: the Modrinth icon, title, description and version — the same face
- *  the Addons result had — or the bare file for hand-added ones. */
+/** Card: the Modrinth icon, title, description and version (the same face
+ *  the Addons result had), or the bare file for hand-added ones. */
 function FileCard({ file, entry, onRemove, onOpen }: ItemProps) {
   const { t } = useApp()
   return (

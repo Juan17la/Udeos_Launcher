@@ -125,7 +125,7 @@ func (m *Manager) create(ctx context.Context, server bool, projectID, name, icon
 
 // fetchIcon downloads the project's icon into the content cache and returns
 // its path; "" when the pack has no icon or it cannot be fetched (the
-// instance then keeps a pixel icon — never a reason to fail the install).
+// instance then keeps a pixel icon, never a reason to fail the install).
 func (m *Manager) fetchIcon(ctx context.Context, projectID string) string {
 	infos, err := m.Provider.Projects(ctx, []string{projectID})
 	if err != nil || len(infos) == 0 || infos[0].IconURL == "" {

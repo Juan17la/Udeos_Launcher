@@ -11,7 +11,7 @@ import { SkinFace } from './SkinView'
  *  instances, skins, language and theme. Click one to switch (the dashboard
  *  reloads with its things), add a new one (the setup screen asks for its
  *  nickname, language and theme; it starts with no instances or skins), or remove
- *  one — its instances and skins move to the profile that stays active. */
+ *  one: its instances and skins move to the profile that stays active. */
 export default function ProfileDialog({ onClose }: { onClose: () => void }) {
   const { t, profile, nickname, setNickname, removeNickname, skins, go } = useApp()
   const faceOf = (n: string) => skins?.faces[n]

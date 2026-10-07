@@ -26,7 +26,7 @@ const TOPICS_SHOWN = 8
 type Props = { instanceId?: string; type?: ProjectType; /** Opens with this search (the AI page's "See all"). */ prefill?: AIIntent }
 
 /** What the page looked like when the player last left it. Coming back with
- *  Back (from a project's Details) puts it all back — search text, filters,
+ *  Back (from a project's Details) puts it all back: search text, filters,
  *  page and the results themselves, so the scroll lands on the same card. */
 type Saved = {
   instanceId?: string; type: ProjectType; text: string; gameVersion: string; loader: string; sortBy: SortBy; categories: string[]

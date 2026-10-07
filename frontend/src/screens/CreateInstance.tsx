@@ -193,7 +193,7 @@ export default function CreateInstance({ server = false, modpack }: { server?: b
             <Select id="create-version" value={version} onChange={(e) => setVersion(e.target.value)} disabled={loadersLoading}>
               {options.map((v) => (
                 <option key={v.id} value={v.id}>
-                  {v.id}{v.id === versions.latestRelease ? ` (${t.create.latest})` : ''}{v.type !== 'release' ? ` — ${v.type}` : ''}
+                  {v.id}{v.id === versions.latestRelease ? ` (${t.create.latest})` : ''}{v.type !== 'release' ? ` (${v.type})` : ''}
                 </option>
               ))}
             </Select>

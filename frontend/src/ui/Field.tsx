@@ -3,9 +3,9 @@ import { Check } from './icons'
 
 /** Form controls. A recessed neumorphic well with the universal radius and a
  *  border that is always there in a light tint of the primary colour, a
- *  deeper tint on hover, and the full colour on focus — where a soft ring
+ *  deeper tint on hover, and the full colour on focus, where a soft ring
  *  pulses once (focus-pulse) so the eye lands on the field. Disabled keeps
- *  the same radius and padding and still shows its value — that is how a
+ *  the same radius and padding and still shows its value; that is how a
  *  locked filter (Search with an instance in context) reads. py-2 + the 2px
  *  border keep the height of a md Button. */
 const control = 'w-full px-4 py-2 text-sm text-text bg-panel rounded-md border-2 border-primary/40 shadow-neu-inset caret-primary transition-all duration-150 ease-in-out hover:border-primary/70 focus:border-primary focus:shadow-focus focus:outline-none motion-safe:focus:animate-[focus-pulse_0.45s_ease-out] disabled:bg-idle disabled:border-transparent disabled:text-text disabled:opacity-80 disabled:cursor-not-allowed disabled:shadow-none placeholder:text-muted'
@@ -15,7 +15,7 @@ export function Label({ className = '', ...rest }: LabelHTMLAttributes<HTMLLabel
 }
 
 /** icon: a small leading glyph in the primary colour, for a screen's main
- *  field (the Addons search, the AI chat) — className then sizes the wrapper. */
+ *  field (the Addons search, the AI chat); className then sizes the wrapper. */
 export function Input({ className = '', icon, ...rest }: InputHTMLAttributes<HTMLInputElement> & { icon?: ReactNode }) {
   if (!icon) return <input className={`${control} ${className}`} {...rest} />
   return (

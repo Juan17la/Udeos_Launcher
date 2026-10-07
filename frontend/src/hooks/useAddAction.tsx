@@ -10,8 +10,8 @@ import type { SearchResult } from '../api/types'
 
 /** The Add action every result card and the Details page share. With an
  *  instance in context (the player came from that instance's page) Add
- *  installs straight away; otherwise it opens the picker, or — with no
- *  instances at all — a dialog pointing at Create instance. A modpack
+ *  installs straight away; otherwise it opens the picker, or, with no
+ *  instances at all, a dialog pointing at Create instance. A modpack
  *  always gets the picker: it can become a new instance (built from the
  *  Addons page's version/loader `filters`). Render `dialog` once in the
  *  calling screen. */

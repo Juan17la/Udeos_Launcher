@@ -15,9 +15,9 @@ import type { Server } from '../../api/types'
 
 type Mode = 'relay' | 'router'
 
-/** How friends join: the local address, and the internet address — through
+/** How friends join: the local address, and the internet address, through
  *  a free relay (works behind any router or CGNAT) or straight through the
- *  router (UPnP) — behind a warning about what hosting costs this computer.
+ *  router (UPnP), behind a warning about what hosting costs this computer.
  *  The address starts with a name the player picks. */
 export default function InternetTab({ server }: { server: Server }) {
   const { t, profile, refreshInstances } = useApp()
