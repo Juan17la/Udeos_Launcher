@@ -14,3 +14,6 @@ Thumbs.db
 *~
 .idea/
 .vscode/
+
+# CI and release workflows are kept out of the repository
+.github/workflows/
