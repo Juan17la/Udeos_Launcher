@@ -1,10 +1,10 @@
-# 2. Running and building
+# Building and running
 
 ## What you need once
 
 - **Go** 1.23 or newer.
 - **Node.js** 20 or newer (for the frontend build).
-- The **Wails CLI**, installed with `go install github.com/wailsapp/wails/v2/cmd/wails@latest`.
+- The Wails CLI, installed with `go install github.com/wailsapp/wails/v2/cmd/wails@latest`.
   It lands in Go's bin directory (`~/go/bin`), which must be on your PATH.
 - Platform web-view development files:
   - **Linux (Debian/Ubuntu)**: `libgtk-3-dev` and `libwebkit2gtk-4.1-dev`
@@ -41,17 +41,25 @@ The window shows the real backend, so what you see is what the player gets.
 When you only touch screens or styles you do not need the desktop build at
 all. Inside `frontend`, `npm run dev` serves the page at a local URL; because
 Wails is not present, the frontend switches to its built-in mock backend with
-two sample instances, a fake download and a fake game session. Adding
-`?screen=dashboard`, `?screen=create` or `?screen=instance:i1` to the URL
-opens a screen directly; adding `shot` to the query keeps the page's load
-event pending for a moment, which is what the headless-browser screenshots
-in this repository rely on.
+sample instances, servers, skins and search results, a fake download and a
+fake game session. Adding `?screen=<name>` to the URL opens a screen directly:
+`login`, `create`, `search`, `ai`, `skins`, `skinEditor`, `servers`,
+`instance:i1` or `server:s1`. The mock keeps its profile in `localStorage`
+(`mock:profile`), so a finished welcome flow survives a reload. The
+screenshots in `docs/assets/screenshots/` were taken this way at 1280×800.
 
 ## Testing the backend without the window
 
-The Go packages have unit tests (`go test ./internal/...`) covering the rule
-evaluation, the offline-UUID derivation, argument building for both modern
-and legacy versions, and the level.dat reader.
+The Go packages have unit tests next to the code they cover: rule
+evaluation, offline UUIDs, argument building for modern and legacy versions,
+NBT and level.dat, the install planner, modpacks and join files, the relay
+protocol, UPnP parsing, skins and the AI advisor (with a fake model and a fake
+Modrinth). Run every check before opening a pull request:
+
+```sh
+go build ./... && go test ./...                    # backend
+cd frontend && npx tsc --noEmit && npm run build   # frontend
+```
 
 For an end-to-end check, the command line tool in `cmd/udeoscli` runs the
 exact same install and launch code as the window. Point the `UDEOS_HOME`
@@ -79,44 +87,3 @@ frontend is embedded inside it; nothing else needs to ship alongside.
 Cross-compiling is only supported from macOS/Linux towards Windows; each
 platform is otherwise built on itself (or in CI on a runner of that OS).
 
-## Releases
-
-Installers are built by GitHub Actions, not by hand. The pipeline is
-`.github/workflows/release.yml` and a companion `ci.yml` runs the Go tests and
-the frontend type-check on every push and pull request.
-
-To publish a version:
-
-1. Set `productVersion` in `wails.json` to the plain number (`1.0.0`). It must
-   stay numeric: the Windows installer script feeds it to NSIS as
-   `X.Y.Z.0`, which rejects `-alpha` suffixes. The frontend `package.json`
-   carries the full string (`0.10.0-beta`), which is what the login screen
-   shows.
-2. Write the release notes for players in `docs/releases/<version>.md`
-   (plain language, no technical terms); the release job puts them above the
-   download table. Move the changelog's *Unreleased* section under the version.
-3. Commit, then tag the commit with a `v` prefix and push the tag:
-   `git tag -a v0.10.0-beta -m "Udeos Launcher 0.10 Beta"` followed by
-   `git push origin v0.10.0-beta`.
-
-The tag starts three build jobs, one per OS, and a fourth that creates the
-GitHub Release with everything attached plus a `SHA256SUMS.txt`. A tag
-containing a hyphen (`-alpha`, `-beta`, `-rc1`) is marked as a pre-release.
-
-| Job | Runner | Produces |
-|-----|--------|----------|
-| Linux | `ubuntu-latest` inside an `ubuntu:22.04` container, so the binary links against an old glibc and runs on Ubuntu 22.04+, Debian 12+ and Fedora | `.deb`, `.rpm` (nfpm) and a portable `.tar.gz` |
-| Windows | `windows-latest` with NSIS installed through Chocolatey | `...-windows-amd64-installer.exe` (`wails build -nsis`) and a portable `.zip` of the bare executable |
-| macOS | `macos-latest` | a universal (Intel + Apple Silicon) `.app` inside a `.dmg`, ad-hoc signed but not notarized |
-
-Running the workflow by hand from the Actions tab (*Run workflow*) builds the
-same files with version `dev` and keeps them as workflow artifacts without
-creating a release; do that first when changing the pipeline.
-
-## First run as a player
-
-The launcher creates its data folder on first start (see
-[Data on disk](05-data-on-disk.md)), shows the language step, then asks for a
-nickname and consent. From the dashboard, "New Instance" fetches the version
-list from Mojang; picking a version and pressing Play downloads what is
-missing and starts the game. Nothing needs to be configured by hand.

@@ -31,7 +31,7 @@ const es: Dict = {
   },
   privacy: {
     title: 'Privacidad y términos',
-    body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben — el launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
+    body: 'Udeos Launcher funciona completamente en tu equipo. Tu apodo y tus instancias se guardan localmente y nunca se suben. El launcher solo se conecta para descargar archivos del juego, mods y actualizaciones.',
   },
   language: { choose: 'Idioma' },
   login: {
@@ -240,8 +240,8 @@ const es: Dict = {
     free: 'plan gratuito', paid: 'de pago',
     freeHint: 'Funciona con una clave de API gratuita de {provider} (con límites de uso).', paidHint: 'Necesita crédito de API de pago en tu cuenta de {provider}.',
     needKey: 'Añade una clave de API para usar la búsqueda con IA.',
-    provider: 'Proveedor', key: 'Clave de API', keyPlaceholder: 'Pega tu clave de API', keySaved: 'Guardada — déjalo vacío para mantenerla',
-    keyOptional: 'Opcional — vacío usa la clave incluida', model: 'Modelo', recommended: 'recomendado', save: 'Guardar', useBuiltIn: 'Usar Groq incluida',
+    provider: 'Proveedor', key: 'Clave de API', keyPlaceholder: 'Pega tu clave de API', keySaved: 'Guardada. Déjalo vacío para mantenerla',
+    keyOptional: 'Opcional. Vacío usa la clave incluida', model: 'Modelo', recommended: 'recomendado', save: 'Guardar', useBuiltIn: 'Usar Groq incluida',
     send: 'Preguntar',
     page: {
       heading: '¿Con qué quieres jugar?',
@@ -256,7 +256,7 @@ const es: Dict = {
     },
   },
   compat: {
-    vanilla: 'Vanilla — sin mods', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
+    vanilla: 'Vanilla (sin mods)', needsLoader: 'necesita {loaders}', noBuild: 'sin versión para {version}', ok: 'Compatible',
   },
   detail: {
     versionsHeading: 'Versiones disponibles', loadersHeading: 'Loaders', instancesHeading: 'Instalar en',

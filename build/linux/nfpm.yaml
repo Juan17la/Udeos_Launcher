@@ -15,7 +15,7 @@ description: |
   Pick a nickname, create a vanilla, Fabric, Forge, NeoForge or Quilt instance and play.
 vendor: Udeos
 homepage: https://github.com/Juan17la/Udeos_Launcher
-license: MIT
+license: PolyForm-Noncommercial-1.0.0
 
 contents:
   - src: build/bin/udeos-launcher

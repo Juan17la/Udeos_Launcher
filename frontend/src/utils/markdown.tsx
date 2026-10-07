@@ -5,7 +5,7 @@ import { openExternal } from '../api/bridge'
  *  mostly <p> and <img> tags, Sodium's is Markdown). They are rendered
  *  without ever handing HTML to the DOM: the Markdown is turned into HTML
  *  text, DOMParser parses the whole thing into an inert document (nothing
- *  runs there), and only the tags below come back out as React elements —
+ *  runs there), and only the tags below come back out as React elements:
  *  links and images only with http(s) URLs, links opening in the system
  *  browser. Everything else (script, iframe, style, event attributes) is
  *  dropped by construction. */

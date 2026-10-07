@@ -29,7 +29,7 @@ const en = {
   },
   privacy: {
     title: 'Privacy & Terms',
-    body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded — the launcher only connects out to download game files, mods, and updates.',
+    body: 'Udeos Launcher runs entirely on your machine. Your nickname and instance data are stored locally and never uploaded. The launcher only connects out to download game files, mods, and updates.',
   },
   language: { choose: 'Language' },
   login: {
@@ -239,8 +239,8 @@ const en = {
     free: 'free plan', paid: 'paid',
     freeHint: 'Works with a free {provider} API key (with usage limits).', paidHint: 'Needs paid API credit on your {provider} account.',
     needKey: 'Add an API key to use AI search.',
-    provider: 'Provider', key: 'API key', keyPlaceholder: 'Paste your API key', keySaved: 'Saved — leave empty to keep it',
-    keyOptional: 'Optional — empty uses the built-in key', model: 'Model', recommended: 'recommended', save: 'Save', useBuiltIn: 'Use built-in Groq',
+    provider: 'Provider', key: 'API key', keyPlaceholder: 'Paste your API key', keySaved: 'Saved. Leave empty to keep it',
+    keyOptional: 'Optional. Empty uses the built-in key', model: 'Model', recommended: 'recommended', save: 'Save', useBuiltIn: 'Use built-in Groq',
     send: 'Ask',
     page: {
       heading: 'What do you want to play with?',
@@ -255,7 +255,7 @@ const en = {
     },
   },
   compat: {
-    vanilla: 'Vanilla — no mods', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
+    vanilla: 'Vanilla (no mods)', needsLoader: 'needs {loaders}', noBuild: 'no build for {version}', ok: 'Compatible',
   },
   detail: {
     versionsHeading: 'Available versions', loadersHeading: 'Loaders', instancesHeading: 'Install into',
@@ -276,7 +276,7 @@ const en = {
     installThis: 'Install this version', switchTo: 'Switch to this version',
   },
   content: {
-    pickTitle: 'Add {title} to…', pickHint: 'Choose an instance — it installs right away.', pickWorld: 'Which world?', pickWorldHint: 'Datapacks live inside a world. Choose where it goes.', noWorlds: 'No worlds yet. Play this instance once to create one.', worldTab: 'World', serverWorld: 'Added to the server\'s world.',
+    pickTitle: 'Add {title} to…', pickHint: 'Choose an instance. It installs right away.', pickWorld: 'Which world?', pickWorldHint: 'Datapacks live inside a world. Choose where it goes.', noWorlds: 'No worlds yet. Play this instance once to create one.', worldTab: 'World', serverWorld: 'Added to the server\'s world.',
     noCompatible: 'No instance can use this yet. Create a {loaders} instance for {versions} to install it.',
     noInstancesTitle: 'No instances yet', noInstancesBody: 'Create an instance first, then add {title} to it.',
     planning: 'Checking versions…',

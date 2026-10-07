@@ -1,17 +1,17 @@
 # 4. Search
 
-The launcher searches **addons** (mods, resource packs, shaders, modpacks). It
+The launcher searches addons (mods, resource packs, shaders, modpacks). It
 does this in three layers, each usable without the next:
 
-1. **API search** — a query goes to Modrinth's public API.
-2. **Filters** — type, Minecraft version, loader, categories, sort, page.
-3. **AI assistant** (optional) — turns a sentence into those filters and
+1. **API search**: a query goes to Modrinth's public API.
+2. **Filters**: type, Minecraft version, loader, categories, sort, page.
+3. **AI assistant** (optional): turns a sentence into those filters and
    recommends a few results.
 
 There is also a fourth, much smaller thing that looks like search but is not:
 listing what an instance already has (see [Local lookups](#local-lookups-not-search)).
 
-> **Indexation, honestly:** the launcher does **not** build or maintain a
+> Indexation, honestly: the launcher does not build or maintain a
 > search index of its own. Modrinth indexes the catalog on its servers; the
 > launcher only *queries* that index and *caches* the answers. There are no
 > embeddings, no vector store, no full-text engine in this repo.
@@ -47,7 +47,7 @@ sequenceDiagram
 
 `modsearch.Provider` (`internal/modsearch/provider.go`) is the only thing the
 rest of the app knows about a marketplace. Modrinth is the sole implementation
-(`modrinth.go`, base URL `https://api.modrinth.com/v2`, 15 s timeout — a browse
+(`modrinth.go`, base URL `https://api.modrinth.com/v2`, 15 s timeout: a browse
 that takes longer should fall back to cache, not freeze the page).
 
 | Method | Modrinth endpoint | Used for |
@@ -61,7 +61,7 @@ that takes longer should fall back to cache, not freeze the page).
 | `VersionsByHashes(sha1s)` | `POST /version_files` | Modpacks: map files → projects |
 | `Projects(ids)` | `GET /projects?ids=[…]` | Names/icons for dependencies and content list |
 
-Only the first four serve *browsing*. The rest run **once, at Add time**, never
+Only the first four serve *browsing*. The rest run once, at Add time, never
 per card, so scrolling a page of 30 results costs one request.
 
 ### Wails bindings (what the UI can call)
@@ -79,19 +79,19 @@ per card, so scrolling a page of 30 results costs one request.
 `Result` = `id, slug, title, author, description (≤160 chars), iconUrl,
 downloads, projectType, loaders[], gameVersions[]`. Loaders are picked out of
 Modrinth's mixed category list (`fabric|forge|quilt|neoforge`); game versions
-keep **releases only** (snapshots like `24w14a` are dropped). The full project
+keep releases only (snapshots like `24w14a` are dropped). The full project
 is fetched later, on the Details page.
 
 ## 2. Filters
 
-A `Query` is provider-agnostic; the Modrinth adapter turns it into **facets**.
+A `Query` is provider-agnostic; the Modrinth adapter turns it into facets.
 
 | Filter | UI control | Becomes (facet / param) | Rules |
 |---|---|---|---|
 | **Type** | Tabs: Mods · Resource Packs · Shaders · Modpacks | `project_type:<type>` (always present) | Instance mode narrows it: Vanilla → resource packs; server → mods |
 | **Text** | Search box (debounced 350 ms) | `query=` | Under 3 characters is not saved to disk |
 | **Minecraft version** | Dropdown | `versions:<v>` | Locked to the instance in instance mode |
-| **Loader** | Dropdown (Mods & Modpacks only) | `categories:<loader>` (Quilt → `quilt` **or** `fabric`) | Never narrows resource packs/shaders; locked in instance mode |
+| **Loader** | Dropdown (Mods & Modpacks only) | `categories:<loader>` (Quilt → `quilt` or `fabric`) | Never narrows resource packs/shaders; locked in instance mode |
 | **Categories** | Removable tags (set by AI "See all") | one `categories:<name>` group each | All must match; unknown names dropped in Go; cleared when the type changes |
 | **Sort** | Dropdown | `index=` `downloads` \| `newest` \| `updated` (omitted = relevance) | No ascending order exists in Modrinth |
 | **Page** | Pager (Previous / numbers / Next / jump-to) | `offset`, `limit=30` | New page *replaces* the grid |
@@ -112,7 +112,7 @@ For Quilt the loader group becomes `["categories:quilt","categories:fabric"]`
 
 - **Race safety:** every request bumps a sequence number; only the latest may
   update the page, so a slow old query can't overwrite a newer one.
-- **First load** shows skeleton cards; **paging** dims the old grid under a
+- **First load** shows skeleton cards; paging dims the old grid under a
   loader.
 - **Fixed DOM size:** one page (30 cards) is mounted at a time.
 - **Version list** is fetched once per app run and shared by every mount
@@ -127,8 +127,8 @@ Two layers in `modsearch.Manager`, plus a reusable idiom:
 
 | Layer | Where | Lifetime | Role |
 |---|---|---|---|
-| Memory | Go map, ≤64 pages, oldest evicted | 10 min | Paging back/forth and re-running a query cost **no request** |
-| Disk | `cache/search/<type>_<version>_<loader>_<sort>_<offset>_<hash8>.json` | until overwritten | **Offline fallback** — read only when Modrinth can't be reached |
+| Memory | Go map, ≤64 pages, oldest evicted | 10 min | Paging back/forth and re-running a query cost no request |
+| Disk | `cache/search/<type>_<version>_<loader>_<sort>_<offset>_<hash8>.json` | until overwritten | Offline fallback: read only when Modrinth can't be reached |
 | Lists | `cache/search/game_versions.json`, `categories.json` | once per process in memory + disk | Version dropdown, AI vocabulary |
 
 `internal/cache.Fetch(path, source, fetch)` is the single idiom: *try the
@@ -143,98 +143,45 @@ These read the launcher's own files; there is no query language.
 
 | What | Source | Used by |
 |---|---|---|
-| "Is this project already in the instance?" | `instances/<id>/content.json` → `ListInstalledProjects` | **Added** state on cards |
+| "Is this project already in the instance?" | `instances/<id>/content.json` → `ListInstalledProjects` | Added state on cards |
 | Instance's mods/packs with icons & descriptions | `content.json` + folder listing → `ListContent` | Instance tabs (cards view) |
 | Which instances can take an addon? | `utils/compat.ts` (version in project's versions; loader in project's loaders; Vanilla refuses mods) | Add picker and Details side panel |
 | Worlds / screenshots / files | Directory reads on tab open | Instance tabs |
 
-`content.json` is effectively a small **local index** of installed addons keyed
+`content.json` is effectively a small local index of installed addons keyed
 by project id and SHA-1, used for "already added", dependency checks
 (`requiredBy`) and incompatibility checks.
 
 ## 3. AI support
 
-The AI is an **interpreter and a ranker**, never a source of content.
+The AI is a planner and a writer, never a source of content. It answers in two
+model calls with Modrinth in between:
 
 ```mermaid
 flowchart LR
-  A["Player message<br/>'popular performance mods for fabric 1.20.1'"] --> B["Step 1 — Parse<br/>model → type · categories · sort · query"]
+  A["Player message<br/>'my game lags on a weak PC'"] --> B["Plan<br/>model returns up to 3 goals:<br/>label, filters, known project names"]
   B --> C["validate()<br/>drop anything not on the allowed lists"]
-  C --> D["mentioned()<br/>loader & version read from exact tokens<br/>(or kept from current filters / instance lock)"]
-  D --> E["SearchContent → Modrinth<br/>top 8, cached like any search"]
-  E --> F["Step 2 — Pick<br/>model chooses ≤3 ids + one-line reason"]
-  F --> G["ids checked against the 8<br/>reason cleaned to ≤200 chars"]
-  G --> H["Chat shows picks (Add · Details)<br/>+ 'See all N results'"]
+  C --> D["Modrinth searches in parallel<br/>(cached SearchContent) + name lookups"]
+  D --> E["Compose<br/>model writes a summary and reasons<br/>for up to 8 real results per goal"]
+  E --> F["ids checked against the results<br/>max 3 per group, 6 in all"]
+  F --> G["Answer: summary, grouped picks<br/>(Add, Details), follow-ups"]
 ```
 
-### Step 1 — Read the request (`ai.Manager.Parse`)
+- The plan's filter values (type, categories, sort) can only come from lists
+  the launcher gives the model, and `validate()` checks them again because the
+  answer is untrusted input.
+- The Minecraft version and loader never come from the model: an instance's
+  values win, otherwise they are read from exact tokens in the player's words.
+- Every pick is an id from a real Modrinth result. Names, icons and versions
+  come from Modrinth; only the explanations are model text, shown as plain
+  text.
+- When composing fails (rate limit, unreadable answer) the player still gets
+  the top results of each goal with Modrinth's own descriptions.
+- Requests leave from Go, so the web view never sees a key. A player's own key
+  is stored in `ai.json` (mode `0600`) and never returned to the UI.
 
-- Input: the message (≤300 chars, control characters removed) and the **previous
-  intent**, so follow-ups ("only forge", "newer ones") refine the last search.
-- The model may only fill four fields: **type, categories, sort, query**.
-- It is told the allowed values in the prompt: the page's types, Modrinth's real
-  categories for each type, and how to map words to sorts ("popular" →
-  `downloads`, "new" → `newest`, …).
-- Claude also gets them as a **JSON schema** (structured outputs). Other
-  providers are only asked for "JSON only", so the first `{…}` in the reply is
-  parsed.
-- **Loader and version are not left to the model.** They come from exact tokens
-  in the message (`neoforge`, `1.20.1`) or from the current filters, because
-  models confuse forge/neoforge and drop versions.
-- `validate()` is the **trust boundary**: the reply is untrusted input. It keeps
-  only allowed types, ≤2 categories valid for that type, a known version, a
-  known loader (mods/modpacks only), a known sort; loader/version words are
-  stripped from the keywords.
-- **Instance lock wins:** if the search came from an instance, that instance's
-  version and loader replace whatever the AI produced.
-
-### Step 2 — Pick from real results (`ai.Manager.Pick`)
-
-- The launcher runs the validated intent through the same `SearchContent` (so it
-  is cached and offline-tolerant) and takes the **top 8**.
-- The model receives `{id, title, description, downloads}` for each and returns
-  up to **3** ids, each with a ≤20-word reason in the player's language.
-- Ids not among the 8 are dropped and duplicates removed, so **every pick is a
-  real Modrinth project**. Names, icons and versions come from Modrinth; the
-  *reason* is the only model-written text the player sees, shown as plain text.
-- **Graceful degradation:** if Pick fails (rate limit, unreadable answer), the
-  chat shows Modrinth's top 3 with their own descriptions instead of reasons.
-
-### What the player gets
-
-- Chat message: "My picks from Modrinth for: Mods · optimization · 1.20.1 ·
-  Fabric" — a template, **not** model text.
-- Up to 3 rows with **Add** (same compatibility/dependency/incompatibility checks
-  as any Add) and **Details**.
-- **See all N results** copies the intent into the page's filters (tab, text,
-  version, loader, sort, category tags) and scrolls to the grid. Until pressed,
-  the page's own filters are untouched.
-
-### Providers, keys, privacy
-
-| | |
-|---|---|
-| Providers | Groq (default, built-in key), Claude, OpenAI, Gemini, Grok — 3 models each, marked **free plan** or **paid** |
-| Transport | Requests are made **from Go**, so the web view never sees a key. Claude uses Anthropic's Go SDK; the others one OpenAI-style HTTP call (only `model` + `messages`) |
-| Player's key | Stored in `<data dir>/ai.json`, mode `0600`; never returned to the UI (`AIStatus` only says whether one exists) |
-| Built-in key | Not in the repo. Scrambled at release build time (`internal/ai/seal`, injected via `-ldflags`); a dev build has none and the panel asks for a key |
-| Sent to the provider | The player's message, the allowed lists, and (Step 2) titles/descriptions/download counts of 8 public Modrinth projects. No profile, paths or instance contents |
-| Errors | A rejected key and a rate limit have their own message; provider error text is cut short and the key is masked |
-
-Limit: the built-in key's rate limit is **shared by all players**; when it is
-exhausted the UI suggests using their own key. Full details, model lists and
-rate-limit math: [AI search](../14-ai-search.md).
-
-### Failure behaviour summary
-
-| Situation | Result |
-|---|---|
-| No key / build without built-in key | Panel shows settings; normal search still works |
-| Offline | Normal search serves the disk cache; AI fails with a clear error (needs internet) |
-| Categories/versions list unavailable | Model still picks type + keywords |
-| Model returns junk | Error "not understood"; page unaffected |
-| Model invents a project | Impossible — picks are matched to the 8 returned ids |
-| Pick step fails | Top 3 Modrinth results shown without reasons |
+The full flow, the providers and models, the built-in key and its rate limits
+are in [AI advisor](../internals/ai-advisor.md).
 
 ## Design decisions worth remembering
 
@@ -245,5 +192,5 @@ rate-limit math: [AI search](../14-ai-search.md).
   section in Addons is blocked on a provider.
 - **Compatibility checks happen at Add time**, not per card, to keep browsing
   to a single request.
-- **AI output is always re-validated** — the model narrows *what to search*, it
+- **AI output is always re-validated**: the model narrows *what to search*, it
   never decides *what exists*.

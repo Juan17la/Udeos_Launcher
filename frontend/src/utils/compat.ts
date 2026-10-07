@@ -3,7 +3,7 @@ import type { Instance, ProjectDetail, ProjectType } from '../api/types'
 
 /** Whether an instance can plausibly take a project, and if not, why. This is
  *  an aggregate check over every version Modrinth has ever published for the
- *  project (see ProjectDetail) — good enough to sort and label a picker, but
+ *  project (see ProjectDetail), good enough to sort and label a picker, but
  *  not the last word: a project can support 1.20.1 on Fabric and on Forge
  *  without any single version covering both, so PlanContent (the backend)
  *  remains the one precise, authoritative check before anything downloads. */

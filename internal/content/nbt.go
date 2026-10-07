@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 )
 
-// Minimal NBT reader — enough to read level.dat (LevelName, LastPlayed).
+// Minimal NBT reader, enough to read level.dat (LevelName, LastPlayed).
 // NBT is a tree of typed, named tags; compounds nest until an End tag.
 
 const (

@@ -1,7 +1,7 @@
 // Package ai is the addon advisor: it turns a player's plain-language
 // request ("make my game faster") into a plan of Modrinth searches, runs
 // them, and explains a few real results (advisor.go). The model only ever
-// picks filter values and ids out of lists it is given — every result,
+// picks filter values and ids out of lists it is given: every result,
 // version and dependency still comes from Modrinth through internal/modsearch.
 //
 // It asks a hosted model: Groq with the key built into release builds (see
@@ -84,7 +84,7 @@ func (p provider) has(model string) bool {
 
 // sealed is the built-in Groq key, scrambled by Seal and stamped in at build
 // time (-ldflags "-X udeos/launcher/internal/ai.sealed=…", see
-// docs/14-ai-search.md). It is never in the repository; builds without it
+// docs/internals/ai-advisor.md). It is never in the repository; builds without it
 // need the player's own key.
 // ponytail: scrambling only keeps the key out of `strings`/grep. Anyone with
 // a debugger can still recover it; a proxy server that holds the key is the

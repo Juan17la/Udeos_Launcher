@@ -14,7 +14,7 @@ type Props = {
   aside?: ReactNode
   percent?: number
   onDismiss?: () => void
-  /** 'gold': a slow run that is expected (first install) — gold border and bar. */
+  /** 'gold': a slow run that is expected (first install): gold border and bar. */
   accent?: 'gold'
   /** Tooltip and screen-reader name of the × (default "Close"; "Cancel" on a download). */
   dismissLabel?: string

@@ -151,7 +151,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                     {detail.gallery.map((g) => (
                       <figure key={g.url} className="m-0 flex flex-col gap-2">
                         <img src={g.url} alt={g.title} loading="lazy" decoding="async" className="w-full aspect-video object-cover rounded-md bg-panel" />
-                        {(g.title || g.description) && <figcaption className="text-xs text-muted"><b>{g.title}</b>{g.title && g.description ? ' — ' : ''}{g.description}</figcaption>}
+                        {(g.title || g.description) && <figcaption className="text-xs text-muted"><b>{g.title}</b>{g.title && g.description ? ': ' : ''}{g.description}</figcaption>}
                       </figure>
                     ))}
                   </div>

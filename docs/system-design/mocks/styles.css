@@ -1,4 +1,4 @@
-/* Udeos Launcher — static UI mocks. Plain CSS port of frontend/src/theme/tokens.css
+/* Udeos Launcher: static UI mocks. Plain CSS port of frontend/src/theme/tokens.css
    and the Tailwind classes used by src/ui and src/screens. No build, no framework. */
 
 @font-face { font-family: 'PT Mono'; font-style: normal; font-weight: 400; src: url(assets/fonts/pt-mono-latin-400-normal.woff2) format('woff2'); }

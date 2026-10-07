@@ -1,7 +1,7 @@
 // Thin bridge to the Go backend. Wails injects `window.go.main.App.<Method>`
 // (one promise-returning function per exported Go method) and
-// `window.runtime` (events, dialogs). When the page runs outside Wails —
-// `vite dev` in a browser — an in-memory mock stands in so the UI can be
+// `window.runtime` (events, dialogs). When the page runs outside Wails
+// (`vite dev` in a browser), an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
 import type { JoinExport, JoinInfo, AIAnswer, AITurn, AIProvider, AIStatus, Alternatives, AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionChoice, VersionList, World } from './types'
 

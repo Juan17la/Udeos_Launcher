@@ -1,15 +1,15 @@
-# 13. Skins: a library, an editor, and getting them into the game
+# Skins: a library, an editor, and getting them into the game
 
 ## What the player sees
 
-The **Skins** page (nav: Instances · Servers · Skins · Addons) fits the
+The Skins page (nav: Instances · Servers · Skins · Addons) fits the
 window: the page itself never scrolls, only the library does, inside its
 box. It shows:
 
 - **Wearing** (the wide left panel): the skin the active profile wears on a
   3D model that fills the panel and turns (drag to turn it), its name, model
   and a one-line "In singleplayer and on your servers", and Edit.
-- A **drop zone** as the main action, since most players download their
+- A drop zone as the main action, since most players download their
   skins: tinted, with an icon, "Drop a skin you downloaded" and Browse. While
   this page is open the whole window takes the drop: while a file is over
   it, a dashed overlay covers the window. A dropped `.png` opens "Add skin" with the name taken from the file, the
@@ -35,18 +35,18 @@ starting point for a new slim skin.
 Without that, Minecraft 1.19.3+ would pick one of nine default skins from
 the UUID, which would not match the page.
 
-The skin a profile wears is used by **every instance of that profile** from
+The skin a profile wears is used by every instance of that profile from
 the next Play. Its face also becomes the avatar in the account menu and the
 profile switcher.
 
-Each profile has its **own library**: a skin belongs to the profile that
+Each profile has its own library: a skin belongs to the profile that
 saved it, and only that profile sees, edits, wears or deletes it. Skins saved
 before libraries were per profile go to the profile wearing them, the rest
 to the profile active at the next start. Removing a profile moves its skins to the one that stays active.
 
 ### Classic and slim
 
-A skin is always a 64×64 PNG; the **model** says how Minecraft reads the
+A skin is always a 64×64 PNG; the model says how Minecraft reads the
 arms: 4 pixels wide (*classic*, Steve) or 3 (*slim*, Alex). The same picture
 looks wrong on the other model, so the model is chosen per skin. On import
 the launcher guesses it: slim skins leave the last column of the right arm's
@@ -95,7 +95,7 @@ back to a default skin. The launcher changes who the game asks:
    session servers ("Yggdrasil"): the game asks it for a player's profile
    and gets the offline UUID, the name and, for a launcher profile, a
    `textures` property signed with the launcher's key (its skin, else Steve).
-2. **authlib-injector** (a Java agent, open source, AGPL-3.0 — downloaded on
+2. **authlib-injector** (a Java agent, open source, AGPL-3.0, downloaded on
    first use into `libraries/moe/yushi/authlib-injector/`, hash-checked, not
    shipped with the launcher) is added to every game's command line:
    `-javaagent:<jar>=http://127.0.0.1:25585`. It points the game's
@@ -148,12 +148,12 @@ real server.properties key):
 
 ## Data on disk
 
-- `skins/library.json` — the skins (id, name, model, creation date, owning
+- `skins/library.json`: the skins (id, name, model, creation date, owning
   profile `owner`) and
   which skin each profile wears (`equipped`: nickname → skin id).
-- `skins/<id>.png` — each picture, always a re-encoded 64×64 PNG.
-- `libraries/moe/yushi/authlib-injector/<version>/` — the agent.
-- `instances/<id>/.minecraft/authlib-injector.log` — the agent's own log.
+- `skins/<id>.png`: each picture, always a re-encoded 64×64 PNG.
+- `libraries/moe/yushi/authlib-injector/<version>/`: the agent.
+- `instances/<id>/.minecraft/authlib-injector.log`: the agent's own log.
 
 ## Code map
 

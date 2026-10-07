@@ -1,4 +1,4 @@
-# 11. Design system
+# Design system
 
 The rules below are the styling source of truth for the launcher. The
 second half maps each rule to where it lives in the code.
@@ -86,10 +86,10 @@ second half maps each rule to where it lives in the code.
 
 The launcher has three themes, chosen per profile (AccountMenu → Theme, and on the setup screen):
 
-- **Dark** — full black (`#000000`, panels `#0A1018`), a calm blue palette: the light theme's blue toned down (primary `#2F5DA8`, secondary `#132238`, loading ring `#6FA0E0`). The floating background items are drawn 2.4× stronger than in light.
+- **Dark**: full black (`#000000`, panels `#0A1018`), a calm blue palette: the light theme's blue toned down (primary `#2F5DA8`, secondary `#132238`, loading ring `#6FA0E0`). The floating background items are drawn 2.4× stronger than in light.
 - Tags (`green-soft`, `gold-soft`, `tag-gray`), the ring (`gold`) and their text (`ink`) are theme variables too, so they follow each theme's palette.
-- **Light** — white (`#FFFFFF`, panels `#F4F7FC`), blue palette (primary `#2563EB`, secondary `#BFDBFE`).
-- **Custom** — the player picks five colours (background, panels, primary, secondary, third); `utils/theme.ts`
+- **Light**: white (`#FFFFFF`, panels `#F4F7FC`), blue palette (primary `#2563EB`, secondary `#BFDBFE`).
+- **Custom**: the player picks five colours (background, panels, primary, secondary, third); `utils/theme.ts`
   derives everything else (hover tints, muted text, shadows) and picks every text colour by WCAG contrast
   (`--color-text`, `--color-on-primary`, `--color-on-secondary`, `--color-on-idle`). Never write `text-white` on a
   themed fill: use `text-on-primary` / `text-on-secondary` / `text-on-idle`, so a custom colour stays readable.
@@ -99,7 +99,7 @@ The two palettes below (Pastel Overworld / End) are history. `ghost` buttons are
 
 ### Revisions
 
-- **Palette (2026-09-18, current)** — Pastel Overworld (light, the default)
+- **Palette (2026-09-18, current)**: Pastel Overworld (light, the default)
   and Pastel End (dark); the table above is history.
 
   | Role | Light: Pastel Overworld | Dark: Pastel End |
@@ -126,9 +126,9 @@ The two palettes below (Pastel Overworld / End) are history. `ghost` buttons are
   block (`components/ProjectIcon.tsx`).
 - **Loaders**: plain fetches (search results, version lists, listings,
   project detail) show an instant glass spinner; the percentage loader is
-  reserved for work with real progress — the game install and content
+  reserved for work with real progress: the game install and content
   downloads.
-- **Surface tones**: three, clearly apart — canvas (`#25282A` / `#F7F9FA`),
+- **Surface tones**: three, clearly apart: the canvas (`#25282A` / `#F7F9FA`),
   panel (`#31363A` / `#FFFFFF`) and a second panel tone for rows nested in or
   beside panels (`#3B4146` / `#EDF1F4`, `Panel tone="alt"`, used by `Card row`).
 - **Slider selector**: option groups (Addons type tabs, instance tabs, the
