@@ -5,8 +5,33 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.0.0-beta] - 2026-10-19
+
+### New
+
+- **New look:** night-sky dark blue theme (and a matching light one), rounder
+  corners, Minecraft items beside titles, stats and empty states.
+- **Sidebar:** the pages live in a left bar with the page's New button on top
+  and Activity and the profile at the bottom.
+- **Library sorted by last played;** the first card is two rows tall with last
+  played, play time and what is in the instance. The big top panel is gone.
+- **Play in place:** the launch progress shows on the button; while the game
+  runs it reads "Playing · N min" with Close game (asks first), and closing the
+  game shows a short "GG" note.
+- **Activity** lists downloads, installs, open games and running servers.
+- **Undo** after removing a mod, resource pack or shader.
+- **Addons:** one Filters button for version, loader, sort and topics; topics
+  translated; whole cards open Details.
+- **Long mod lists** start as rows, with a filter box.
+- **Create Instance** shows a live preview of the icon and name.
+
 ### Changes
 
+- Delete moved to the bottom of Settings for instances and servers.
+- Memory shown in GB; play time shows "0 h" instead of "0.0 h".
+- Server address never breaks mid-word and always shows its port.
+- Instance tabs are grouped; Datapacks shows once the instance has a world.
+- Blue buttons are darker so white text passes contrast checks.
 - New license: Udeos Launcher now uses the PolyForm Noncommercial License
   1.0.0 instead of MIT. You can still use, study, change and share it for free
   for anything noncommercial; selling it or using it to make money is reserved
