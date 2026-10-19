@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react'
 /** "2 days ago" style label for an ISO timestamp, in the UI language. */
 export function ago(iso: string, lang: string): string {
   const rtf = new Intl.RelativeTimeFormat(lang, { numeric: 'auto' })
@@ -10,7 +9,7 @@ export function ago(iso: string, lang: string): string {
 
 /** Play time in hours: one decimal under an hour, whole hours after. */
 export function hours(sec: number): string {
-  return (sec / 3600).toFixed(sec < 3600 ? 1 : 0)
+  return sec < 3600 ? String(+(sec / 3600).toFixed(1)) : (sec / 3600).toFixed(0) // 0 → "0", not "0.0"
 }
 
 export function bytes(n: number): string {
@@ -35,6 +34,3 @@ const LOADER_NAMES: Record<string, string> = { fabric: 'Fabric', forge: 'Forge',
 /** Modrinth's lowercase loader ids as the launcher writes them ("neoforge" → "NeoForge"). */
 export const loaderName = (l: string) => LOADER_NAMES[l.toLowerCase()] ?? l[0].toUpperCase() + l.slice(1)
 
-/** Staggers the cards' rise-in (tokens.css .reveal): 40ms apart, the first 10 only;
- *  the rest do not animate (they are below the fold, and animating dozens of cards makes scrolling stutter). */
-export const revealDelay = (i: number) => (i < 10 ? { '--reveal-delay': `${i * 40}ms` } : { animation: 'none' }) as CSSProperties

@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react'
 import Button from './Button'
+import { ProgressBar } from './Loader'
 import { Check, X } from './icons'
 
-/** Feedback panel, inline or as a toast. Success: glass with a green check
- *  and one soft green pulse. Error: glass with a pastel-red glow, a headline
- *  of at most three words (see utils/errors.ts) and the full reason as small
- *  detail. Neutral (progress): an `aside` (percentage, "Waiting…") and a
- *  `percent` bar. */
+/** Feedback panel, inline or as a toast. Success: a check chip and one soft
+ *  pulse of the accent. Error: a red edge and one sideways nudge as it arrives, a headline of at most three words
+ *  (see utils/errors.ts) and the full reason as small detail. Neutral
+ *  (progress): an `aside` (percentage, "Waiting…") and a `percent` bar. */
 type Props = {
   kind?: 'neutral' | 'success' | 'error'
   headline: ReactNode
@@ -19,29 +19,29 @@ type Props = {
   /** Tooltip and screen-reader name of the × (default "Close"; "Cancel" on a download). */
   dismissLabel?: string
   className?: string
+  /** No entrance, pulse or nudge: for messages that are re-shown, not new (the Activity list on every open). */
+  still?: boolean
 }
 
-export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, accent, onDismiss, dismissLabel = 'Close', className = 'animate-[dialog-fade_0.15s_ease-in-out]' }: Props) {
+export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, accent, onDismiss, dismissLabel = 'Close', className: cls, still }: Props) {
+  const className = cls ?? (still ? '' : 'animate-[dialog-fade_0.2s_var(--ease-out)]')
   return (
-    <div role={kind === 'error' ? 'alert' : 'status'}
-      className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'border-error shadow-error-glow' : ''} ${kind === 'success' ? 'animate-[pulse-primary_0.9s_ease-out]' : ''} ${accent === 'gold' ? 'border-gold-deep/70' : ''}`}>
+    <div role={kind === 'error' ? 'alert' : 'status'} style={kind === 'error' && !still ? { animation: 'dialog-fade 0.2s var(--ease-out), nudge 0.45s ease-out 0.15s' } : undefined}
+      className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'shadow-[0_0_0_1px_var(--color-error),var(--shadow-pop)]' : ''} ${kind === 'success' && !still ? 'animate-[pulse-primary_0.9s_ease-out]' : ''}`}>
       <div className="flex items-start gap-3">
         {kind !== 'neutral' && (
-          <span className={`flex-none inline-flex items-center justify-center w-7 h-7 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-on-primary'}`}>
-            {kind === 'error' ? <X size={14} /> : <Check size={14} />}
+          <span className={`flex-none inline-flex items-center justify-center w-6 h-6 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-on-primary'}`}>
+            {kind === 'error' ? <X size={12} /> : <Check size={12} />}
           </span>
         )}
         <div className="flex-1 min-w-0 flex flex-col gap-1">
-          <span className="text-sm font-bold leading-[1.3]">{headline}</span>
+          <span className="text-sm font-semibold leading-[1.3]">{headline}</span>
           {detail && <span className="text-xs text-muted break-words">{detail}</span>}
         </div>
-        {aside !== undefined && <span className="text-[13px] text-muted tabular-nums shrink-0">{aside}</span>}
+        {aside !== undefined && <span className="text-[13px] text-muted font-mono tabular-nums shrink-0">{aside}</span>}
         {onDismiss && <Button variant="ghost" size="sm" square onClick={onDismiss} aria-label={dismissLabel} title={dismissLabel}><X size={12} /></Button>}
       </div>
-      {percent !== undefined && (
-        <progress value={Math.max(0, Math.min(100, percent))} max={100}
-          className={`w-full h-2 rounded-md overflow-hidden [&::-webkit-progress-bar]:bg-idle/60 ${accent === 'gold' ? '[&::-webkit-progress-value]:bg-gold-deep' : '[&::-webkit-progress-value]:bg-primary'}`} />
-      )}
+      {percent !== undefined && <ProgressBar value={percent} tone={accent} />}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Play, X } from '../ui/icons'
+import { Play, Stop } from '../ui/icons'
 import Button from '../ui/Button'
+import { ProgressBar } from '../ui/Loader'
 import Dialog, { ConfirmDialog } from '../ui/Dialog'
 import ErrorMessage from './ErrorMessage'
 import { useApp } from '../state'
@@ -22,8 +23,9 @@ export const shareAddress = (s: Server): { kind: 'internet' | 'lan'; address: st
  *  world the button reads Cancel (Stop works at any point); while it saves
  *  and stops it is a loading ring. Starting a third server at once asks
  *  first. A failed start opens a dialog (the console keeps the full story);
- *  a cancelled one does not. */
-export default function ServerButton({ server, size = 'md', className = '' }: { server: Server; size?: 'md' | 'lg'; className?: string }) {
+ *  a cancelled one does not. `quiet`: a neutral Start with a blue triangle, for cards
+ *  (the solid blue stays for the one main action of a page, like PlayButton). */
+export default function ServerButton({ server, size = 'md', className = '', quiet }: { server: Server; size?: 'md' | 'lg'; className?: string; quiet?: boolean }) {
   const { t, servers, refreshInstances } = useApp()
   const [error, setError] = useState<string | null>(null)
   const [others, setOthers] = useState(0)
@@ -45,9 +47,9 @@ export default function ServerButton({ server, size = 'md', className = '' }: { 
   return (
     <>
       {server.running && !stopping
-        ? <Button variant="idle" size={size} block className={className} onClick={stop}><X size={x} /> {ready ? t.servers.stop : t.servers.cancelStart}</Button>
-        : <Button variant="primary" size={size} block className={className} loading={stopping} onClick={askStart}>
-            <Play size={size === 'lg' ? 16 : 13} /> {stopping ? t.servers.stopping : t.servers.start}
+        ? <Button variant="idle" size={size} block className={className} onClick={stop}><Stop size={x} /> {ready ? t.servers.stop : t.servers.cancelStart}</Button>
+        : <Button variant={quiet ? 'secondary' : 'primary'} size={size} block className={className} loading={stopping} onClick={askStart}>
+            {!stopping && <span className={`flex ${quiet ? 'text-primary-hover' : ''}`}><Play size={size === 'lg' ? 16 : 13} /></span>} {stopping ? t.servers.stopping : t.servers.start}
           </Button>}
       {others > 0 && (
         <ConfirmDialog title={t.servers.manyTitle} body={fmt(t.servers.many, { n: others })} confirmLabel={t.servers.startAnyway}
@@ -69,5 +71,22 @@ export function ServerStatus({ server, className = '' }: { server: Server; class
   const [dot, label] = s.stopping ? ['bg-gold animate-pulse', t.servers.stopping]
     : s.ready ? ['bg-primary', `${t.servers.status.online} · ${fmt(t.servers.playersOf, { n: s.players.length, max: server.maxPlayers })}`]
     : server.running ? ['bg-gold animate-pulse', t.servers.status.starting] : ['bg-muted', t.servers.status.stopped]
-  return <span className={`flex items-center gap-2 min-w-0 text-xs ${className}`}><span className={`flex-none w-2.5 h-2.5 rounded-md ${dot}`} /><span className="truncate" title={label}>{label}</span></span>
+  return <span className={`flex items-center gap-2 min-w-0 text-xs ${className}`}><span className={`flex-none w-2 h-2 rounded-sm ${dot}`} /><span className="truncate" title={label}>{label}</span></span>
+}
+
+/** In place, while the server comes up or shuts down: a sliding bar and one line
+ *  on what is happening (the first start also downloads the server and builds
+ *  the world, which the line says). Nothing when the server is stopped or online. */
+export function ServerProgress({ server, className = '' }: { server: Server; className?: string }) {
+  const { t } = useApp()
+  const s = server.state
+  const starting = server.running && !s.ready && !s.stopping
+  if (!starting && !s.stopping) return null
+  const label = s.stopping ? t.servers.stopping : !server.lastPlayed ? t.servers.firstStartShort : t.servers.status.starting
+  return (
+    <div className={`flex flex-col gap-2 ${className}`} role="status" aria-live="polite">
+      <ProgressBar tone={starting && !server.lastPlayed ? 'gold' : undefined} label={label} />
+      <span className="text-xs text-muted">{label}</span>
+    </div>
+  )
 }

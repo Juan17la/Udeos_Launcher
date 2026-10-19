@@ -1,7 +1,8 @@
 import { useState } from 'react'
+import Empty from '../../ui/Empty'
 import { Folder, X } from '../../ui/icons'
 import Button from '../../ui/Button'
-import AutoLoader from '../../ui/Loader'
+import { SkeletonRows } from '../../ui/Loader'
 import { ConfirmDialog } from '../../ui/Dialog'
 import { useApp, useLaunch } from '../../state'
 import { api } from '../../api/bridge'
@@ -33,8 +34,8 @@ export default function WorldsTab({ id }: { id: string }) {
     <DropArea className="flex flex-col gap-4">
       <Toolbar id={id} kind="worlds" onPick={pick}><FolderLink id={id} sub={WORLDS.folder} compact /></Toolbar>
       <Feedback error={error} note={note} onClearNote={clearNote} />
-      <AutoLoader active={items === null} label={t.common.loading} />
-      {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty.worlds}</p>}
+      <SkeletonRows active={items === null} />
+      {items?.length === 0 && <Empty icon="grass_block_side">{t.instance.empty.worlds}</Empty>}
       {items?.map((w) => (
         <div key={w.folder} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
           <div className="flex-1 min-w-0 flex flex-col gap-1">

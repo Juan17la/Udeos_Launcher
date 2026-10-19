@@ -2,32 +2,61 @@ import { useEffect, useRef, useState } from 'react'
 import { useApp, useContent, useLaunch } from '../state'
 import type { ContentJob } from '../state'
 import { fmt } from '../i18n/format'
-import { useLaunchProgress } from './LaunchDialog'
+import { useLaunchProgress } from '../hooks/useLaunchProgress'
 import ErrorMessage from './ErrorMessage'
 import ConflictDialog from './ConflictDialog'
+import PlayButton from './PlayButton'
+import { playingSince } from '../state/useLaunchController'
 import Button from '../ui/Button'
 import StatusMessage from '../ui/StatusMessage'
-import { Spinner } from '../ui/Loader'
-import { Check, Download, X } from '../ui/icons'
+import { ProgressBar, Spinner } from '../ui/Loader'
+import { ChevronRight, Pulse, X } from '../ui/icons'
 
 /** How long a "done" note stays in the strip. Errors stay until closed. */
 const STRIP_MS = 4000
 
-/** Everything that runs in the background lives here, in the nav, so it never
- *  covers the page: a button that appears while something runs (its ring is
- *  the progress), a popover with every job and Cancel, and a one-line strip
- *  under the nav announcing a finished or failed job. */
+/** Everything that runs in the background lives here, in the sidebar, so it
+ *  never covers the page: an always-there item (a ring and a count while
+ *  something runs), a popover with every job and Cancel plus the open games and
+ *  servers, and a short notice beside the sidebar announcing a finished or failed
+ *  job, or a game that just opened. */
 export default function Activity() {
-  const { t } = useApp()
+  const { t, instances, servers, nickname, go } = useApp()
   const { jobs, dismiss, cancel } = useContent()
   const { launch, cancelLaunch } = useLaunch()
   const { inst, pct: launchPct } = useLaunchProgress()
-  const launching = launch.status === 'preparing' && launch.minimized
+  const launching = launch.status === 'preparing'
   const [open, setOpen] = useState(false)
   const [strip, setStrip] = useState<ContentJob | null>(null)
   const [options, setOptions] = useState<ContentJob | null>(null) // the failed job whose alternatives are open
+  const [hello, setHello] = useState<{ headline: string; detail: string } | null>(null) // a game that just opened or closed
   const announced = useRef(new Set<number>())
+  const wasRunning = useRef<Set<string> | null>(null)
   const root = useRef<HTMLDivElement>(null)
+
+  // A game that starts gets one short "have fun" note (not the ones already open at load); one that
+  // closes normally gets "GG" with the minutes played (a crash opens its own dialog instead).
+  const started = useRef(new Map<string, number>())
+  useEffect(() => {
+    const before = wasRunning.current
+    const now = new Set(instances.filter((i) => i.running).map((i) => i.id))
+    now.forEach((id) => started.current.set(id, playingSince(id)))
+    wasRunning.current = now
+    if (!before) return
+    const opened = instances.find((i) => i.running && !before.has(i.id))
+    const closed = instances.find((i) => !i.running && before.has(i.id))
+    if (opened) setHello({ headline: fmt(t.game.welcome, { nick: nickname }), detail: fmt(t.game.welcomeDetail, { name: opened.name }) })
+    else if (closed && !(launch.status === 'exited' && launch.instanceId === closed.id)) {
+      const mins = Math.floor((Date.now() - (started.current.get(closed.id) ?? Date.now())) / 60000)
+      setHello({ headline: fmt(t.game.ended, { nick: nickname }), detail: mins < 1 ? fmt(t.game.endedShort, { name: closed.name }) : fmt(t.game.endedDetail, { n: mins, name: closed.name }) })
+    }
+    if (closed) started.current.delete(closed.id)
+  }, [instances]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!hello) return
+    const id = setTimeout(() => setHello(null), STRIP_MS + 1000)
+    return () => clearTimeout(id)
+  }, [hello])
 
   // Announce each job once when it finishes; a success clears itself.
   useEffect(() => {
@@ -52,37 +81,65 @@ export default function Activity() {
   const active = jobs.filter((j) => j.status === 'queued' || j.status === 'installing')
   const failed = jobs.filter((j) => j.status === 'error')
   const items = jobs.length + (launching ? 1 : 0)
-  // Nothing to show, nothing drawn; an open popover closes by itself when the last job goes.
-  if (items === 0 && !strip) return null
 
   const installing = jobs.find((j) => j.status === 'installing')
   const ring = launching ? launchPct : installing ? jobPct(installing) : 0
   const busy = active.length > 0 || launching
+  const count = active.length + (launching ? 1 : 0)
+  const games = instances.filter((i) => i.running)
+  const live = [...games, ...servers.filter((s) => s.running)]
+  const label = busy || live.length ? fmt(t.activity.running, { n: count + live.length }) : failed.length ? fmt(t.activity.failed, { n: failed.length }) : items > 0 ? t.activity.done : t.activity.empty
 
   return (
-    <div className="relative flex-none" ref={root}>
-      {items > 0 && (
-        <Button variant={failed.length ? 'danger' : 'idle'} aria-expanded={open} title={t.activity.title}
-          onClick={() => { setOpen((v) => !v); setStrip(null) }}>
-          {busy ? <Spinner size={16} /> : failed.length ? <X size={14} /> : <Check size={14} />}
-          <span className="tabular-nums">{busy ? (ring > 0 ? `${ring}%` : active.length + (launching ? 1 : 0)) : failed.length ? failed.length : t.activity.done}</span>
-          <Download size={14} />
-        </Button>
-      )}
+    <div className="relative" ref={root}>
+      <button type="button" aria-expanded={open} title={t.activity.title} onClick={() => { setOpen((v) => !v); setStrip(null) }}
+        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-medium text-left transition-colors duration-150 max-[1000px]:justify-center max-[1000px]:px-0 ${open ? 'bg-idle text-text' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
+        <span className={`relative flex ${busy ? 'text-primary motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]' : failed.length ? 'text-error-soft' : ''}`}>
+          {busy ? <Spinner size={18} /> : failed.length ? <X size={16} /> : <Pulse />}
+          {!busy && live.length > 0 && <span aria-hidden className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gold ring-2 ring-bg motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]" />}
+        </span>
+        <span className="flex-1 min-w-0 truncate max-[1000px]:hidden">{t.activity.title}</span>
+        <span className={`font-mono text-xs tabular-nums max-[1000px]:hidden ${busy ? 'text-primary-hover' : ''}`}>{busy ? (ring > 0 ? `${ring}%` : count) : live.length || (items > 0 ? (failed.length || '') : '')}</span>
+      </button>
+      {busy && <div className="px-3 pt-1.5 pb-1 max-[1000px]:hidden"><ProgressBar value={ring > 0 ? ring : undefined} /></div>}
 
-      {open && items > 0 && (
-        <div role="region" aria-label={t.activity.title} className="glass absolute top-[calc(100%+8px)] right-0 z-9001 w-80 max-w-[calc(100vw-2rem)] flex flex-col gap-3 p-4 animate-[dialog-fade_0.15s_ease-in-out]">
+      {open && (
+        <div role="region" aria-label={t.activity.title} className="glass absolute bottom-0 left-[calc(100%+12px)] z-9001 w-85 max-w-[calc(100vw-var(--side-w)-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto flex flex-col gap-3 p-4 animate-[dialog-fade_0.2s_var(--ease-out)]">
           <div className="flex items-center justify-between gap-4">
-            <span className="font-bold text-sm">{t.activity.title}</span>
+            <span className="font-semibold text-sm">{t.activity.title} <span className="text-muted font-normal">{items > 0 ? `· ${label}` : ''}</span></span>
             <Button variant="ghost" size="sm" square aria-label={t.activity.hide} title={t.activity.hide} onClick={() => setOpen(false)}><X size={12} /></Button>
           </div>
-          {launching && inst && <StatusMessage headline={inst.name} aside={`${launchPct}%`} percent={launchPct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />}
+          {live.map((i) => i.server ? (
+            <button key={i.id} type="button" onClick={() => { setOpen(false); go({ name: 'server', id: i.id }) }}
+              className="flex items-center gap-3 h-11 px-3 rounded-lg border-0 bg-green-soft text-ink text-sm text-left cursor-pointer hover:brightness-105">
+              <span aria-hidden className="w-2 h-2 rounded-full bg-current motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]" />
+              <span className="flex-1 min-w-0 truncate"><b className="font-extrabold">{i.name}</b> · {t.game.serverOn}</span><ChevronRight size={13} />
+            </button>
+          ) : (
+            <div key={i.id} className="flex flex-col gap-1.5">
+              <span className="text-xs font-semibold text-muted truncate">{i.name}</span>
+              <PlayButton inst={i} />
+            </div>
+          ))}
+          {items === 0 && live.length === 0 && (
+            <div className="flex flex-col items-center gap-1 py-6 text-center">
+              <span className="text-muted"><Pulse size={22} /></span>
+              <span className="text-sm font-medium">{t.activity.empty}</span>
+              <span className="text-xs text-muted">{t.activity.emptyHint}</span>
+            </div>
+          )}
+          {launching && inst && <StatusMessage still headline={inst.name} aside={`${launchPct}%`} percent={launchPct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />}
           {jobs.map((j) => <JobRow key={j.id} job={j} onDismiss={() => dismiss(j.id)} onCancel={() => cancel(j.id)} onOptions={() => { setOpen(false); setOptions(j) }} />)}
         </div>
       )}
 
+      {hello && !open && !strip && (
+        <div className="fixed bottom-4 left-[calc(var(--side-w)+12px)] z-9100 w-[min(400px,calc(100vw-var(--side-w)-2rem))]">
+          <StatusMessage kind="success" headline={hello.headline} detail={hello.detail} onDismiss={() => setHello(null)} />
+        </div>
+      )}
       {strip && !open && (
-        <div className="fixed top-[calc(var(--nav-h)+4px)] left-1/2 -translate-x-1/2 z-9100 w-[min(440px,calc(100vw-2rem))]">
+        <div className="fixed bottom-4 left-[calc(var(--side-w)+12px)] z-9100 w-[min(400px,calc(100vw-var(--side-w)-2rem))]">
           <JobRow job={strip} onDismiss={() => setStrip(null)} onCancel={() => setStrip(null)} onOptions={() => { setOptions(strip); setStrip(null) }} compact />
         </div>
       )}
@@ -101,16 +158,16 @@ function JobRow({ job, onDismiss, onCancel, onOptions, compact }: { job: Content
   if (job.status === 'error') {
     // A mod that clashes with an installed one: offer the way out, not just the refusal.
     const clash = /incompatible/i.test(job.message) && !job.create && job.instanceId !== ''
-    return <ErrorMessage message={job.message} compact={compact} onDismiss={onDismiss}
+    return <ErrorMessage message={job.message} compact={compact} still={!compact} onDismiss={onDismiss}
       action={clash && <Button variant="primary" size="sm" onClick={onOptions}>{t.conflict.see}</Button>} />
   }
   if (job.status === 'done') {
     const text = job.create ? fmt(job.create.server ? t.content.createdServer : t.content.created, { name }) : job.count === 0 ? fmt(t.content.alreadyInstalled, { title, name }) : job.count === 1 ? fmt(t.content.doneOne, { title, name }) : fmt(t.content.done, { n: job.count, name })
-    return <StatusMessage kind="success" headline={text} onDismiss={onDismiss} />
+    return <StatusMessage kind="success" still={!compact} headline={text} onDismiss={onDismiss} />
   }
   const pct = jobPct(job)
   return (
-    <StatusMessage headline={job.create ? fmt(t.content.creating, { name }) : title} aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
+    <StatusMessage still={!compact} headline={job.create ? fmt(t.content.creating, { name }) : title} aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
       percent={job.status === 'installing' ? pct : 0} onDismiss={onCancel} dismissLabel={t.common.cancel} />
   )
 }

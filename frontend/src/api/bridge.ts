@@ -32,6 +32,8 @@ type Backend = {
   InstallInstance(id: string): Promise<void>
   LaunchInstance(id: string): Promise<void>
   IsRunning(id: string): Promise<boolean>
+  /** Force-closes the running game; 'game:state' then reports it stopped (not as a crash). */
+  StopGame(id: string): Promise<void>
   ListWorlds(id: string): Promise<World[]>
   ExportWorld(id: string, folder: string): Promise<string>
   AddWorld(id: string, path: string): Promise<World>

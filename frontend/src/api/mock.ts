@@ -8,6 +8,7 @@ import { DEFAULT_COLORS } from '../utils/theme'
 export function createMock() {
   const listeners: Record<string, Set<(d: unknown) => void>> = {}
   const emit = (name: string, data: unknown) => listeners[name]?.forEach((cb) => cb(data))
+  const gameTimers: Record<string, ReturnType<typeof setTimeout>> = {}
   const on = (name: string, cb: (d: never) => void) => {
     ;(listeners[name] ??= new Set()).add(cb as (d: unknown) => void)
     return () => listeners[name].delete(cb as (d: unknown) => void)
@@ -245,7 +246,7 @@ export function createMock() {
   const backend = {
     async GetAppInfo() { return { version: '0.1.0-dev', os: 'browser', arch: 'mock', dataDir: '/mock', totalMemoryMB: 16384 } },
     async GetProfile() {
-      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'light' as const, colors: DEFAULT_COLORS, agreed: false, maxMemoryMB: 2048 } }
+      return { exists: !!profile, profile: profile ?? { nickname: '', uuid: '', nicknames: [], language: 'en' as const, theme: 'dark' as const, colors: DEFAULT_COLORS, agreed: false, maxMemoryMB: 2048 } }
     },
     async SaveProfile(p: Profile) {
       const removed = (profile?.nicknames ?? []).filter((n) => !p.nicknames.includes(n))
@@ -305,9 +306,16 @@ export function createMock() {
       emit('install:progress', { phase: 'done', done: 0, total: 0, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
       inst.running = true
       emit('game:state', { instanceId: id, running: true, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
-      setTimeout(() => { inst.running = false; inst.lastPlayed = new Date().toISOString(); emit('game:state', { instanceId: id, running: false, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent) }, 6000)
+      gameTimers[id] = setTimeout(() => backend.StopGame(id), 60000)
     },
     async IsRunning(id: string) { return !!instances.find((x) => x.id === id)?.running },
+    async StopGame(id: string) {
+      const inst = instances.find((x) => x.id === id)
+      if (!inst?.running) throw new Error('this instance is not running')
+      clearTimeout(gameTimers[id])
+      inst.running = false; inst.lastPlayed = new Date().toISOString()
+      emit('game:state', { instanceId: id, running: false, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
+    },
     async ListWorlds(id: string) { return (worlds[id] ?? []).map((w) => ({ ...w })) },
     async ExportWorld(_id: string, folder: string) { await sleep(600); return `/home/player/${folder}.zip` },
     async AddWorld(id: string, path: string) {

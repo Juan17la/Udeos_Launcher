@@ -1,17 +1,14 @@
 import type { InputHTMLAttributes, LabelHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
-import { Check } from './icons'
+import { Check, ChevronDown } from './icons'
 
-/** Form controls. A recessed neumorphic well with the universal radius and a
- *  border that is always there in a light tint of the primary colour, a
- *  deeper tint on hover, and the full colour on focus, where a soft ring
- *  pulses once (focus-pulse) so the eye lands on the field. Disabled keeps
- *  the same radius and padding and still shows its value; that is how a
- *  locked filter (Search with an instance in context) reads. py-2 + the 2px
- *  border keep the height of a md Button. */
-const control = 'w-full px-4 py-2 text-sm text-text bg-panel rounded-md border-2 border-primary/40 shadow-neu-inset caret-primary transition-all duration-150 ease-in-out hover:border-primary/70 focus:border-primary focus:shadow-focus focus:outline-none motion-safe:focus:animate-[focus-pulse_0.45s_ease-out] disabled:bg-idle disabled:border-transparent disabled:text-text disabled:opacity-80 disabled:cursor-not-allowed disabled:shadow-none placeholder:text-muted'
+/** Form controls: a flat well with a hairline, the accent ring on focus.
+ *  Disabled keeps the same size and still shows its value; that is how a
+ *  locked filter (Search with an instance in context) reads. Same height as a
+ *  md Button so a field and its button align. */
+const control = 'w-full h-10 px-3.5 text-sm text-text bg-panel-2 rounded-md border-0 shadow-neu caret-primary transition-[box-shadow,background-color] duration-150 hover:bg-idle focus:bg-panel-2 focus:shadow-focus focus:outline-none disabled:bg-idle disabled:text-text disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none placeholder:text-muted'
 
 export function Label({ className = '', ...rest }: LabelHTMLAttributes<HTMLLabelElement>) {
-  return <label className={`block text-xs mb-2 text-muted ${className}`} {...rest} />
+  return <label className={`block text-xs font-medium mb-1.5 text-muted ${className}`} {...rest} />
 }
 
 /** icon: a small leading glyph in the primary colour, for a screen's main
@@ -20,28 +17,33 @@ export function Input({ className = '', icon, ...rest }: InputHTMLAttributes<HTM
   if (!icon) return <input className={`${control} ${className}`} {...rest} />
   return (
     <span className={`relative flex items-center ${className}`}>
-      <span aria-hidden className="absolute left-4 flex text-primary pointer-events-none">{icon}</span>
-      <input className={`${control} pl-11`} {...rest} />
+      <span aria-hidden className="absolute left-3.5 flex text-muted pointer-events-none">{icon}</span>
+      <input className={`${control} pl-10`} {...rest} />
     </span>
   )
 }
 
+/** Custom chevron instead of the native arrow, so the value never touches it (pr-11). */
 export function Select({ className = '', ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select className={`${control} appearance-auto ${className}`} {...rest} />
+  return (
+    <span className={`relative flex items-center ${className}`}>
+      <select className={`${control} appearance-none pr-10 cursor-pointer`} {...rest} />
+      <span aria-hidden className="absolute right-3.5 flex text-muted pointer-events-none"><ChevronDown /></span>
+    </span>
+  )
 }
 
-/** Checkbox: green when checked, the light Minecraft gray when not, raised
- *  either way like a button (the inset shadow's white light would fade the
- *  green into a gradient). The native input is kept (keyboard, forms) and
- *  visually replaced through Tailwind's peer variants. */
+/** Checkbox: the accent when checked, a hairline box when not. The native
+ *  input is kept (keyboard, forms) and visually replaced through Tailwind's
+ *  peer variants. */
 type CheckboxProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> & { label?: ReactNode }
 
 export function Checkbox({ label, className = '', ...rest }: CheckboxProps) {
   return (
     <label className={`inline-flex items-center gap-3 cursor-pointer text-sm select-none ${className}`}>
       <input type="checkbox" className="peer absolute w-0 h-0 opacity-0 pointer-events-none appearance-none rounded-md" {...rest} />
-      <span className="w-7 h-7 flex-none inline-flex items-center justify-center rounded-md bg-idle text-on-idle shadow-neu transition-all duration-150 ease-in-out peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary peer-focus-visible:outline-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
-        <Check size={14} />
+      <span className="w-5.5 h-5.5 flex-none inline-flex items-center justify-center rounded-sm bg-panel-2 text-on-idle shadow-neu transition-[background-color,box-shadow] duration-150 peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary peer-focus-visible:outline-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
+        <Check size={13} />
       </span>
       {label !== undefined && <span>{label}</span>}
     </label>

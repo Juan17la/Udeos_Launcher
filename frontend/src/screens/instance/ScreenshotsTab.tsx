@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
+import Empty from '../../ui/Empty'
 import { Camera, Folder } from '../../ui/icons'
 import Button from '../../ui/Button'
-import AutoLoader from '../../ui/Loader'
+import { SkeletonRows } from '../../ui/Loader'
 import Dialog from '../../ui/Dialog'
 import { useApp, useLaunch } from '../../state'
 import { api } from '../../api/bridge'
@@ -32,8 +33,8 @@ export default function ScreenshotsTab({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <Feedback error={null} note={note} onClearNote={clearNote} />
       <FolderLink id={id} sub="screenshots" />
-      <AutoLoader active={shots === null} label={t.common.loading} />
-      {shots?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.instance.empty.screenshots}</p>}
+      <SkeletonRows active={shots === null} grid />
+      {shots?.length === 0 && <Empty icon="spyglass">{t.instance.empty.screenshots}</Empty>}
       {shots && shots.length > 0 && (
         <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))' }}>
           {shots.map((s) => (

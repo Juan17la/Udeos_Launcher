@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Empty from '../../ui/Empty'
 import { Label, Select } from '../../ui/Field'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
@@ -21,7 +22,7 @@ export default function DatapacksTab({ id, server }: { id: string; server?: bool
   }, [id, server])
 
   if (server) return <FilesTab id={id} kind="datapacks" world="" />
-  if (worlds?.length === 0) return <p className="text-muted text-center text-sm px-5 py-10">{t.content.noWorlds}</p>
+  if (worlds?.length === 0) return <Empty icon="grass_block_side">{t.content.noWorlds}</Empty>
   return (
     <div className="flex-1 flex flex-col gap-4">
       {worlds && (

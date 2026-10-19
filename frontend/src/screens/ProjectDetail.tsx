@@ -3,8 +3,9 @@ import { useApp, useContent } from '../state'
 import { api, openExternal } from '../api/bridge'
 import { fmt } from '../i18n/format'
 import Button from '../ui/Button'
+import Dialog from '../ui/Dialog'
 import { Select } from '../ui/Field'
-import AutoLoader, { Spinner } from '../ui/Loader'
+import AutoLoader, { SkeletonRows, Spinner } from '../ui/Loader'
 import SegmentedControl from '../ui/SegmentedControl'
 import ErrorMessage from '../components/ErrorMessage'
 import ProjectIcon from '../components/ProjectIcon'
@@ -37,6 +38,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
   const { add, dialog } = useAddAction(instanceId)
   const [detail, setDetail] = useState<ProjectDetailData | null>(null)
   const [tab, setTab] = useState<Tab>('about')
+  const [zoom, setZoom] = useState<ProjectDetailData['gallery'][number] | null>(null) // a gallery picture opened large
   const [target, setTarget] = useState('')
 
   useEffect(() => {
@@ -89,7 +91,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
             <div className="flex-[1_1_320px] min-w-0 flex flex-col gap-2">
               <div className="flex gap-2 flex-wrap">
                 <span className="tag bg-tag-gray">{t.search.types[result.projectType]}</span>
-                {detail.categories.slice(0, 4).map((c) => <span key={c} className="tag bg-green-soft">{c}</span>)}
+                {detail.categories.slice(0, 4).map((c) => <span key={c} className="tag bg-green-soft">{t.search.topicNames[c] ?? c.replace(/-/g, ' ')}</span>)}
               </div>
               <h1 className="m-0">{detail.title}</h1>
               <p className="m-0 text-muted">{detail.description}</p>
@@ -150,7 +152,9 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                   <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
                     {detail.gallery.map((g) => (
                       <figure key={g.url} className="m-0 flex flex-col gap-2">
-                        <img src={g.url} alt={g.title} loading="lazy" decoding="async" className="w-full aspect-video object-cover rounded-md bg-panel" />
+                        <button type="button" onClick={() => setZoom(g)} aria-label={g.title || t.detail.gallery} className="p-0 border-0 bg-transparent cursor-zoom-in rounded-md">
+                          <img src={g.url} alt={g.title} loading="lazy" decoding="async" className="block w-full aspect-video object-cover rounded-md bg-panel transition-[filter] duration-150 hover:brightness-110" />
+                        </button>
                         {(g.title || g.description) && <figcaption className="text-xs text-muted"><b>{g.title}</b>{g.title && g.description ? ': ' : ''}{g.description}</figcaption>}
                       </figure>
                     ))}
@@ -158,6 +162,13 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                 </section>
               )}
             </article>
+          )}
+
+          {zoom && (
+            <Dialog title={zoom.title || t.detail.gallery} width={960} onClose={() => setZoom(null)} actions={<Button variant="primary" onClick={() => setZoom(null)}>{t.common.close}</Button>}>
+              <img src={zoom.url} alt={zoom.title} className="block w-full h-auto rounded-md bg-panel" />
+              {zoom.description && <p className="m-0 mt-3 text-sm text-muted">{zoom.description}</p>}
+            </Dialog>
           )}
 
           {tab === 'versions' && (
@@ -203,7 +214,7 @@ function Versions({ inst, result, reload, busy, onInstall }: { inst: Instance; r
   }, [inst.id, result.id, result.projectType, reload])
 
   if (error) return <ErrorMessage message={error} />
-  if (!list) return <AutoLoader active label={t.common.loading} />
+  if (!list) return <SkeletonRows active n={3} />
   const fits = list.filter((v) => !v.conflictWith)
   const blocked = list.filter((v) => v.conflictWith)
   const current = list.some((v) => v.installed)

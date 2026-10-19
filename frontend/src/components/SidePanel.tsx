@@ -17,14 +17,14 @@ export function ScrollBody({ children }: { children: ReactNode }) {
   return <div className="flex-1 min-h-0 flex flex-col overflow-y-auto overflow-x-hidden -m-3 p-3">{children}</div>
 }
 
-/** The side panel of the instance and server pages: as tall as its grid cell, so it never moves
- *  or grows with the content. Everything in it is sized to fit the smallest window; if a very
- *  short one still cannot, the details scroll and the actions stay put. */
+/** The side panel of the instance and server pages: as tall as its content, so the actions sit
+ *  right under the details instead of at the far end of an empty column. Capped at its grid cell;
+ *  if a very short window still cannot fit it, the details scroll and the actions stay put. */
 export default function SidePanel({ children, actions }: { children: ReactNode; actions: ReactNode }) {
   return (
-    <div className="panel h-full min-h-0 flex flex-col gap-2 p-4">
+    <div className="panel self-start max-h-full min-h-0 flex flex-col gap-4 p-4">
       {/* Padded so the stat cards' shadows are not clipped by the scroll box. */}
-      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2 -m-2 p-2">{children}</div>
+      <div className="min-h-0 overflow-y-auto flex flex-col gap-3 -m-2 p-2">{children}</div>
       <div className="flex flex-col gap-2">{actions}</div>
     </div>
   )

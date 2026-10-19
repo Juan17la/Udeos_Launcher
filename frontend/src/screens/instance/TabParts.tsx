@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react'
 import ErrorMessage from '../../components/ErrorMessage'
-import { Folder, Plus, Sparkles } from '../../ui/icons'
+import { Folder, Plus, Sparkles, Trash } from '../../ui/icons'
 import Button from '../../ui/Button'
 import StatusMessage from '../../ui/StatusMessage'
 import { useApp } from '../../state'
@@ -9,6 +9,19 @@ import type { Dict } from '../../i18n/en'
 import type { ProjectType } from '../../api/types'
 
 /** The pieces every file tab is built from, so the tabs read as a list. */
+
+/** The bottom of a Settings tab: the one destructive action, kept away from Play. */
+export function DangerZone({ title, body, onDelete, disabled }: { title: string; body: string; onDelete: () => void; disabled?: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center gap-4 px-5 py-4 rounded-lg shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-error)_35%,transparent)]">
+      <div className="flex-1 min-w-60">
+        <div className="font-bold text-sm">{title}</div>
+        <p className="m-0 mt-1 text-[13px] text-muted">{body}</p>
+      </div>
+      <Button variant="danger" disabled={disabled} onClick={onDelete}><Trash />{title}</Button>
+    </div>
+  )
+}
 
 /** Files dropped anywhere on a tab are added: Wails reads this CSS property (custom
  *  properties inherit, so the whole area counts) and hands over real paths. A dashed
@@ -29,7 +42,7 @@ export function DropArea({ children, className = '' }: { children: ReactNode; cl
 export function Toolbar({ id, kind, onPick, modrinth, children }: { id: string; kind: keyof Dict['instance']['add']; onPick: () => void; modrinth?: ProjectType; children?: ReactNode }) {
   const { t, go } = useApp()
   return (
-    <div className="flex items-center gap-2 min-w-0">
+    <div className="flex flex-wrap items-center gap-2 min-w-0">
       {modrinth ? (
         <>
           <Button variant="primary" size="sm" onClick={() => go({ name: 'search', instanceId: id, type: modrinth })}><Plus size={13} /> {t.instance.add[kind]}</Button>

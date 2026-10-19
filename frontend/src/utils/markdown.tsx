@@ -71,7 +71,9 @@ function toReact(node: Node, key: number): ReactNode {
     const src = el.getAttribute('src') ?? ''
     if (!http(src)) return null
     // Not lazy: WebKitGTK has no scroll anchoring, so an image that loads while the page is being scrolled moves everything under it (the jitter on long project pages).
-    return createElement('img', { key, src, alt: el.getAttribute('alt') ?? '', decoding: 'async' })
+    // Declared sizes reserve the room before the picture arrives, so the text under it does not jump down.
+    const size = (a: string) => { const v = Number(el.getAttribute(a)); return v > 0 ? v : undefined }
+    return createElement('img', { key, src, alt: el.getAttribute('alt') ?? '', decoding: 'async', width: size('width'), height: size('height') })
   }
   if (tag === 'br' || tag === 'hr') return createElement(tag, { key })
   return createElement(tag, props, ...children)
