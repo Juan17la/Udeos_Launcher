@@ -41,3 +41,8 @@ func (a *App) CancelDownload(key string) {
 func (a *App) IsRunning(id string) bool {
 	return a.launcher.IsRunning(id)
 }
+
+// StopGame force-closes an instance's running game; "game:state" then reports it stopped.
+func (a *App) StopGame(id string) error {
+	return a.launcher.StopGame(id)
+}

@@ -56,6 +56,7 @@ type Launcher struct {
 
 	mu      sync.Mutex
 	running map[string]*exec.Cmd
+	stopped map[string]bool // games closed with StopGame: their exit is not a crash
 	servers map[string]*serverProc
 	// skinServer starts the local skin server the first time a game or a
 	// server needs it.
@@ -86,7 +87,7 @@ func New(dirs paths.Dirs, version string, report, reportContent func(download.Pr
 		Content:  modinstall.New(dirs, search.Provider, reportContent),
 		Modpacks: modpack.New(dirs, search.Provider, store, reportContent),
 		Skins:    skins,
-		OnGame:   onGame, running: map[string]*exec.Cmd{}, servers: map[string]*serverProc{},
+		OnGame:   onGame, running: map[string]*exec.Cmd{}, stopped: map[string]bool{}, servers: map[string]*serverProc{},
 	}
 	l.skinServer = sync.OnceValues(func() (*skin.Server, error) {
 		return skin.Start(skins, func() []string { p, _ := l.Profile(); return p.Nicknames })
@@ -186,6 +187,23 @@ func (l *Launcher) IsRunning(id string) bool {
 	return ok
 }
 
+// StopGame force-closes a running game (a frozen one, or the player is done).
+// The exit is reported as a normal one, not a crash.
+func (l *Launcher) StopGame(id string) error {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	cmd, ok := l.running[id]
+	if !ok || cmd.Process == nil {
+		return errors.New("this instance is not running")
+	}
+	l.stopped[id] = true
+	if err := cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+		delete(l.stopped, id)
+		return err
+	}
+	return nil
+}
+
 // Launch prepares and starts the instance. It returns once the process has
 // started; the exit is reported later through OnGame.
 func (l *Launcher) Launch(ctx context.Context, id string) error {
@@ -256,13 +274,15 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 		logFile.Close()
 		l.mu.Lock()
 		delete(l.running, id)
+		stopped := l.stopped[id]
+		delete(l.stopped, id)
 		l.mu.Unlock()
 		_ = l.Instances.Touch(id, time.Since(started))
 		ev := GameEvent{InstanceID: id, Running: false, LogPath: logPath}
-		if cmd.ProcessState != nil {
+		if cmd.ProcessState != nil && !stopped {
 			ev.ExitCode = cmd.ProcessState.ExitCode()
 		}
-		if waitErr != nil && ev.ExitCode == 0 {
+		if waitErr != nil && ev.ExitCode == 0 && !stopped {
 			ev.Error = waitErr.Error()
 		}
 		if l.OnGame != nil {
