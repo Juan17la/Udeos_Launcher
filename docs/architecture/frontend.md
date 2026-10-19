@@ -2,18 +2,16 @@
 
 ## Design system
 
-The UI follows the pastel Minecraft design system written down in
-[Design system](design-system.md): PT Mono everywhere, one 15px
-radius on every element, buttons wider than they are tall, 16px minimum
-spacing, headings straight on the canvas, neumorphic panels, glassmorphic
-overlays and loaders that always show a percentage, a three-colour tag
-system and 150ms transitions. That page is the styling source of truth;
-the interactive mockup the first version was ported from is history.
+The UI follows the design system written down in
+[Design system](design-system.md): a dark, flat, game-console look with one
+grass-green accent, Geist type, hairline-separated surfaces, a sidebar shell,
+and loaders that sit where the waiting happens. That page is the styling
+source of truth.
 
 How it is built:
 
 - **Tokens**: `frontend/src/theme/tokens.css` registers the palette, the
-  radius, the neumorphic/glass shadows, the font and the transition once in
+  radii, the hairline shadows, the fonts and the easing once in
   a Tailwind `@theme` block, backed by runtime CSS variables for the values
   that differ between the light and dark theme. Switching theme only flips
   an attribute on the document root.
