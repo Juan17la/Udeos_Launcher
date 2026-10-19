@@ -1,40 +1,43 @@
 /* Theme source of truth for the Udeos design system
-   (docs/architecture/design-system.md). Everything a component needs (colors, the
-   one radius, the neumorphic/glass shadows, the font, the transition) is
-   registered once in @theme below and used as ordinary Tailwind utilities
-   (bg-green, rounded-md, shadow-neu, ...) by the building blocks in src/ui.
-   The three surfaces that are look only (panel, glass, tag) are @utility
+   (docs/architecture/design-system.md). Colors, radii, elevation, fonts and
+   motion are registered once in @theme below and used as ordinary Tailwind
+   utilities (bg-panel, rounded-md, shadow-neu, ...) by the building blocks in
+   src/ui. The look-only surfaces (panel, glass, tag, skeleton) are @utility
    classes at the bottom of this file, so a card is one <div className="panel">
-   rather than a component; anything with behaviour (buttons, fields,
-   dialogs, toasts) stays a component in src/ui.
+   rather than a component; anything with behaviour stays a component in src/ui.
+
+   The world: dark, flat and crisp, like a game console menu. Surfaces are
+   separated by hairlines and a step of lightness, never by neumorphic glow;
+   one vivid accent carries every primary action; the Minecraft textures
+   supply the rest of the colour. Light and personalised themes are the same
+   tokens with other values.
 
    Colors that differ per theme stay runtime CSS variables (set in the
    :root / [data-theme='dark'] blocks further down) because Tailwind's
-   @theme is compile-time and the launcher swaps light/dark at runtime;
-   `@theme inline` re-uses those variables by reference. Only the badge
-   tints, ink and error are the same in both themes. */
+   @theme is compile-time and the launcher swaps themes at runtime;
+   `@theme inline` re-uses those variables by reference. The variable NAMES are
+   a contract with utils/theme.ts (customVars), which sets the same list inline
+   for a personalised theme. */
 
 @import "tailwindcss";
 
 @theme inline {
-  /* One typeface everywhere: PT Mono (single 400 weight, bold synthesised). */
-  --font-mono: 'PT Mono', ui-monospace, monospace;
+  /* Geist for everything you read, Geist Mono for versions, sizes and numbers,
+     Pixelify Sans only for the wordmark and the big progress figure. */
+  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
+  --font-display: 'Pixelify Sans', 'Geist Variable', sans-serif;
 
-  /* Universal radius: every element, whatever its size, is 15px. The three
-     tokens are equal on purpose so no utility can opt out; `rounded-full`
-     is banned (Tailwind hard-codes it). */
-  --radius-sm: 15px;
-  --radius-md: 15px;
-  --radius-lg: 15px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
 
-  /* Snappy state transitions. */
-  --default-transition-duration: 150ms;
-  --default-transition-timing-function: ease-in-out;
+  /* Exponential ease-out: things arrive fast and settle. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --default-transition-duration: 160ms;
+  --default-transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* Fills that differ per theme (light, dark, custom) are the runtime
-     variables below; only the badge tints, ink and error are the same in all.
-     `primary` is blue in light and purple in dark, so it is named for its
-     role, never its colour. `on-*` is the text that reads on that fill. */
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
   --color-secondary: var(--color-secondary);
@@ -49,202 +52,231 @@
   --color-muted: var(--color-muted);
   --color-panel: var(--color-panel);
   --color-panel-2: var(--color-panel-2);
+  --color-line: var(--color-line);
   --color-glass: var(--color-glass);
   --color-glass-border: var(--color-glass-border);
 
-  /* Shared badges and accents. `ink` is the dark text on a light tag fill. */
-  --color-green-soft: var(--color-green-soft); /* Minecraft version badge */
-  --color-gold-soft: var(--color-gold-soft);   /* loader badge */
-  --color-gold: var(--color-gold);             /* the loading ring, "starting" dots */
-  --color-gold-deep: var(--color-gold-deep);   /* first-install progress: a different shade so a slow run reads as expected, not stuck */
+  /* Badges and status accents. `ink` is the text on the three tag fills. gold is
+     "working" (the loading ring, a slow expected run); green-soft marks a version,
+     green is "live": a game being played, a server that is on. */
+  --color-green-soft: var(--color-green-soft);
+  --color-green: var(--color-green);
+  --color-gold-soft: var(--color-gold-soft);
+  --color-gold: var(--color-gold);
+  --color-gold-deep: var(--color-gold-deep);
   --color-tag-gray: var(--color-tag-gray);
-  --color-ink: var(--color-ink);               /* text on the three tag fills and the gold notes */
-  --color-error: #B83B4B;
-  --color-error-soft: #F4A3AE;
+  --color-ink: var(--color-ink);
+  --color-error: var(--color-error);
+  --color-error-soft: var(--color-error-soft);
 
-  /* Neumorphism: warm taupe shadow + white rim light on cream, deep violet
-     shadow + faint lavender rim on obsidian. Coloured elevation under the
-     primary/secondary buttons. */
+  /* Elevation: a hairline plus a short, soft drop. No glow. */
   --shadow-neu: var(--shadow-neu);
   --shadow-neu-inset: var(--shadow-neu-inset);
   --shadow-primary: var(--shadow-primary);
   --shadow-secondary: var(--shadow-secondary);
-  --shadow-glass: 0 8px 24px color-mix(in srgb, #000 18%, transparent);
-  --shadow-error-glow: 0 0 0 3px color-mix(in srgb, var(--color-error-soft) 40%, transparent);
-  /* A focused field: its inset well plus a soft ring in the primary colour. */
-  --shadow-focus: var(--shadow-neu-inset), 0 0 0 4px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  --shadow-glass: var(--shadow-pop);
+  --shadow-error-glow: 0 0 0 1px var(--color-error);
+  --shadow-focus: 0 0 0 1px var(--color-primary), 0 0 0 4px color-mix(in srgb, var(--color-primary) 28%, transparent);
 }
 
-/* ── Light: white canvas, blue palette (the default) ─────────────────── */
-:root, :root[data-theme='light'] {
+/* ── Dark: the reference theme ───────────────────────────────────────────── */
+:root, :root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-bg: #05070D;               /* night sky, not pure black */
+  --color-panel: #0C111C;
+  --color-panel-2: #151C2B;
+  --color-line: rgba(150, 180, 255, 0.12);
+  --color-primary: #336CEB;          /* blue: Play, selected, progress (white on it passes AA) */
+  --color-primary-hover: #4E86F8;    /* also the readable blue for small text on dark */
+  --color-on-primary: #FFFFFF;
+  --color-secondary: #1B2335;
+  --color-secondary-hover: #253049;
+  --color-on-secondary: #EDF1FA;
+  --color-idle: #161D2C;
+  --color-idle-hover: #20293C;
+  --color-on-idle: #E4E9F3;
+  --color-tag-gray: #1F2738;
+  --color-green-soft: #1C3A22;
+  --color-green: #5BE38A;
+  --color-gold-soft: #3B311B;
+  --color-gold: #F2B63D;
+  --color-gold-deep: #D99A22;
+  --color-ink: #E3E8F2;
+  --color-text: #ECF0F7;
+  --color-muted: #8E98AE;
+  --color-error: #E5566B;
+  --color-error-soft: #FF8794;
+  --color-glass: #0E1422;
+  --color-glass-border: rgba(150, 180, 255, 0.14);
+  --shadow-neu: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 8px 20px -14px rgba(0, 0, 0, 0.7);
+  --shadow-neu-inset: inset 0 0 0 1px rgba(150, 180, 255, 0.12);
+  --shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 6px 16px -8px rgba(51, 108, 235, 0.5);
+  --shadow-secondary: 0 0 0 1px rgba(150, 180, 255, 0.14);
+  --shadow-pop: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 18px 40px -12px rgba(0, 0, 0, 0.75);
+  --decor-glow: none;
+  --decor-opacity: 0.3;
+}
+
+/* ── Light: cool sky paper, the same blue one step deeper ───────────────── */
+:root[data-theme='light'] {
   color-scheme: light;
-  --color-bg: #FFFFFF;
-  --color-panel: #F4F7FC;           /* cool off-white panels and cards */
-  --color-panel-2: #E8EEF8;         /* rows inside a panel */
-  --color-primary: #2563EB;         /* blue: Play, New Instance, selected */
+  --color-bg: #EEF3FC;               /* cool sky paper */
+  --color-panel: #FFFFFF;
+  --color-panel-2: #E8EEF9;
+  --color-line: rgba(30, 55, 110, 0.15);
+  --color-primary: #2563EB;
   --color-primary-hover: #1D4ED8;
   --color-on-primary: #FFFFFF;
-  --color-secondary: #BFDBFE;       /* soft sky blue: Open instance */
-  --color-secondary-hover: #A5CBFA;
-  --color-on-secondary: #0F172A;
-  --color-idle: #E2E8F0;            /* neutral slate: profile button, inactive toggles */
-  --color-idle-hover: #CBD5E1;
-  --color-on-idle: #0F172A;
-  --color-tag-gray: #E2E8F0;
-  --color-green-soft: #DBEAFE;      /* version tags: pale blue */
-  --color-gold-soft: #E0E7FF;       /* loader tags: pale indigo */
-  --color-gold: #93C5FD;
-  --color-gold-deep: #3B82F6;
-  --color-ink: #0F172A;
-  --color-text: #0F172A;
-  --color-muted: #64748B;
-  --color-glass: rgba(255, 255, 255, 0.75);
-  --color-glass-border: rgba(37, 99, 235, 0.15);
-  --shadow-neu: 3px 3px 8px rgba(15, 23, 42, 0.08), -3px -3px 8px rgba(255, 255, 255, 0.9);
-  --shadow-neu-inset: inset 3px 3px 8px rgba(15, 23, 42, 0.07), inset -3px -3px 8px rgba(255, 255, 255, 0.9);
-  --shadow-primary: 0 4px 12px rgba(37, 99, 235, 0.3);
-  --shadow-secondary: 0 4px 12px rgba(147, 197, 253, 0.4);
+  --color-secondary: #E2E9F6;
+  --color-secondary-hover: #D5DEEF;
+  --color-on-secondary: #121A2B;
+  --color-idle: #E6ECF7;
+  --color-idle-hover: #DAE2F1;
+  --color-on-idle: #121A2B;
+  --color-tag-gray: #E4EAF5;
+  --color-green-soft: #D6F0CF;
+  --color-green: #15803D;
+  --color-gold-soft: #F8E7BE;
+  --color-gold: #D9930F;
+  --color-gold-deep: #B87A08;
+  --color-ink: #18202F;
+  --color-text: #121A2B;
+  --color-muted: #586379;
+  --color-error: #C4344A;
+  --color-error-soft: #D9485E;
+  --color-glass: #FFFFFF;
+  --color-glass-border: rgba(30, 55, 110, 0.12);
+  --shadow-neu: 0 0 0 1px rgba(30, 55, 110, 0.14), 0 6px 16px -12px rgba(30, 55, 110, 0.3);
+  --shadow-neu-inset: inset 0 0 0 1px rgba(30, 55, 110, 0.1);
+  --shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 14px -8px rgba(37, 99, 235, 0.42);
+  --shadow-secondary: 0 0 0 1px rgba(30, 55, 110, 0.14);
+  --shadow-pop: 0 0 0 1px rgba(30, 55, 110, 0.12), 0 18px 40px -12px rgba(30, 55, 110, 0.3);
   --decor-glow: none;
+  --decor-opacity: 0.22;
 }
 
-/* ── Dark: full black, calm blue palette (the light theme's blue, toned down) ── */
-:root[data-theme='dark'] {
-  color-scheme: dark;
-  --color-bg: #000000;
-  --color-panel: #0A1018;           /* a breath above black, so panels read */
-  --color-panel-2: #131C28;         /* rows inside a panel */
-  --color-primary: #2F5DA8;         /* Play, New Instance, selected */
-  --color-primary-hover: #3B6EBD;
-  --color-on-primary: #F2F6FF;
-  --color-secondary: #132238;       /* Open instance */
-  --color-secondary-hover: #1B3150;
-  --color-on-secondary: #DCE8FA;
-  --color-idle: #121B27;            /* profile button, inactive toggles */
-  --color-idle-hover: #1C2838;
-  --color-on-idle: #E6EEF8;
-  --color-tag-gray: #1E2A3A;        /* tags are dark blue tints with light text */
-  --color-green-soft: #1A3556;      /* version tags */
-  --color-gold-soft: #25406B;       /* loader tags */
-  --color-gold: #6FA0E0;            /* the loading ring, "starting" dots */
-  --color-gold-deep: #3B6EBD;
-  --color-ink: #DCE8FA;
-  --color-text: #E6EEF8;
-  --color-muted: #8FA3BC;
-  --color-glass: rgba(10, 16, 24, 0.72);
-  --color-glass-border: rgba(90, 140, 220, 0.2);
-  /* Shadows vanish on black: a faint blue rim does the lifting. */
-  --shadow-neu: 0 0 0 1px rgba(90, 140, 220, 0.12), 0 6px 18px rgba(0, 0, 0, 0.6);
-  --shadow-neu-inset: inset 0 2px 8px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(90, 140, 220, 0.1);
-  --shadow-primary: 0 4px 16px rgba(47, 93, 168, 0.4);
-  --shadow-secondary: 0 4px 12px rgba(19, 34, 56, 0.6);
-  --decor-glow: drop-shadow(0 0 10px rgba(90, 140, 220, 0.35)); /* blue halo behind the floating items */
-}
+/* ── Custom: the player's own colours; utils/theme.ts sets every variable above inline. ── */
 
-/* ── Custom: the player's own five colours; utils/theme.ts sets every variable above inline. ── */
-
-/* ── Base tag defaults (element selectors, not component classes, same
-   role as Tailwind's own preflight layer) ──────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
-/* --nav-h is the real height of the top bar, measured by Nav (72px until then): every
-   page that must fit the window, and everything sticky under the bar, is sized from it. */
-:root { --nav-h: 72px; }
+/* The sidebar is a fixed column; below 1000px it folds to an icon rail. --nav-h
+   stays for pages sized against a top bar; there is none now. */
+:root { --nav-h: 0px; --side-w: 232px; }
+@media (max-width: 1000px) { :root { --side-w: 68px; } }
 html, body, #root { height: 100vh; overflow: hidden; }
+/* Backdrop: two accent glows on the body (static gradients, no blur filter), and the
+   two faint items of ui/Backdrop (sidebar middle) in a fixed layer above it. #root stays transparent and
+   creates no stacking context, so z-index -1 puts the layer behind every page. Every
+   glow is mixed from the theme's own colours, so personalised themes get their tint. */
 body {
-  margin: 0; font-size: 15px; line-height: 1.55;
-  color: var(--color-text); font-family: var(--font-mono);
-  background-color: var(--color-bg); /* flat pastel canvas */
+  background-image:
+    radial-gradient(ellipse 60% 50% at 95% -10%, color-mix(in srgb, var(--color-primary) 28%, transparent), transparent 70%),
+    radial-gradient(ellipse 50% 45% at 0% 110%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 70%),
+    radial-gradient(ellipse 35% 35% at 60% 120%, color-mix(in srgb, #9B5CFF 12%, transparent), transparent 70%);
+}
+.backdrop { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.backdrop img {
+  position: absolute; left: var(--x);
+  image-rendering: pixelated; opacity: var(--decor-opacity, 0.16);
+  top: var(--y); transform: rotate(var(--r));
+}
+body {
+  margin: 0; font-size: 14px; line-height: 1.5; letter-spacing: -0.003em;
+  color: var(--color-text); font-family: var(--font-sans);
+  background-color: var(--color-bg);
   -webkit-user-select: none; user-select: none;
+  -webkit-font-smoothing: antialiased; font-feature-settings: 'cv11', 'ss01';
+  background-attachment: fixed;
 }
 input, textarea { -webkit-user-select: text; user-select: text; }
 /* Layered, so the size/weight utilities on a control still win. */
 @layer base { button, input, select, textarea { font: inherit; } }
-#root { display: flex; flex-direction: column; }
-/* The window never scrolls: the nav and the Back row are fixed rows and each page's
-   <main> is the one scroller under them, so nothing sticky has to follow the scroll. */
-#root > main { flex: 1 1 0; min-height: 0; overflow-x: hidden; overflow-y: auto; }
-/* Headings sit directly on the canvas, never inside a panel. */
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-mono); font-weight: 700; line-height: 1.15; margin: 0 0 8px; }
-h1 { font-size: 40px; }
-h2 { font-size: 30px; }
-h3 { font-size: 24px; }
-h4 { font-size: 20px; }
-h5 { font-size: 16px; }
-h6 { font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
-p { margin: 0 0 12px; }
-a { color: inherit; text-decoration-color: var(--color-primary); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+code, kbd, samp, pre { font-family: var(--font-mono); font-size: 0.92em; }
+/* The shell: sidebar left, content right. Back row (when a page has one) over the page's <main>. */
+#root { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+#root > .sidebar { grid-column: 1; grid-row: 1 / span 2; }
+#root > .backrow { grid-column: 2; grid-row: 1; }
+#root > main { grid-column: 2; grid-row: 2; min-height: 0; overflow-x: hidden; overflow-y: auto; }
+/* No sidebar (login): the page takes the whole window. */
+#root[data-bare] { grid-template-columns: minmax(0, 1fr); }
+#root[data-bare] > main { grid-column: 1; }
+h1, h2, h3, h4, h5, h6 { font-weight: 700; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 8px; text-wrap-style: balance; /* the style only, so `truncate` (nowrap) still wins */ }
+h1 { font-size: 44px; font-weight: 800; letter-spacing: -0.04em; }
+h2 { font-size: 30px; font-weight: 800; letter-spacing: -0.035em; }
+h3 { font-size: 20px; }
+h4 { font-size: 17px; }
+h5 { font-size: 15px; }
+h6 { font-size: 13px; font-weight: 600; letter-spacing: 0; color: var(--color-muted); }
+p { margin: 0 0 12px; text-wrap-style: pretty; }
+a { color: inherit; text-decoration-color: var(--color-primary); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
 img { display: block; max-width: 100%; }
 :focus { outline: none; }
 :focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
-::selection { background: color-mix(in srgb, var(--color-primary) 55%, transparent); }
+::selection { background: color-mix(in srgb, var(--color-primary) 45%, transparent); color: inherit; }
+input, textarea { caret-color: var(--color-primary); }
+.tnum, .tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* Scrollbars wear the palette: a thin rounded thumb, only visible on its track. */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--color-text) 22%, transparent) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-text) 20%, transparent); border-radius: 10px; border: 3px solid transparent; background-clip: content-box; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--color-text) 34%, transparent); background-clip: content-box; border: 3px solid transparent; }
 
 /* Keyframes Tailwind can't express without a name declared somewhere. */
-@keyframes dialog-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-/* Page change: the new page fades in while rising 6px, 200ms. Every screen's
-   <main> is a direct child of #root and is remounted on navigation, so the
-   one rule covers them all; reduced motion keeps only the fade. */
-@keyframes page-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dialog-fade { from { opacity: 0; transform: translateY(6px) scale(0.985); } to { opacity: 1; transform: none; } }
+/* No page-change animation: every <main> remounts on navigation, so any entrance
+   replays on each click and reads as the whole window flickering. Pages appear at once. */
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-#root > main { animation: page-in 0.2s ease-out; }
-@media (prefers-reduced-motion: reduce) { #root > main { animation-name: fade-in; } }
-/* The launch modal: the instance's block hops, its shadow shrinks under it, the bar's stripes march. */
-@keyframes block-hop { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(-6deg); } }
-@keyframes block-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.6); opacity: 0.5; } }
-@keyframes bar-stripes { from { background-position: 0 0; } to { background-position: 24px 0; } }
-/* The first-install callout's hourglass turns over now and then. */
+
+/* Loaders. Indeterminate bar: a segment slides across the track (transform only). */
+@keyframes bar-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+/* The launch cube and the pixel hop in the in-card progress. */
+@keyframes block-hop { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(-6deg); } }
+/* A running instance breathes. */
+@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 @keyframes hourglass { 0%, 70% { transform: rotate(0); } 85%, 100% { transform: rotate(180deg); } }
-/* Success feedback: one soft pulse in the primary colour (applied as animate-[pulse-primary_0.9s_ease-out]). */
+/* Success: one soft ring in the accent, once. */
 @keyframes pulse-primary {
-  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 70%, transparent); }
-  100% { box-shadow: 0 0 0 14px color-mix(in srgb, var(--color-primary) 0%, transparent); }
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 60%, transparent); }
+  100% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--color-primary) 0%, transparent); }
 }
-
-/* Cards rise in once, when they mount (--reveal-delay, set per card index,
-   staggers the first ten; later cards have no animation at all).
-   Nothing here pins a compositing layer: WebKitGTK scrolls a page of cards
-   (30 per Addons page, each with its buttons and a big shadow) smoothly only
-   while the cards are plain paint. An earlier version kept every card on its
-   own layer (will-change, translateZ(0), a filled animation) to hide a white
-   flash on hover; 30 cards and their buttons made ~100 layers and the scroll
-   stuttered. So: no will-change, no transform on hover (see panel-hover), and
-   the animation is `backwards`, which releases the element when it ends. */
-@keyframes rise-in { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
-.reveal {
-  /* Only what hover changes: a transition on opacity/transform would fight the entrance animation. */
-  transition-property: box-shadow, background-color, color;
-  animation: rise-in 0.3s ease-out backwards;
-  animation-delay: var(--reveal-delay, 0ms);
-}
-/* Placeholder while something loads: a soft light sweeping across. */
+/* Empty state: the item falls onto its shadow and settles; the shadow grows as it lands. */
+@keyframes item-drop { 0% { opacity: 0; transform: translateY(-18px); } 60% { opacity: 1; transform: translateY(2px); } 80% { transform: translateY(-2px); } 100% { transform: none; } }
+@keyframes shadow-drop { 0% { opacity: 0; transform: scaleX(0.4); } 60% { opacity: 1; transform: scaleX(1.1); } 100% { transform: none; } }
+/* Live dot (a game being played): a ring that grows out of it and fades. */
+@keyframes live-ring { from { transform: scale(1); opacity: 0.6; } to { transform: scale(2.6); opacity: 0; } }
+/* Loader: the block's shadow shrinks as the block hops (pairs with block-hop). */
+@keyframes hop-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.6); opacity: 0.5; } }
+/* An error arrives with one short sideways nudge, so it is noticed. */
+@keyframes nudge { 0%, 100% { transform: none; } 20% { transform: translateX(-5px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
+/* A skeleton's light sweeps across. */
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
-/* A field taking focus pulses its ring once, so the eye lands on it. */
-@keyframes focus-pulse {
-  0% { box-shadow: var(--shadow-neu-inset), 0 0 0 0 color-mix(in srgb, var(--color-primary) 55%, transparent); }
-  100% { box-shadow: var(--shadow-focus); }
-}
+
+/* Cards: hover changes colour only. No entrance animation (it replayed on every page
+   visit, see above), no will-change and no hover transform: WebKitGTK scrolls a page
+   of cards smoothly only while the cards are plain paint. */
+.reveal { transition-property: box-shadow, background-color, color, border-color; }
 @media (prefers-reduced-motion: reduce) {
-  .reveal { animation: none; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
 }
 
-/* ── Surfaces (docs/architecture/design-system.md): look only, no layout, so the
-   caller writes its own flex/gap/padding. ───────────────────────────── */
-/* Neumorphic panel: sits on the canvas with soft light-and-shadow. Forms,
-   side panels, cards; `panel-hover` deepens a clickable card's shadow on
-   hover. Hover never moves or layers a card: a lift (transform) makes
-   WebKitGTK create and drop a compositing layer around it, which flashed on
-   a quick hover and, pinned permanently to hide that, made long lists scroll
-   badly. Shadow and colour changes are plain paint. */
-@utility panel { @apply rounded-md bg-panel shadow-neu transition-all; }
-@utility panel-hover { @apply hover:shadow-glass; }
-/* Glass: translucent and blurred. Dialogs, popovers, toasts, loaders, status messages. */
-@utility glass { @apply rounded-md bg-glass border border-glass-border backdrop-blur-lg shadow-glass; }
-/* Tag: add the fill: bg-tag-gray (neutral metadata), bg-green-soft (active /
-   verified), bg-gold-soft (secondary attributes such as loader labels). */
-@utility tag { @apply inline-flex items-center px-3 py-1 text-[11px] leading-[1.3] text-ink rounded-md whitespace-nowrap; }
-/* Skeleton: a placeholder block in the rows tone with a shimmer (loading cards, instance rows). */
+/* ── Surfaces: look only, no layout, so the caller writes its own flex/gap/padding. ── */
+/* Panel: a step lighter than the canvas with a hairline. Cards, forms, side panels.
+   `panel-hover` brightens a clickable card's fill and edge; it never moves it. */
+@utility panel {
+  @apply rounded-lg bg-panel shadow-neu transition-[background-color,box-shadow];
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 7%, transparent), transparent 120px);
+}
+@utility panel-hover { @apply hover:bg-panel-2 hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-primary)_55%,transparent),0_10px_24px_-14px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]; }
+/* Glass keeps its name for dialogs, popovers and notices; it is an opaque raised sheet. */
+@utility glass { @apply rounded-xl bg-glass shadow-glass; }
+/* Tag: add the fill: bg-tag-gray (neutral metadata), bg-green-soft (version),
+   bg-gold-soft (loader). */
+@utility tag { @apply inline-flex items-center gap-1.5 px-3 py-0.5 text-[11.5px] font-semibold leading-[1.5] text-ink rounded-full whitespace-nowrap; }
+/* Skeleton: a placeholder block with a shimmer (loading cards and rows). */
 @utility skeleton {
   @apply rounded-md;
-  background: linear-gradient(90deg, var(--color-panel-2) 25%, color-mix(in srgb, var(--color-panel-2) 55%, var(--color-panel)) 50%, var(--color-panel-2) 75%);
+  background: linear-gradient(90deg, var(--color-panel-2) 25%, color-mix(in srgb, var(--color-panel-2) 60%, var(--color-text) 8%) 50%, var(--color-panel-2) 75%);
   background-size: 200% 100%;
-  animation: shimmer 1.4s linear infinite;
-  @media (prefers-reduced-motion: reduce) { animation: none; }
+  animation: shimmer 1.5s linear infinite;
 }

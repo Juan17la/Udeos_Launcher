@@ -4,20 +4,20 @@ import { useApp } from '../state'
 
 type Props = { title: string; children: ReactNode; actions: ReactNode; onClose: () => void; width?: number }
 
-/** Modal dialog: a native <dialog> (top layer, focus trap, Escape) on a
- *  blurred backdrop, as a glass panel; clicking the backdrop closes it. */
+/** Modal dialog: a native <dialog> (top layer, focus trap, Escape) on a dimmed
+ *  backdrop, as a raised sheet; clicking the backdrop closes it. */
 export default function Dialog({ title, children, actions, onClose, width = 440 }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   useEffect(() => { ref.current?.showModal() }, [])
   return (
     <dialog ref={ref} onCancel={onClose} onClick={(e) => { if (e.target === ref.current) onClose() }}
-      className="glass p-0 m-auto max-w-[calc(100%-2rem)] text-text animate-[dialog-fade_0.15s_ease-in-out] backdrop:bg-black/30 backdrop:backdrop-blur-xs"
+      className="glass p-0 m-auto max-w-[calc(100%-2rem)] text-text animate-[dialog-fade_0.22s_var(--ease-out)] backdrop:bg-black/55"
       style={{ width }}>
       {/* The padding lives on an inner block so a click on it is not a click on the backdrop. */}
-      <div className="flex flex-col gap-4 p-6">
-        <div className="text-xl font-bold leading-[1.2]">{title}</div>
+      <div className="flex flex-col gap-5 p-6">
+        <div className="text-lg font-semibold tracking-tight leading-[1.2]">{title}</div>
         <div className="text-sm">{children}</div>
-        <div className="flex justify-end gap-4">{actions}</div>
+        <div className="flex justify-end gap-2">{actions}</div>
       </div>
     </dialog>
   )

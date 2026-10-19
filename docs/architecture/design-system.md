@@ -1,200 +1,97 @@
 # Design system
 
-The rules below are the styling source of truth for the launcher. The
-second half maps each rule to where it lives in the code.
+The styling source of truth for the launcher. The second half maps each rule
+to where it lives in the code.
 
-## Core system architecture & spatial rules
+## The world
 
-- **Universal border radius:** a non-negotiable `15px` (`border-radius: 15px`)
-  applies strictly across all UI elements, including buttons, input fields,
-  cards, popups, tags, status alerts and loaders.
-- **Unframed headings:** page titles and section subtitles sit directly on the
-  background canvas. Titles must never be enclosed within boxes, panels,
-  cards or structural containers.
-- **Asymmetric button padding:** all buttons must prioritise horizontal
-  padding over vertical padding (Padding_X > Padding_Y), maintaining wider
-  side margins relative to top/bottom spacing (e.g. `12px 24px` or `10px 20px`).
-- **Strict spacing & column separation:** minimum layout gap and padding is
-  `16px`. In vertical column layouts, elements must never touch or collapse
-  into each other; explicit margin spacing is mandatory.
-- **Zero microcopy & instruction removal:** omit instructional paragraphs,
-  helper texts and onboarding tutorials. UI controls must remain strictly
-  self-explanatory.
-- **Typography:** `PT Mono` is applied globally across all UI components,
-  buttons, labels, tags, inputs and state indicators.
+Dark and game-native, for casual players and modders: playful in the
+details, quiet where you work. Surfaces are told apart by a step of lightness,
+a blue-tinted hairline and a low soft shadow. One blue accent carries every
+primary action; the Minecraft textures supply the rest of the colour. The page
+stays clean; the Minecraft flavour lives in moments (an item dropping into an
+empty list, the hopping-block loader, the icon dropping in on the Create page,
+the live Playing chip, "GG" when a game closes). Two faint items sit in the
+sidebar's empty middle and a grass strip closes it.
+Dark is the reference theme. Light (cool sky paper, the same blue one step
+deeper) and Custom (a light or dark base plus one accent, everything else
+derived with contrast checked) use the same tokens with other values.
 
-## Interactive components & state behaviours
+## Rules
 
-- **Selectable / toggle buttons:** selected = soft pastel mint green
-  (`#A8E6CF`); unselected = soft pastel light gray (`#E0E0E0`), inspired by
-  the lighter Minecraft UI button style, visually distinct from the canvas.
-- **Locked / constrained filters:** when a filter is locked with a fixed
-  parameter, it displays the selected option in a disabled state while
-  retaining the standard `15px` radius and padding rules.
-- **Universal glassmorphic loaders:** every asynchronous action, processing
-  state or data fetch requires a loader. Loaders use a glassmorphic
-  background (`backdrop-filter: blur(16px)`) and always display a live
-  numerical percentage counter (`0%`–`100%`).
-- **Feedback & status states:**
-  - Success: instant visual feedback via a glassmorphic panel with a pastel
-    mint checkmark or subtle green pulse.
-  - Error / failure: soft pastel red glow or border (`#FF8B94`) with
-    ultra-concise messaging capped strictly at 1–3 words (e.g. "Connection
-    lost").
-- **Fields (inputs and selects, `ui/Field.tsx`):** always bordered (2px) in
-  the primary colour at 40% (a lighter tone), 70% on hover, full on focus,
-  where a soft 4px ring pulses once (`focus-pulse`) to draw the eye. A
-  screen's main field (the Addons search, the AI chat) also gets a small
-  leading icon in the primary colour (`Input icon=`). Locked/disabled
-  fields drop the border.
-- **Quiet loaders:** a check the player waits on inside something else
-  (Add's compatibility check, an item being added) uses the small ring
-  (`Spinner`, `AutoLoader subtle`) with muted text, plus skeleton rows
-  where the answer will appear, not the glass pill.
-- **Loading & scroll motion:** a search's first load shows skeleton cards
-  (`skeleton` utility, a shimmer in the rows tone). Cards (Addons results,
-  Dashboard instances) rise in once when they appear (`reveal` +
-  `revealDelay(index)`, 40ms stagger), in pure CSS. Nothing else may
-  animate or transition a card's opacity/transform, and there is no
-  scroll-triggered reveal: in WebKitGTK both made cards flash (see the
-  comment on `.reveal` in tokens.css). Reduced motion turns it off.
-- **Slow but expected progress** (a first install, Forge patching) is
-  **gold**: the bar turns `gold-deep` and a gold callout with an hourglass
-  says why. The notification gets a gold border and bar too, so a long
-  wait reads as normal, not stuck.
-- **Three-colour tag system:** tags use the `15px` radius and `PT Mono` across
-  three pastel shades:
-  - Pastel light gray (`#E2E8F0`): neutral metadata and general categories.
-  - Pastel mint green (`#A8E6CF`): active, verified or positive statuses.
-  - Pastel soft gold (`#FFEAA7`): premium features, highlights or secondary
-    attributes.
+- **Type.** Geist for everything you read, Geist Mono for versions, sizes,
+  addresses and other numbers, Pixelify Sans only for the wordmark and the
+  big progress figure. Body 14px, headings tighter with a slight negative
+  tracking and balanced wrapping. No eyebrow labels above headings.
+- **Radius.** 6px small, 10px controls, 16px panels, 22px large surfaces; tags are pills.
+- **Decoration.** Item sprites only (no full block textures, they read as
+  missing images), pixel items beside page headings, instance stats and empty
+  states. Decoration never sits behind a label.
+- **Surfaces.** `panel` (card, form, side panel), `glass` (dialog, popover,
+  notice; an opaque raised sheet, no blur), `tag` and `skeleton` are utility
+  classes. Panels inside panels use `bg-panel-2`.
+- **One primary action per view.** `primary` is the solid accent, `secondary`
+  a raised neutral (Manage, Open), `idle` a quiet fill, `ghost` a hairline
+  outline, `danger` a red tint. A disabled primary turns neutral instead of
+  fading the blue. Solid blue is for the one main action of a screen (Play
+  on the Library's first card, Create & play, Start on a server page); card actions (Play,
+  Start, Add) are quiet: neutral with a blue glyph. A card opens its page
+  through `CardLink` (a real button stretched over it), so its own buttons
+  are never nested inside a clickable element. Delete lives at the bottom of
+  Settings, away from Play. Addons folds version, loader, sort and topics
+  behind one Filters button; long mod lists start as rows with a filter box,
+  and remove shows on hover or focus.
+- **Motion.** Exponential ease-out, 160ms for states. No page or card
+  entrance: it replayed on every page change and read as a flicker. Motion is
+  for what needs noticing: the hopping block loader, an item dropping into an
+  empty list, an error's one nudge, a pulse while something runs. Hover is
+  colour only: no transforms on cards or buttons, no `will-change`, because a
+  page of cards on layers made WebKitGTK scroll badly. Reduced motion stops
+  the hops, drops and nudges.
+- **Shell.** A left sidebar (brand, the contextual New button, Instances,
+  Servers, Skins, Addons, then Activity and the profile at the bottom). Under
+  1000px it folds to an icon rail. A page that has a parent shows a Back row
+  over its content; top-level pages do not.
 
-## Pastel theme & palette
+## Waiting
 
-| UI component | Dark theme (Minecraft Pastel Dark) | Light theme (Minecraft Pastel Light) |
-| --- | --- | --- |
-| Base canvas background | Deep charcoal slate `#25282A` | Soft off-white gray `#F7F9FA` |
-| Idle / unselected button | Soft pastel light gray `#E0E0E0` | Soft pastel light gray `#E0E0E0` |
-| Primary button (default) | Dark slate gray `#343A40` | Pastel mint green `#A8E6CF` |
-| Primary button (hover) | Pastel mint green `#A8E6CF` | Dark slate gray `#343A40` |
-| Selectable (active / idle) | `#A8E6CF` / `#E0E0E0` | `#A8E6CF` / `#E0E0E0` |
-| Secondary button (default) | Pastel soft gold `#FFEAA7` | Pastel soft gold `#FFEAA7` |
-| Secondary button (hover) | Pastel gold `#FFD369` | Pastel gold `#FFD369` |
-| Glass containers | Translucent dark fill + `backdrop-filter: blur(16px)` | Translucent light fill + `backdrop-filter: blur(16px)` |
+Every wait shows where it happens.
 
-### Themes (2026-09-30, current)
+- **In place.** Launching an instance replaces Play with the launch strip on
+  that card or page: phase, one percentage, a bar and Cancel. Once the
+  game runs, Play becomes a green "Playing · 12 min" chip with Close game
+  (confirmed, for a frozen game), and a "Have fun" note appears once. A server
+  that is starting or stopping shows a sliding bar and one line on its card
+  and side panel. There is no launch modal.
+- **Activity.** The sidebar item is always there. While work runs it shows a
+  ring, a count and a thin bar; its popover lists every job with progress and
+  Cancel, plus the open games (with Close game) and running servers. A
+  finished or failed job also flashes a short notice beside the sidebar (a
+  success clears itself, an error stays until read).
+- **Undo, not confirm, for small removals.** Removing a mod, resource pack or
+  shader hides it at once with "Removed X · Undo" for 5 seconds; worlds,
+  instances, servers, backups and skins still ask first.
+- **Measured or not.** Real progress (game files, downloads) is a filled bar.
+  An unmeasurable wait is a sliding segment. A slow run that is expected
+  (first install, loader patching) turns the bar gold and says so on the page.
+  The bar is scaled, never given a CSS transition, because it is updated every
+  frame.
+- **Lists that are loading** show skeleton rows of their own shape
+  (`SkeletonRows`), buttons that work show a spinner in place of their icon,
+  and `AutoLoader` is for the few waits with no known shape.
 
-The launcher has three themes, chosen per profile (AccountMenu → Theme, and on the setup screen):
+## Where it lives
 
-- **Dark**: full black (`#000000`, panels `#0A1018`), a calm blue palette: the light theme's blue toned down (primary `#2F5DA8`, secondary `#132238`, loading ring `#6FA0E0`). The floating background items are drawn 2.4× stronger than in light.
-- Tags (`green-soft`, `gold-soft`, `tag-gray`), the ring (`gold`) and their text (`ink`) are theme variables too, so they follow each theme's palette.
-- **Light**: white (`#FFFFFF`, panels `#F4F7FC`), blue palette (primary `#2563EB`, secondary `#BFDBFE`).
-- **Custom**: the player picks five colours (background, panels, primary, secondary, third); `utils/theme.ts`
-  derives everything else (hover tints, muted text, shadows) and picks every text colour by WCAG contrast
-  (`--color-text`, `--color-on-primary`, `--color-on-secondary`, `--color-on-idle`). Never write `text-white` on a
-  themed fill: use `text-on-primary` / `text-on-secondary` / `text-on-idle`, so a custom colour stays readable.
-  Dark and light are the same variables in `tokens.css`; custom sets them inline on `<html>`.
-
-The two palettes below (Pastel Overworld / End) are history. `ghost` buttons are outlined with no fill, except the remove buttons in the profiles dialog.
-
-### Revisions
-
-- **Palette (2026-09-18, current)**: Pastel Overworld (light, the default)
-  and Pastel End (dark); the table above is history.
-
-  | Role | Light: Pastel Overworld | Dark: Pastel End |
-  | --- | --- | --- |
-  | Canvas | soft birch cream `#F6F3EB` | muted obsidian `#29252E` |
-  | Panels, cards, popups | warm off-white `#FCFBF8` (rows `#F3F0E8`) | deep lavender-gray `#383240` (rows `#4D4556`) |
-  | Primary button, active tab, selected | pastel mint `#9BBF9D` (hover `#86AE89`) | pastel ender lavender `#AA8CC5` (hover `#BBA1D3`) |
-  | Secondary button (Open instance) | pastel sky blue `#9EC5CB` | charcoal-purple `#4D4556` (no End blue was specified) |
-  | Idle button, profile button, inactive toggle | warm pebble gray `#DCD7CF` | charcoal-purple `#4D4556` |
-  | Headings, body text | soft oak charcoal `#36302B` | off-white lavender `#EDE7F2` |
-  | Subtext, labels | muted earth brown `#8C847D` | soft muted violet `#AFA6B8` |
-  | Floating item glow | none | magenta halo `rgba(194,145,217,.4)` (`--decor-glow`) |
-  | Neumorphic shadow / rim | `rgba(54,48,43,.08)` / white `.85` | `rgba(15,12,20,.5)` / lavender `rgba(217,195,225,.05)` |
-  | Inset (inputs, pressed) | `rgba(54,48,43,.06)` | `rgba(15,12,20,.35)` |
-  | Elevation under primary / secondary | mint `rgba(155,191,157,.35)` / sky `rgba(158,197,203,.35)` | lavender `rgba(170,140,197,.3)` |
-
-  Shared: version badge pastel leaf green `#CBE3C3`, loader badge pastel
-  glowstone gold `#F5DF98`, gray badge `#DCD7CF` / `#AFA6B8`, ink on badges
-  `#36302B`. The primary colour changes hue between themes, so its token is
-  `--color-primary` (never "green"). Text on idle fills follows the theme
-  text colour; ink is only for the light badge fills.
-- **Logo**: an ender pearl with a mace laid diagonally across it, the same
-  in both themes (`ui/Logo.tsx`). Projects without an icon show the stone
-  block (`components/ProjectIcon.tsx`).
-- **Loaders**: plain fetches (search results, version lists, listings,
-  project detail) show an instant glass spinner; the percentage loader is
-  reserved for work with real progress: the game install and content
-  downloads.
-- **Surface tones**: three, clearly apart: the canvas (`#25282A` / `#F7F9FA`),
-  panel (`#31363A` / `#FFFFFF`) and a second panel tone for rows nested in or
-  beside panels (`#3B4146` / `#EDF1F4`, `Panel tone="alt"`, used by `Card row`).
-- **Slider selector**: option groups (Addons type tabs, instance tabs, the
-  loader picker, the nav) are a recessed light-gray track with a green thumb
-  that slides under the chosen option (`SegmentedControl`).
-- **Motion**: hover and press are colour and shadow only. Nothing moves or
-  scales on hover (buttons and cards used to lift): a transform gives the element a
-  compositing layer, and on a page of 30 cards and their buttons that made
-  scrolling stutter in WebKitGTK. Cards rise in once when they mount (the first
-  ten, staggered); background work and finished notes appear in the nav (Activity),
-  status messages fade in; the slider thumb and every hover/active state
-  transition in 150ms. Rule: no `will-change`, no `transform-gpu`, no transform on hover.
-- **Play**: while its instance is being prepared the Play button is disabled
-  at full opacity with a gold loader ring running round its edge
-  (`Button loading`); the install itself reports as a bottom-right
-  notification with a live percentage instead of a blocking overlay.
-
-## Visual hierarchy & layering
-
-- **Primary panels (neumorphism base):** main structural panels use soft
-  light-and-shadow direction against the canvas to create tactile elevation
-  without heavy outlines.
-- **Overlays & dialogs (glassmorphism):** floating popovers, dropdowns, modal
-  layers and status indicators use high-blur translucent fills
-  (`backdrop-filter: blur(16px)`) to stay weightless.
-- **Snappy state transitions:** all hover, active and focus interactions use
-  a fast `150ms ease-in-out` transition.
-
----
-
-## Where each rule lives
-
-Tokens are in `frontend/src/theme/tokens.css` (one Tailwind `@theme inline`
-block plus the runtime light/dark variables it references).
-
-| Rule | Token / utility | Owner |
-| --- | --- | --- |
-| PT Mono | `--font-mono` → `body`, headings; `@fontsource/pt-mono/400.css` in `main.tsx` | tokens.css |
-| 15px radius | `--radius-sm/md/lg: 15px` → `rounded-md` everywhere; `rounded-full` is banned | every block in `ui/` |
-| Padding X > Y | `Button` sizes `8px 16px` / `10px 20px` / `12px 24px`; icon cells `8px 10px`; fields `16px 10px` | `ui/Button.tsx`, `ui/Field.tsx`, `IconChoice` in `screens/CreateInstance.tsx` |
-| ≥16px spacing | screens use `gap-4`/`gap-6`, `p-4`+ on every `Panel` | screens |
-| Unframed headings | `Login` and `CreateInstance` render `h1`/`h2` above their `Panel` | screens |
-| Canvas / text | `--color-bg`, `--color-text`, `--color-muted` per theme | tokens.css |
-| Primary button | `--color-primary` / `--color-primary-hover` per theme, `--shadow-primary`, white text | `Button variant="primary"` |
-| Secondary button | `--color-secondary` / `--color-secondary-hover`, `--shadow-secondary` | `Button variant="secondary"` (Open instance) |
-| Idle button | `--color-idle`, `--color-idle-hover` | `Button variant="idle"`, unselected toggle |
-| Selected state | `--color-primary` + white text | `Checkbox`, `IconPicker`, current nav link |
-| Locked filter | native `disabled` on `Select`/`Input`: idle fill, value kept, same radius/padding | `Field.tsx`, `screens/Search.tsx` |
-| Loaders | `StatusMessage` with `percent` (glass + `NN%` + native `<progress>`) for real progress; `AutoLoader` (glass pill + spinner) for fetches; `useSimulatedProgress` only for unmeasurable phases inside a real install; `Button loading` ring on Play | `ui/StatusMessage.tsx`, `ui/Loader.tsx`, `ui/Button.tsx`, `components/Notifications.tsx` |
-| Success | `StatusMessage kind="success"`: glass, primary-coloured check, `pulse-primary` keyframe | `ui/StatusMessage.tsx` |
-| Error ≤3 words | `StatusMessage kind="error"`: `--color-error` border + `--shadow-error-glow`; headline from `t.errors.*` via `utils/errors.ts`, reason as detail | `ui/StatusMessage.tsx`, `utils/errors.ts`, i18n `errors` |
-| Tags | `tag` utility + a fill: `bg-tag-gray` \| `bg-green-soft` \| `bg-gold-soft` | `theme/tokens.css` |
-| Neumorphic panels | `--shadow-neu`, `--shadow-neu-inset`, `--color-panel` / `--color-panel-2` → `panel` (+ `panel-hover`) utility; list rows are `bg-panel-2 shadow-neu` | `theme/tokens.css` |
-| Glass overlays | `--color-glass`, `--color-glass-border`, `backdrop-blur-[16px]` → `glass` utility used by `Dialog` (native `<dialog>` + `backdrop:`), `StatusMessage`, account popover, loaders | `theme/tokens.css`, `ui/Dialog.tsx` |
-| 150ms ease-in-out | `--default-transition-duration: 150ms`, `--default-transition-timing-function: ease-in-out`; blocks use `transition-all duration-150 ease-in-out` | tokens.css, `ui/` |
-| No microcopy | login intro, nickname hint, "more languages" and the create-form "required" line were removed; validation shows as an error only when triggered | i18n, `screens/Login.tsx` |
-
-Tag semantics in this app: gray = download counts, project type, version
-lists, app version; green = an instance's Minecraft version and "Compatible";
-gold = loader labels and loader chips.
-
-## Checking it
-
-`frontend` builds with `npx tsc --noEmit && npx vite build`. A headless
-browser pass over every screen (`npm run dev` and the `?screen=` shortcuts:
-`login`, `dashboard`, `create`, `search`, `instance:<id>`) should find, via
-`getComputedStyle`, that every element has `font-family` starting with
-`PT Mono`, every rounded element has `border-radius: 15px`, every `button`
-has `padding-left > padding-top`, and every transition lasts `0.15s`.
+| Rule | Where |
+|---|---|
+| Colours, radii, shadows, fonts, easing | `frontend/src/theme/tokens.css` (`@theme` plus the `:root` and `[data-theme]` blocks) |
+| Custom theme derivation | `frontend/src/utils/theme.ts` (`customVars`, `paletteFrom`) |
+| Fonts | `@fontsource-variable/geist`, `geist-mono`, `@fontsource/pixelify-sans`, imported in `main.tsx` |
+| Buttons, fields, dialog, tabs, loaders | `frontend/src/ui/` |
+| Sidebar shell | `components/Sidebar.tsx`, grid on `#root` in tokens.css |
+| Launch strip | `components/LaunchStrip.tsx`, fed by `hooks/useLaunchProgress.ts` |
+| Activity tray | `components/Activity.tsx` |
+| Playing chip, Close game | `components/PlayButton.tsx`, `StopGame` in `app_play.go` |
+| Sidebar items | `frontend/src/ui/Backdrop.tsx`, `.backdrop` in tokens.css |
+| Card click target | `frontend/src/ui/CardLink.tsx` |
+| Empty states, loaders | `ui/Empty.tsx`, `ui/Loader.tsx` (`BlockHop`) |

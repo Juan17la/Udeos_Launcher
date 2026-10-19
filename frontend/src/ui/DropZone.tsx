@@ -8,11 +8,11 @@ import { Download } from './icons'
 export default function DropZone({ text, hint, children, className = '', prominent }: { text: string; hint?: string; children?: ReactNode; className?: string; prominent?: boolean }) {
   const [over, setOver] = useState(false)
   const look = prominent
-    ? `flex-wrap gap-5 px-6 py-5 border-3 ${over ? 'border-primary bg-primary/25 scale-101' : 'border-primary/70 bg-primary/10'}`
-    : `flex-wrap gap-4 p-4 border-2 text-sm text-muted ${over ? 'border-primary bg-primary/10' : 'border-idle'}`
+    ? `flex-wrap gap-5 px-6 py-5 border-[1.5px] ${over ? 'border-primary bg-primary/25' : 'border-primary/50 bg-primary/8'}`
+    : `flex-wrap gap-4 p-4 border-[1.5px] text-sm text-muted ${over ? 'border-primary bg-primary/10' : 'border-idle'}`
   return (
     <div
-      className={`flex items-center justify-center rounded-md border-dashed transition-all duration-150 ease-in-out ${look} ${className}`}
+      className={`flex items-center justify-center rounded-md border-dashed transition-colors duration-150 ${look} ${className}`}
       style={{ ['--wails-drop-target' as string]: 'drop' }}
       onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false) }} onDrop={(e) => { e.preventDefault(); setOver(false) }}
     >

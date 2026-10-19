@@ -1,3 +1,5 @@
+import PixelIcon from '../ui/PixelIcon'
+import Empty from '../ui/Empty'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import ErrorMessage from '../components/ErrorMessage'
 import { useApp, useContent } from '../state'
@@ -6,13 +8,14 @@ import { scroller } from '../utils/scroll'
 import { fmt } from '../i18n/format'
 import Button from '../ui/Button'
 import { Input, Select } from '../ui/Field'
-import AutoLoader, { Spinner } from '../ui/Loader'
-import { Search as SearchIcon, Sparkles } from '../ui/icons'
+import { Spinner } from '../ui/Loader'
+import { ChevronDown, Plus, Search as SearchIcon, Sparkles, X } from '../ui/icons'
+import CardLink from '../ui/CardLink'
 import SegmentedControl from '../ui/SegmentedControl'
 import { messageOf } from '../utils/errors'
 import { allowedTypes, loadSearchVersions, pageList } from '../utils/search'
 import { useAddAction } from '../hooks/useAddAction'
-import { revealDelay } from '../utils/format'
+import { useDelayed } from '../hooks/useDelayed'
 import ProjectIcon from '../components/ProjectIcon'
 import { Downloads, LoaderTags, VersionTag } from '../components/Tags'
 import type { AIIntent, ProjectType, SearchGameVersion, SearchPage, SearchResult, SortBy } from '../api/types'
@@ -63,6 +66,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
   const pickType = (k: ProjectType) => { setType(k); setCategories([]) }
   const [topics, setTopics] = useState<string[]>([])
   const [moreTopics, setMoreTopics] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
   const [installed, setInstalled] = useState<Set<string>>(() => new Set())
   const { add, dialog } = useAddAction(inst?.id, { gameVersion, loader })
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
@@ -126,7 +130,8 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
 
   useEffect(() => {
     if (loadedKey.current === key) return
-    setPageIndex(0); setPage(null); load(0)
+    // The old results stay (dimmed if it takes a moment) until the new ones arrive: clearing them made the grid blink on every keystroke.
+    setPageIndex(0); load(0)
   }, [load, key])
   useEffect(() => { saved = { instanceId, type, text, gameVersion, loader, sortBy, categories, pageIndex, page, loadedKey: loadedKey.current } })
   useEffect(() => () => { seq.current++ }, []) // unmount: drop whatever is still in flight
@@ -148,11 +153,23 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
     return undefined
   }
 
+  // What is narrowing the results right now, each with its own way off (chips while Filters is folded).
+  const topicName = (c: string) => t.search.topicNames[c] ?? c.replace(/-/g, ' ')
+  const active: [string, () => void][] = [
+    ...(!inst && gameVersion ? [[gameVersion, () => setGameVersion('')] as [string, () => void]] : []),
+    ...(!inst && loader ? [[loader[0].toUpperCase() + loader.slice(1), () => setLoader('')] as [string, () => void]] : []),
+    ...(sortBy !== 'relevance' ? [[t.search.sort[sortBy], () => setSortBy('relevance')] as [string, () => void]] : []),
+    ...categories.map((c) => [topicName(c), () => setCategories(categories.filter((x) => x !== c))] as [string, () => void]),
+  ]
+  const activeFilters = active.length
+  const slow = useDelayed(loading, 250) // dim and skeletons only for a wait you would notice
+  const clearAll = () => { if (!inst) { setGameVersion(''); setLoader('') } setSortBy('relevance'); setCategories([]) }
+
   return (
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4 flex-wrap">
-          <h2 className="m-0">{t.nav.search}</h2>
+          <h2 className="m-0 flex items-center gap-3"><PixelIcon name="enchanted_book" size={26} />{t.nav.search}</h2>
           {inst && <span className="font-bold text-lg">{fmt(t.search.forInstance, { name: inst.name })}</span>}
         </div>
         <Button variant="idle" onClick={() => go({ name: 'ai', instanceId: inst?.id })}><Sparkles /> {t.ai.ask}</Button>
@@ -162,39 +179,59 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
         <SegmentedControl options={types.map((k) => ({ value: k, label: t.search.types[k] }))} value={type} onChange={pickType} />
       </div>
 
-      <div className="flex gap-4 flex-wrap items-center">
-        <Input className="flex-[1_1_220px]" icon={<SearchIcon />} type="search" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
-        {inst ? (
+      {/* One row: the search box and one Filters button (version, loader, sort and topics fold behind it),
+          so the results come right after; what is on shows as removable chips while it is folded. */}
+      <div className="flex gap-3 flex-wrap items-center">
+        <Input className="flex-[2_1_240px]" icon={<SearchIcon />} type="search" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
+        <Button variant={filtersOpen ? 'secondary' : 'idle'} aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
+          {t.search.filters}{activeFilters > 0 && <span className="min-w-5 h-5 px-1.5 rounded-full bg-primary text-on-primary text-xs leading-5 tabular-nums">{activeFilters}</span>}
+          <span className={`flex transition-transform duration-150 ${filtersOpen ? 'rotate-180' : ''}`}><ChevronDown size={13} /></span>
+        </Button>
+        {inst && (
           // With an instance in context the results are already limited to what runs on it: say so once, instead of two disabled menus.
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-muted">{t.search.onlyFits}</span>
             <VersionTag versions={[inst.version]} />
             {showLoaderFilter && inst.loader !== 'Vanilla' && <span className="tag bg-gold-soft">{inst.loaderLabel}</span>}
           </div>
-        ) : (
+        )}
+      </div>
+      {!filtersOpen && activeFilters > 0 && (
+        <div className="flex gap-2 flex-wrap items-center -mt-2">
+          {active.map(([label, clear]) => (
+            <button key={label} type="button" onClick={clear} title={t.search.clearFilters}
+              className="tag gap-1.5 cursor-pointer border-0 font-[inherit] bg-primary/15 text-text hover:bg-primary/25">{label}<X size={10} /></button>
+          ))}
+          <button type="button" className="text-xs underline cursor-pointer bg-transparent border-0 p-0 text-muted hover:text-text font-[inherit]" onClick={clearAll}>{t.search.clearFilters}</button>
+        </div>
+      )}
+      {filtersOpen && (
+      <div className="panel flex flex-col gap-4 p-4 -mt-2 animate-[dialog-fade_0.2s_var(--ease-out)]">
+      <div className="flex gap-3 flex-wrap items-center">
+        {!inst && (
           <>
-            <Select className="flex-[0_1_180px]" value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
+            <Select className="flex-[1_1_160px] min-w-[160px]" value={gameVersion} onChange={(e) => setGameVersion(e.target.value)}>
               <option value="">{t.search.anyVersion}</option>
               {versions?.map((v) => <option key={v.version} value={v.version}>{v.version}</option>)}
             </Select>
             {showLoaderFilter && (
-              <Select className="flex-[0_1_160px]" value={loader} onChange={(e) => setLoader(e.target.value)}>
+              <Select className="flex-[1_1_190px] min-w-[190px]" value={loader} onChange={(e) => setLoader(e.target.value)}>
                 <option value="">{t.search.anyLoader}</option>
                 {LOADERS.map((l) => <option key={l} value={l}>{l[0].toUpperCase() + l.slice(1)}</option>)}
               </Select>
             )}
           </>
         )}
-        <Select className="flex-[0_1_200px]" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
+        <Select className="flex-[1_1_150px] min-w-[150px]" value={sortBy} onChange={(e) => setSortBy(e.target.value as SortBy)}>
           {SORTS.map((k) => <option key={k} value={k}>{t.search.sort[k]}</option>)}
         </Select>
       </div>
       {/* Topics: Modrinth's own categories for this kind of content, any number can be on. */}
       {topics.length > 0 && (
-        <div className="flex gap-2 flex-wrap items-center -mt-2" role="group" aria-label={t.search.topics}>
+        <div className="flex gap-2 flex-wrap items-center" role="group" aria-label={t.search.topics}>
           {(moreTopics ? topics : topics.slice(0, TOPICS_SHOWN)).map((c) => (
             <button key={c} type="button" aria-pressed={categories.includes(c)} onClick={() => setCategories(categories.includes(c) ? categories.filter((x) => x !== c) : [...categories, c])}
-              className={`tag cursor-pointer border-0 font-[inherit] transition-colors duration-150 ${categories.includes(c) ? 'bg-primary text-on-primary' : 'bg-tag-gray hover:bg-idle-hover'}`}>{c.replace(/-/g, ' ')}</button>
+              className={`tag cursor-pointer border-0 font-[inherit] transition-colors duration-150 ${categories.includes(c) ? 'bg-primary text-on-primary' : 'bg-tag-gray hover:bg-idle-hover'}`}>{topicName(c)}</button>
           ))}
           {topics.length > TOPICS_SHOWN && (
             <button type="button" className="text-xs underline cursor-pointer bg-transparent border-0 p-0 text-muted hover:text-text font-[inherit]" onClick={() => setMoreTopics(!moreTopics)}>
@@ -203,23 +240,23 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
           )}
         </div>
       )}
+      </div>
+      )}
 
       {error && <ErrorMessage message={error} />}
-      {/* First load of a search: skeleton cards. Paging keeps the old grid dimmed under the loader. */}
-      <AutoLoader active={loading && !!page} label={t.common.loading} />
-      {page && page.total > 0 && (
-        <p className="m-0 text-[13px] text-muted">
-          {fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
-        </p>
-      )}
-      {page?.results.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.search.empty}</p>}
+      {/* First load of a search: skeleton cards. A new search or page keeps the old grid, dimmed, until the answer
+          arrives: no loader block above it (it pushed the grid down and back up). The count line always holds its row. */}
+      <p className="m-0 h-5 text-[13px] text-muted">
+        {page && page.total > 0 && fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
+      </p>
+      {page?.results.length === 0 && <Empty icon="ender_eye">{t.search.empty}</Empty>}
 
-      <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${loading ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
-        {page?.results.map((r, i) => (
-          <ResultCard key={r.id} index={i} result={r} state={stateOf(r)} onAdd={() => add(r)}
+      <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${slow ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
+        {page?.results.map((r) => (
+          <ResultCard key={r.id} result={r} state={stateOf(r)} onAdd={() => add(r)}
             onDetails={() => go({ name: 'detail', result: r, instanceId: inst?.id })} />
         ))}
-        {!page && loading && Array.from({ length: 6 }, (_, n) => <SkeletonCard key={n} />)}
+        {!page && slow && Array.from({ length: 6 }, (_, n) => <SkeletonCard key={n} />)}
       </div>
 
       {dialog}
@@ -230,7 +267,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
 }
 
 /** state is only set with an instance in context: 'added' = already in it, 'busy' = installing now. */
-type CardProps = { index: number; result: SearchResult; state?: 'added' | 'busy'; onAdd: () => void; onDetails: () => void }
+type CardProps = { result: SearchResult; state?: 'added' | 'busy'; onAdd: () => void; onDetails: () => void }
 
 /** Previous / numbered pages with "…" gaps / Next, plus a box to jump to any page. */
 function Pager({ index, pages, disabled, onGo }: { index: number; pages: number; disabled: boolean; onGo: (i: number) => void }) {
@@ -252,24 +289,24 @@ function Pager({ index, pages, disabled, onGo }: { index: number; pages: number;
 /** A result card's shape while its search loads. */
 function SkeletonCard() {
   return (
-    <div className="panel flex flex-col gap-4 p-5" aria-hidden>
+    <div className="panel flex flex-col gap-4 p-5 animate-[fade-in_0.3s_ease-out]" aria-hidden>
       <div className="flex items-center gap-4">
         <div className="skeleton w-11 h-11 shrink-0" />
         <div className="flex-1 flex flex-col gap-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/2" /></div>
       </div>
       <div className="flex flex-col gap-2"><div className="skeleton h-3" /><div className="skeleton h-3 w-5/6" /></div>
-      <div className="flex gap-4 mt-2"><div className="skeleton h-10 flex-1" /><div className="skeleton h-10 flex-1" /></div>
+      <div className="flex mt-2"><div className="skeleton h-10 flex-1" /></div>
     </div>
   )
 }
 
-const ResultCard = memo(function ResultCard({ index, result, state, onAdd, onDetails }: CardProps) {
+const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }: CardProps) {
   const { t } = useApp()
   return (
-    // The whole card opens Details; the buttons inside stop the click from bubbling.
-    <div role="link" tabIndex={0} onClick={onDetails} onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) onDetails() }}
-      className="reveal panel panel-hover flex flex-col gap-4 p-5 cursor-pointer" style={revealDelay(index)}>
-      <div className="flex items-center gap-4">
+    // The whole card opens Details (CardLink); Add is the card's one quiet action, so the page has no wall of blue.
+    <div className="reveal panel panel-hover relative flex flex-col gap-4 p-5">
+      <CardLink label={`${result.title}, ${t.search.details}`} onClick={onDetails} />
+      <div className="relative flex items-center gap-4 pointer-events-none">
         <ProjectIcon url={result.iconUrl} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="font-bold text-base leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{result.title}</div>
@@ -277,19 +314,16 @@ const ResultCard = memo(function ResultCard({ index, result, state, onAdd, onDet
           <Downloads n={result.downloads} />
         </div>
       </div>
-      <p className="m-0 text-[13px] text-muted line-clamp-2">{result.description}</p>
-      <div className="flex gap-2 flex-wrap">
+      <p className="relative m-0 text-[13px] text-muted line-clamp-2 pointer-events-none">{result.description}</p>
+      <div className="relative flex gap-2 flex-wrap pointer-events-none">
         <VersionTag versions={result.gameVersions ?? []} />
         <LoaderTags loaders={result.loaders} max={2} />
       </div>
-      {/* Two big, equal-weight actions: Add installs (directly, or after a
-         one-click instance pick), Details is a full page. */}
-      <div className="flex gap-4 mt-auto">
-        <Button variant={state === undefined ? 'primary' : 'idle'} className="flex-1" disabled={state !== undefined} onClick={(e) => { e.stopPropagation(); onAdd() }}>
-          {state === 'busy' && <Spinner size={12} />}
+      <div className="relative flex mt-auto">
+        <Button variant={state === undefined ? 'secondary' : 'idle'} block disabled={state !== undefined} onClick={onAdd}>
+          {state === 'busy' ? <Spinner size={12} /> : state === undefined && <span className="flex text-primary-hover"><Plus size={13} /></span>}
           {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
         </Button>
-        <Button variant="idle" className="flex-1" onClick={(e) => { e.stopPropagation(); onDetails() }}>{t.search.details}</Button>
       </div>
     </div>
   )

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
+import Empty from '../../ui/Empty'
 import { User, X } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { Checkbox, Input } from '../../ui/Field'
 import SegmentedControl from '../../ui/SegmentedControl'
-import AutoLoader from '../../ui/Loader'
+import { SkeletonRows } from '../../ui/Loader'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { messageOf } from '../../utils/errors'
@@ -53,9 +54,9 @@ export default function PlayersTab({ server }: { server: Server }) {
         </form>
       )}
       <Feedback error={error} note={null} onClearNote={() => {}} />
-      <AutoLoader active={players === null} label={t.common.loading} />
+      <SkeletonRows active={players === null} />
       {players && names.length === 0 && (
-        <p className="text-muted text-center text-sm px-5 py-10">{view === 'online' && !server.state.ready ? t.servers.players.offline : t.servers.players.none}</p>
+        <Empty icon="name_tag">{view === 'online' && !server.state.ready ? t.servers.players.offline : t.servers.players.none}</Empty>
       )}
       <div className="flex flex-col gap-3">
         {names.map((n) => (

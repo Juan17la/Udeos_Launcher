@@ -52,9 +52,3 @@ export const ICON_CHOICES: string[] = [
 
 /** "diamond_sword" → "Diamond Sword", for tooltips. */
 export const iconLabel = (key: string) => key.replace(/_side$/, '').replace(/_standby$/, '').split('_').map((w) => w[0].toUpperCase() + w.slice(1)).join(' ')
-
-/** Items floating behind the login and dashboard, per theme (cycled by Decor). */
-export const THEME_DECOR: Record<Scheme, string[]> = {
-  light: ['diamond_pickaxe', 'diamond', 'apple', 'grass_block_side', 'emerald', 'iron_sword', 'golden_apple'],
-  dark: ['ender_pearl', 'netherite_sword', 'netherite_ingot', 'golden_apple', 'end_crystal', 'nether_star', 'obsidian'],
-}

@@ -11,7 +11,11 @@ export type LaunchState =
   | { status: 'exited'; instanceId: string; exitCode: number; logPath: string }
 
 /** minimizeLaunch hides the loading modal; the progress carries on as a notification. */
-export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; dismissLaunch: () => void; minimizeLaunch: () => void; cancelLaunch: () => void }
+export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; stop: (id: string) => Promise<void>; dismissLaunch: () => void; minimizeLaunch: () => void; cancelLaunch: () => void }
+
+/** When each running game started, as this window saw it (a reload restarts the clock). */
+const since = new Map<string, number>()
+export const playingSince = (id: string) => { if (!since.has(id)) since.set(id, Date.now()); return since.get(id)! }
 
 /** Owns the launch state: Play, the install progress ticks while preparing,
  *  and the game process events (running clears it, a bad exit opens the
@@ -24,6 +28,8 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
       setLaunch((cur) => (cur.status === 'preparing' ? { ...cur, progress: p } : cur))
     })
     const offGame = on('game:state', (ev: GameEvent) => {
+      if (ev.running) since.set(ev.instanceId, Date.now())
+      else since.delete(ev.instanceId)
       if (ev.running) {
         setLaunch({ status: 'idle' })
       } else if (ev.exitCode !== 0 || ev.error) {
@@ -52,5 +58,8 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
   // Stops the game download; play() then ends quietly (a cancel is not an error).
   const cancelLaunch = useCallback(() => { if (launch.status === 'preparing') api.CancelDownload('launch:' + launch.instanceId) }, [launch])
 
-  return { launch, play, dismissLaunch, minimizeLaunch, cancelLaunch }
+  // Force-closes the game; its exit then arrives on game:state like any other.
+  const stop = useCallback(async (id: string) => { await api.StopGame(id); await refreshInstances() }, [refreshInstances])
+
+  return { launch, play, stop, dismissLaunch, minimizeLaunch, cancelLaunch }
 }

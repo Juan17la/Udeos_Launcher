@@ -7,13 +7,13 @@ import { friendlyError } from '../utils/errors'
 /** A failure in plain words: a short headline and one sentence on what to do.
  *  The original technical text is one click away ("Show details"), never the
  *  default. `compact` leaves the details out (status strip). */
-export default function ErrorMessage({ message, onDismiss, compact, className, action }: { message: string; onDismiss?: () => void; compact?: boolean; className?: string; action?: ReactNode }) {
+export default function ErrorMessage({ message, onDismiss, compact, className, action, still }: { message: string; onDismiss?: () => void; compact?: boolean; className?: string; action?: ReactNode; still?: boolean }) {
   const { t } = useApp()
   const [open, setOpen] = useState(false)
   const f = friendlyError(message, t.errors)
   const hasRaw = !compact && f.raw.trim() !== '' && f.raw !== f.text
   return (
-    <StatusMessage kind="error" headline={f.headline} className={className} onDismiss={onDismiss} detail={<>
+    <StatusMessage kind="error" still={still} headline={f.headline} className={className} onDismiss={onDismiss} detail={<>
       {f.text}
       {action && <span className="block mt-2">{action}</span>}
       {hasRaw && (

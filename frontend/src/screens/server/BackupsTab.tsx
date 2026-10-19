@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
+import Empty from '../../ui/Empty'
 import { X } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
-import AutoLoader from '../../ui/Loader'
+import { SkeletonRows } from '../../ui/Loader'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
@@ -44,8 +45,8 @@ export default function BackupsTab({ server }: { server: Server }) {
         <FolderLink id={server.id} sub="backups" />
       </div>
       <Feedback error={error} note={note} onClearNote={clearNote} />
-      <AutoLoader active={items === null} label={t.common.loading} />
-      {items?.length === 0 && <p className="text-muted text-center text-sm px-5 py-10">{t.servers.backups.empty}</p>}
+      <SkeletonRows active={items === null} />
+      {items?.length === 0 && <Empty icon="experience_bottle">{t.servers.backups.empty}</Empty>}
       <div className="flex flex-col gap-3">
         {items?.map((f) => (
           <div key={f.name} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
@@ -53,8 +54,9 @@ export default function BackupsTab({ server }: { server: Server }) {
               <div className="text-[15px] font-bold truncate">{date(f)}</div>
               <div className="text-xs text-muted truncate">{bytes(f.sizeBytes)} · {f.name}</div>
             </div>
-            <Button variant="idle" size="sm" disabled={busy || server.running} title={server.running ? t.servers.backups.stopFirst : undefined} onClick={() => setRestoring(f)}>{t.servers.backups.restore}</Button>
-            <Button variant="danger" size="sm" square title={t.instance.remove} disabled={busy} onClick={() => setDeleting(f)}><X /></Button>
+            <Button variant="secondary" size="sm" disabled={busy || server.running} title={server.running ? t.servers.backups.stopFirst : undefined} onClick={() => setRestoring(f)}>{t.servers.backups.restore}</Button>
+            <span aria-hidden className="w-px h-5 mx-1 bg-line" />
+            <Button variant="danger" size="sm" square title={t.instance.remove} aria-label={`${t.instance.remove} ${date(f)}`} disabled={busy} onClick={() => setDeleting(f)}><X /></Button>
           </div>
         ))}
       </div>

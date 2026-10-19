@@ -7,7 +7,7 @@ import { LANGUAGES } from '../i18n'
 import ProfileDialog from './ProfileDialog'
 import { SkinFace } from './SkinView'
 
-/** Nickname button in the nav that opens a glass popover: Switch profile
+/** Nickname button at the foot of the sidebar that opens a popover above it: Switch profile
  *  (opens the profiles modal), theme, language and the privacy & terms dialog. */
 export default function AccountMenu() {
   const { t, scheme, language, setLanguage, nickname, setPrivacyOpen, skins } = useApp()
@@ -32,22 +32,27 @@ export default function AccountMenu() {
 
   return (
     <div className="relative flex-none" ref={ref}>
-      <Button variant="idle" title={nickname} onClick={() => setOpen((v) => !v)} className="max-w-50">
-        <SkinFace png={face} size={18} />
-        <span className="whitespace-nowrap overflow-hidden text-ellipsis">{nickname || '?'}</span>
-      </Button>
+      <button type="button" title={nickname} aria-expanded={open} onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-3 w-full h-12 px-2 rounded-md border-0 bg-transparent text-text cursor-pointer text-left transition-colors duration-150 hover:bg-panel-2 max-[1000px]:justify-center">
+        <span className="flex-none grid place-items-center w-8 h-8 rounded-md bg-idle"><SkinFace png={face} size={22} /></span>
+        <span className="flex-1 min-w-0 flex flex-col leading-tight max-[1000px]:hidden">
+          <span className="truncate text-sm font-semibold">{nickname || '?'}</span>
+          <span className="text-[11px] text-muted">{t.profiles.switch}</span>
+        </span>
+        <span className="text-muted max-[1000px]:hidden"><ChevronDown size={14} /></span>
+      </button>
       {open && (
-        <div role="menu" className="glass absolute top-[calc(100%+8px)] right-0 z-9001 w-72 flex flex-col gap-2 p-4 animate-[dialog-fade_0.15s_ease-in-out]">
-          <Button variant="ghost" block className="justify-start" onClick={() => { setProfilesOpen(true); setOpen(false) }}>
+        <div role="menu" className="glass absolute bottom-[calc(100%+8px)] left-0 z-9001 w-72 flex flex-col gap-1 p-2 animate-[dialog-fade_0.2s_var(--ease-out)]">
+          <Button variant="idle" block className="justify-start bg-transparent" onClick={() => { setProfilesOpen(true); setOpen(false) }}>
             <User size={16} /> {t.profiles.switch}
           </Button>
-          <div className="h-px bg-idle/40" />
-          <Button variant="ghost" block className="justify-start" onClick={() => { setThemeOpen(true); setOpen(false) }}>
+          <div className="h-px bg-line my-1" />
+          <Button variant="idle" block className="justify-start bg-transparent" onClick={() => { setThemeOpen(true); setOpen(false) }}>
             {scheme === 'dark' ? <Moon size={16} /> : <Sun size={16} />}
             {t.nav.theme}
           </Button>
-          <div className="h-px bg-idle/40" />
-          <Button variant="ghost" block className="justify-start" onClick={() => setLangOpen((v) => !v)}>
+          <div className="h-px bg-line my-1" />
+          <Button variant="idle" block className="justify-start bg-transparent" onClick={() => setLangOpen((v) => !v)}>
             <Globe size={16} />
             {currentLanguage?.name ?? language}
             <span className={`ml-auto inline-flex transition-transform duration-150 ease-in-out ${langOpen ? 'rotate-180' : ''}`}><ChevronDown size={14} /></span>
@@ -55,15 +60,15 @@ export default function AccountMenu() {
           {langOpen && (
             <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pl-4">
               {LANGUAGES.map((l) => (
-                <Button variant="ghost" size="sm" block className="justify-start" key={l.code} onClick={() => { setLanguage(l.code); setLangOpen(false) }}>
+                <Button variant="idle" size="sm" block className="justify-start bg-transparent" key={l.code} onClick={() => { setLanguage(l.code); setLangOpen(false) }}>
                   <span className="w-3.5 flex-none inline-flex">{language === l.code && <Check size={12} />}</span>
                   {l.name}
                 </Button>
               ))}
             </div>
           )}
-          <div className="h-px bg-idle/40" />
-          <Button variant="ghost" block className="justify-start" onClick={() => { setPrivacyOpen(true); setOpen(false) }}>
+          <div className="h-px bg-line my-1" />
+          <Button variant="idle" block className="justify-start bg-transparent" onClick={() => { setPrivacyOpen(true); setOpen(false) }}>
             <Shield size={16} /> {t.nav.privacy}
           </Button>
         </div>

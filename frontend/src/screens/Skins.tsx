@@ -1,3 +1,4 @@
+import PixelIcon from '../ui/PixelIcon'
 import { useCallback, useEffect, useState } from 'react'
 import SkinView from '../components/SkinView'
 import Button from '../ui/Button'
@@ -19,7 +20,7 @@ import type { Skin, SkinFile, SkinModel } from '../api/types'
  *  takes the drop while this page is open, with an overlay while a file is
  *  over it), and the
  *  library, where a click on a card wears it. Steve, the default, is the
- *  first card; New skin opens the editor. */
+ *  first card; New skin (the sidebar button) opens the editor. */
 export default function Skins() {
   const { t, nickname, skins, refreshSkins, go } = useApp()
   const s = t.skins
@@ -67,7 +68,7 @@ export default function Skins() {
         </div>
       )}
       <div className="col-span-2">
-        <h2 className="mb-1">{s.title}</h2>
+        <h2 className="mb-1 flex items-center gap-3"><PixelIcon name="diamond_chestplate" size={26} />{s.title}</h2>
         <p className="m-0 text-muted">{s.subtitle}</p>
       </div>
 
@@ -96,7 +97,6 @@ export default function Skins() {
         <Feedback error={error} note={null} onClearNote={() => {}} />
         <div className="flex items-center justify-between gap-4">
           <h4 className="m-0">{s.library} <span className="text-sm text-muted">{(skins?.skins.length ?? 0) + 1}</span></h4>
-          <Button variant="idle" size="sm" onClick={() => go({ name: 'skinEditor' })}><Pencil size={12} /> {s.new}</Button>
         </div>
         {/* Padded so the cards' shadows and the worn card's outline are not clipped by the scroll box. */}
         <div className="flex-1 min-h-0 overflow-y-auto -mx-3 px-3 py-2">

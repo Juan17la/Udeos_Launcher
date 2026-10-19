@@ -6,7 +6,7 @@ import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
 import { messageOf } from '../../utils/errors'
-import { Feedback } from '../instance/TabParts'
+import { DangerZone, Feedback } from '../instance/TabParts'
 import { LaunchFields, useLaunchForm } from '../instance/SettingsTab'
 import SegmentedControl from '../../ui/SegmentedControl'
 import type { Server, ServerLogin } from '../../api/types'
@@ -23,7 +23,7 @@ const TOGGLES = [['pvp', 'pvp'], ['allow-flight', 'flight'], ['hardcore', 'hardc
 const LOGINS: ServerLogin[] = ['udeos', 'offline', 'microsoft']
 
 /** The server.properties a player usually cares about, in plain words. */
-export default function ServerSettingsTab({ server }: { server: Server }) {
+export default function ServerSettingsTab({ server, onDelete }: { server: Server; onDelete: () => void }) {
   const { t, refreshInstances } = useApp()
   const launch = useLaunchForm(server) // memory and Java live on this page too, under the same Save
   const s = t.servers.settings
@@ -108,6 +108,7 @@ export default function ServerSettingsTab({ server }: { server: Server }) {
         </div>
       </div>
       <Feedback error={error} note={note} onClearNote={() => setNote(null)} />
+      <DangerZone title={t.servers.deleteServer} body={t.servers.confirmDelete} onDelete={onDelete} />
     </div>
   )
 }

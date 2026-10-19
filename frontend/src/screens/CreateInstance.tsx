@@ -14,6 +14,7 @@ import { serverIconPNG } from '../utils/serverIcon'
 import { Download } from '../ui/icons'
 import { fmt } from '../i18n/format'
 import ProjectIcon from '../components/ProjectIcon'
+import PixelIcon from '../ui/PixelIcon'
 import type { Loader, LoaderOption, SearchResult, VersionList } from '../api/types'
 
 /** Fabric first: the lightest and most popular, so "With mods" works without choosing. */
@@ -144,6 +145,17 @@ export default function CreateInstance({ server = false, modpack }: { server?: b
       {joinError && <div className="w-[min(560px,100%)]"><ErrorMessage message={joinError} /></div>}
 
       <form className="panel w-[min(560px,100%)] flex flex-col gap-5 p-6" onSubmit={(e) => { e.preventDefault(); submit(!server) }}>
+        {/* What is being made, live: the icon drops in again whenever it changes, the name follows the field. */}
+        <div aria-hidden className="flex items-center gap-5 pb-5 shadow-[inset_0_-1px_0_var(--color-line)]">
+          <span className="relative flex flex-col items-center">
+            {kind === 'modpack' && pack ? <ProjectIcon url={pack.iconUrl} size={72} /> : <PixelIcon key={icon} name={icon} size={72} className="motion-safe:animate-[item-drop_0.6s_var(--ease-out)_both]" />}
+            <span className="mt-1.5 h-2 w-12 rounded-full bg-text/15" />
+          </span>
+          <div className="min-w-0 flex flex-col gap-1">
+            <div className="text-2xl font-extrabold tracking-tight truncate">{name.trim() || s.namePlaceholder}</div>
+            <div className="text-sm text-muted truncate">{kind === 'modpack' ? pack?.title ?? t.create.kinds.modpack : `${version || '…'} · ${kind === 'mods' ? loader : t.create.kinds.vanilla}`}</div>
+          </div>
+        </div>
         <div>
           <Label htmlFor="create-name">{s.name}</Label>
           <div className="flex gap-3">
@@ -155,11 +167,10 @@ export default function CreateInstance({ server = false, modpack }: { server?: b
 
         <div className="flex flex-col gap-3">
           <SegmentedControl aria-label={t.create.loader}
-            options={[{ value: 'vanilla' as Kind, label: t.create.kinds.vanilla }, { value: 'mods' as Kind, label: t.create.kinds.mods }, ...(server ? [{ value: 'modpack' as Kind, label: t.create.kinds.modpack }] : [])]} value={kind} onChange={setKind} />
-          <p className="m-0 text-xs text-muted">
-            {t.create.kindHints[kind]}
-            {!server && <> <button type="button" className="underline cursor-pointer bg-transparent border-0 p-0 text-inherit font-[inherit]" onClick={() => go({ name: 'search', type: 'modpack' })}>{t.create.modpackLink}</button></>}
-          </p>
+            options={[{ value: 'vanilla' as Kind, label: t.create.kinds.vanilla }, { value: 'mods' as Kind, label: t.create.kinds.mods }, { value: 'modpack' as Kind, label: t.create.kinds.modpack }]} value={kind}
+            // An instance from a modpack is installed from Addons (its page picks the version); a server is built right here.
+            onChange={(k) => (k === 'modpack' && !server ? go({ name: 'search', type: 'modpack' }) : setKind(k))} />
+          <p className="m-0 text-xs text-muted">{t.create.kindHints[kind]}</p>
           {kind === 'mods' && (
             <SegmentedControl aria-label={t.create.loader} options={loaders.map((l) => ({ value: l, label: l }))} value={modLoader} onChange={setModLoader} />
           )}
@@ -206,7 +217,7 @@ export default function CreateInstance({ server = false, modpack }: { server?: b
         {server && (
           <p className="m-0 text-xs text-muted">
             {t.servers.create.publicNote} {t.servers.create.eulaNotice}{' '}
-            <a href="https://aka.ms/MinecraftEULA" className="text-primary underline" onClick={(e) => { e.preventDefault(); openExternal('https://aka.ms/MinecraftEULA') }}>{t.servers.create.eulaLink}</a>.
+            <a href="https://aka.ms/MinecraftEULA" className="text-primary-hover underline" onClick={(e) => { e.preventDefault(); openExternal('https://aka.ms/MinecraftEULA') }}>{t.servers.create.eulaLink}</a>.
           </p>
         )}
         {error && <ErrorMessage message={error} />}
@@ -214,7 +225,9 @@ export default function CreateInstance({ server = false, modpack }: { server?: b
           {server
             ? <Button variant="primary" type="submit" loading={busy} disabled={!canSubmit}>{s.submit}</Button>
             : <>
-                <Button variant="idle" loading={busy} disabled={!canSubmit} onClick={() => submit(false)}>{s.submit}</Button>
+                {/* One main action; creating without playing stays a quiet link for those who want it. */}
+                <button type="button" disabled={!canSubmit} onClick={() => submit(false)}
+                  className="text-sm underline cursor-pointer bg-transparent border-0 p-0 text-muted hover:text-text disabled:opacity-50 disabled:cursor-default font-[inherit]">{t.create.createOnly}</button>
                 <Button variant="primary" type="submit" loading={busy} disabled={!canSubmit}>{t.create.createPlay}</Button>
               </>}
         </div>

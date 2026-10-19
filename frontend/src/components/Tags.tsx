@@ -34,12 +34,13 @@ export function Downloads({ n, className = '' }: { n: number; className?: string
   )
 }
 
-/** An instance's version and loader ("Forge 47.4.10"). */
-export function InstanceTags({ inst, className = '' }: { inst: Instance; className?: string }) {
+/** An instance's version and loader ("Forge 47.4.10"). `short` (cards): the loader's name
+ *  alone, so it is never cut to "Forge 47…"; the full label is the tooltip. */
+export function InstanceTags({ inst, className = '', short }: { inst: Instance; className?: string; short?: boolean }) {
   return (
     <div className={`flex gap-2 min-w-0 ${className}`}>
       <VersionTag versions={[inst.version]} />
-      <span className="tag bg-gold-soft min-w-0" title={inst.loaderLabel}><span className="truncate">{inst.loaderLabel}</span></span>
+      <span className="tag bg-gold-soft min-w-0" title={inst.loaderLabel}><span className="truncate">{short ? inst.loader : inst.loaderLabel}</span></span>
     </div>
   )
 }

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import InstanceIcon from '../../components/InstanceIcon'
-import { Folder, Pencil, Trash } from '../../ui/icons'
+import { Folder, Pencil } from '../../ui/icons'
 import Button from '../../ui/Button'
 import { ConfirmDialog } from '../../ui/Dialog'
-import SegmentedControl from '../../ui/SegmentedControl'
+import Tabs from '../../ui/Tabs'
+import PixelIcon from '../../ui/PixelIcon'
 import { useApp } from '../../state'
 import { InstanceTags } from '../../components/Tags'
 import { ago, hours } from '../../utils/format'
@@ -26,7 +27,10 @@ export default function InstancePage({ id }: { id: string }) {
   const { t, language, instances, refreshInstances, go } = useApp()
   const inst = instances.find((i) => i.id === id)
   const vanilla = !inst || inst.loader === 'Vanilla'
-  const tabs: Tab[] = vanilla ? ['datapacks', 'resourcepacks', 'worlds', 'screenshots', 'settings'] : ['mods', 'datapacks', 'resourcepacks', 'shaders', 'worlds', 'screenshots', 'settings']
+  // Three groups: what is added to the game, what the game made, settings. Datapacks live inside worlds, so they wait for one.
+  const content: Tab[] = vanilla ? ['resourcepacks'] : ['mods', 'resourcepacks', 'shaders']
+  const tabs: Tab[] = [...content, ...(inst && inst.counts.worlds > 0 ? ['datapacks' as Tab] : []), 'worlds', 'screenshots', 'settings']
+  const groupStart = new Set<Tab>(['worlds', 'settings'])
   const [tab, setTabState] = useState<Tab>(() => { const last = lastTab.get(id); return last && tabs.includes(last) ? last : tabs[0] })
   const setTab = (k: Tab) => { lastTab.set(id, k); setTabState(k) }
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -42,22 +46,21 @@ export default function InstancePage({ id }: { id: string }) {
   }
 
   // Numbers worth a glance, in a 2×2 grid; Vanilla has no mods, so screenshots take that cell.
-  const stats: [string, string | number][] = [
-    vanilla ? [t.instance.tabs.screenshots, inst.counts.screenshots] : [t.instance.tabs.mods, inst.counts.mods],
-    [t.instance.tabs.resourcepacks, inst.counts.resourcePacks],
-    [t.instance.tabs.worlds, inst.counts.worlds],
-    [t.instance.playTime, `${hours(inst.playTimeSec)} h`],
+  const stats: [string, string | number, string][] = [
+    vanilla ? [t.instance.tabs.screenshots, inst.counts.screenshots, 'spyglass'] : [t.instance.tabs.mods, inst.counts.mods, 'enchanted_book'],
+    [t.instance.tabs.resourcepacks, inst.counts.resourcePacks, 'amethyst_shard'],
+    [t.instance.tabs.worlds, inst.counts.worlds, 'grass_block_side'],
+    [t.instance.playTime, `${hours(inst.playTimeSec)} h`, 'campfire'],
   ]
 
   return (
     <main className={SPLIT_MAIN}>
-      {/* Identity on top, numbers under it, actions at the bottom (Play biggest; Edit, Folder and Delete under it). */}
+      {/* Identity on top, numbers under it, actions at the bottom (Play biggest; Edit and Folder under it). Delete lives in Settings. */}
       <SidePanel actions={<>
         <PlayButton inst={inst} size="lg" />
-        <div className="grid grid-cols-3 gap-2">
-          <Button variant="idle" size="sm" className="px-2!" onClick={() => setEditing(true)}><Pencil /> {t.instance.editShort}</Button>
-          <Button variant="idle" size="sm" className="px-2!" onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /> {t.instance.folder}</Button>
-          <Button variant="danger" size="sm" className="px-2!" title={t.instance.deleteInstance} disabled={inst.running} onClick={() => setConfirmDelete(true)}><Trash /> {t.common.delete}</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="idle" size="sm" className="flex-1 basis-[90px] px-2!" title={t.instance.editShort} onClick={() => setEditing(true)}><Pencil /><span>{t.instance.editShort}</span></Button>
+          <Button variant="idle" size="sm" className="flex-1 basis-[90px] px-2!" title={t.instance.folder} onClick={() => api.OpenInstanceFolder(inst.id, '')}><Folder /><span>{t.instance.folder}</span></Button>
         </div>
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
@@ -70,10 +73,10 @@ export default function InstancePage({ id }: { id: string }) {
         </div>
 
         <dl className="m-0 grid grid-cols-2 gap-2">
-          {stats.map(([label, value]) => (
-            <div key={label} className="flex flex-col px-2.5 py-1 rounded-md bg-panel-2 shadow-neu min-w-0">
-              <dt className="text-[11px] text-muted truncate">{label}</dt>
-              <dd className="m-0 text-base font-bold tabular-nums">{value}</dd>
+          {stats.map(([label, value, icon]) => (
+            <div key={label} className="flex flex-col px-2.5 py-1.5 rounded-md bg-panel-2 min-w-0">
+              <dt className="text-xs text-muted truncate">{label}</dt>
+              <dd className="m-0 flex items-center gap-1.5 text-base font-bold tabular-nums"><PixelIcon name={icon} size={14} />{value}</dd>
             </div>
           ))}
         </dl>
@@ -83,14 +86,13 @@ export default function InstancePage({ id }: { id: string }) {
       </SidePanel>
 
       <SplitColumn>
-        <SegmentedControl options={tabs.map((k) => ({ value: k, label: t.instance.tabs[k] }))} value={tab} onChange={setTab} />
-        {/* Keyed by tab, so switching tabs replays a short fade (no movement). */}
+        <Tabs options={tabs.map((k) => ({ value: k, label: t.instance.tabs[k], group: groupStart.has(k) }))} value={tabs.includes(tab) ? tab : tabs[0]} onChange={setTab} />
         <ScrollBody>
-          <div key={tab} className="flex-1 flex flex-col animate-[fade-in_0.15s_ease-out]">
+          <div key={tab} className="flex-1 flex flex-col">
             {tab === 'worlds' && <WorldsTab id={inst.id} />}
             {tab === 'datapacks' && <DatapacksTab id={inst.id} />}
             {tab === 'screenshots' && <ScreenshotsTab id={inst.id} />}
-            {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} />}
+            {tab === 'settings' && <SettingsTab key={inst.id} inst={inst} onDelete={() => setConfirmDelete(true)} />}
             {(tab === 'mods' || tab === 'shaders' || tab === 'resourcepacks') && <FilesTab id={inst.id} kind={tab} />}
           </div>
         </ScrollBody>

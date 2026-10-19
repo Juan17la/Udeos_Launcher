@@ -2,7 +2,6 @@ import { useState } from 'react'
 import ErrorMessage from '../components/ErrorMessage'
 import ThemePicker from '../components/ThemePicker'
 import Logo from '../ui/Logo'
-import Decor, { LOGIN_DECOR } from '../ui/Decor'
 import Button from '../ui/Button'
 import StatusMessage from '../ui/StatusMessage'
 import { Checkbox, Input, Label, Select } from '../ui/Field'
@@ -44,13 +43,11 @@ export default function Login({ adding = false }: { adding?: boolean }) {
 
   return (
     // <main> is the page scroller (see tokens.css); my-auto centres while it fits and scrolls from the top when it doesn't. Keyed by language like the other pages (App.tsx), but inside Login so the typed nickname survives.
-    <main key={language} className="flex flex-col items-center gap-6 px-6 py-10 relative animate-[page-in_0.2s_ease-out]">
-      <Decor slots={LOGIN_DECOR} opacity={0.12} />
-
+    <main key={language} className="flex flex-col items-center gap-6 px-6 py-10 relative animate-[page-in_0.3s_var(--ease-out)]">
       {/* Heading on the canvas, never inside the panel. */}
       <div className="relative z-1 flex flex-col items-center gap-4 mt-auto">
         <Logo size={64} />
-        <h1 className="m-0 text-center">{adding ? t.login.newProfile : t.app.name}</h1>
+        <h1 className="m-0 text-center font-display font-semibold text-[34px] tracking-normal">{adding ? t.login.newProfile : t.app.name}</h1>
         {!adding && <span className="tag bg-tag-gray">{__APP_VERSION__}</span>}
       </div>
 

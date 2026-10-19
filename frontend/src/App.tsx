@@ -1,13 +1,14 @@
-import { Component, Fragment } from 'react'
+import { Component, Fragment, useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { AppProvider, useApp } from './state'
 import BackButton from './components/BackButton'
-import Nav from './components/Nav'
+import Sidebar from './components/Sidebar'
 import PrivacyDialog from './components/PrivacyDialog'
 import LaunchDialog from './components/LaunchDialog'
 import CloseDialog from './components/CloseDialog'
 import UpdateDialog from './components/UpdateDialog'
 import AutoLoader from './ui/Loader'
+import Backdrop from './ui/Backdrop'
 import ErrorMessage from './components/ErrorMessage'
 import Login from './screens/Login'
 import Dashboard from './screens/Dashboard'
@@ -34,15 +35,18 @@ class PageGuard extends Component<{ screen: unknown; children: ReactNode }, { er
 
 function Shell() {
   const { ready, screen, language } = useApp()
+  // Login has no sidebar: the page takes the whole window (tokens.css, #root[data-bare]).
+  useEffect(() => { document.getElementById('root')?.toggleAttribute('data-bare', screen.name === 'login') }, [screen.name])
   // Boot (profile + instance list) is an async state like any other: a loader, not a blank window.
   if (!ready) return <AutoLoader overlay active />
   return (
     <>
+      <Backdrop />
       {/* Keyed by language: changing it remounts the nav and the page, so every size and border is laid out fresh for the new text instead of carrying over the old language's. Login is excluded (its own language picker would wipe the typed nickname) and remounts itself instead. */}
       <Fragment key={screen.name === 'login' ? 'login' : language}>
-      {screen.name !== 'login' && <Nav />}
-      {(['create', 'instance', 'search', 'ai', 'server', 'detail', 'skinEditor'] as const).some((n) => n === screen.name) && (
-        <BackButton inner={screen.name === 'create' ? 'px-[max(2.5rem,calc(50%-280px))]' : ''} />
+      {screen.name !== 'login' && <Sidebar />}
+      {(((['create', 'instance', 'ai', 'server', 'detail', 'skinEditor'] as string[]).includes(screen.name)) || (screen.name === 'search' && !!screen.instanceId)) && (
+        <BackButton inner={screen.name === 'create' ? 'px-[max(2rem,calc(50%-280px))]' : ''} />
       )}
       <PageGuard screen={screen}>
       {screen.name === 'login' && <Login key={String(!!screen.adding)} adding={screen.adding} />}

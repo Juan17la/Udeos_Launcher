@@ -6,7 +6,7 @@ import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
 import { messageOf } from '../../utils/errors'
-import { Feedback } from './TabParts'
+import { DangerZone, Feedback } from './TabParts'
 import type { Instance } from '../../api/types'
 
 /** The instance's own JVM settings: heap size, Java executable and extra
@@ -31,6 +31,9 @@ export function useLaunchForm(inst: Instance) {
 }
 export type LaunchForm = ReturnType<typeof useLaunchForm>
 
+/** Memory in GB (what players and modpack pages talk in), whatever the backend stores. */
+const gb = (mb: number) => `${+(mb / 1024).toFixed(1)} GB`
+
 /** Memory as three presets plus the slider; Java and extra flags hide under Advanced. */
 export function LaunchFields({ form }: { form: LaunchForm }) {
   const { t } = useApp()
@@ -49,7 +52,7 @@ export function LaunchFields({ form }: { form: LaunchForm }) {
       <div>
         <div className="flex items-baseline justify-between gap-4 mb-2">
           <Label htmlFor="launch-memory" className="mb-0">{s.memory}</Label>
-          <span className={`text-sm font-bold tabular-nums ${danger ? 'text-error-soft' : ''}`}>{fmt(s.memoryValue, { mb, total: totalMB || '?' })}</span>
+          <span className={`text-sm font-bold tabular-nums ${danger ? 'text-error-soft' : ''}`}>{fmt(s.memoryValue, { mb: gb(mb), total: totalMB ? gb(totalMB) : '?' })}</span>
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
           {([['small', 2048], ['medium', 4096], ['large', 8192]] as const).map(([k, size]) => (
@@ -59,12 +62,12 @@ export function LaunchFields({ form }: { form: LaunchForm }) {
         {/* Native range: the track/thumb take the accent colour, red inside the danger zone. */}
         <input id="launch-memory" type="range" min={512} max={maxMB} step={256} value={mb} onChange={(e) => setMemory(Number(e.target.value))}
           className={`w-full h-2 cursor-pointer ${danger ? 'accent-error' : 'accent-primary'}`} />
-        <div className="flex justify-between text-[11px] text-muted"><span>512 MB</span><span>{maxMB} MB</span></div>
+        <div className="flex justify-between text-[11px] text-muted"><span>512 MB</span><span>{gb(maxMB)}</span></div>
         <div className="flex items-center justify-between gap-4 mt-4">
           <p className={`m-0 text-sm ${danger ? 'text-error-soft' : 'text-muted'}`}>
-            {tooLow ? s.memoryTooLow : tooHigh ? s.memoryTooHigh : fmt(s.memoryHint, { mb: defaultMB })}
+            {tooLow ? s.memoryTooLow : tooHigh ? s.memoryTooHigh : fmt(s.memoryHint, { mb: gb(defaultMB) })}
           </p>
-          {memory !== 0 && <Button variant="primary" size="sm" onClick={() => setMemory(0)}>{fmt(s.memoryDefault, { mb: defaultMB })}</Button>}
+          {memory !== 0 && <Button variant="primary" size="sm" onClick={() => setMemory(0)}>{fmt(s.memoryDefault, { mb: gb(defaultMB) })}</Button>}
         </div>
       </div>
       <details className="group">
@@ -89,7 +92,7 @@ export function LaunchFields({ form }: { form: LaunchForm }) {
   )
 }
 
-export default function SettingsTab({ inst }: { inst: Instance }) {
+export default function SettingsTab({ inst, onDelete }: { inst: Instance; onDelete: () => void }) {
   const { t } = useApp()
   const form = useLaunchForm(inst)
   const [note, setNote] = useState<string | null>(null)
@@ -114,6 +117,7 @@ export default function SettingsTab({ inst }: { inst: Instance }) {
         </div>
       </div>
       <Feedback error={error} note={note} onClearNote={() => setNote(null)} />
+      <DangerZone title={t.instance.deleteInstance} body={inst.running ? t.instance.deleteRunning : t.instance.confirmDelete} disabled={inst.running} onDelete={onDelete} />
     </div>
   )
 }
