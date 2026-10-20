@@ -14,6 +14,7 @@ import Markdown from '../utils/markdown'
 import { computeCompat } from '../utils/compat'
 import { messageOf } from '../utils/errors'
 import { useAddAction } from '../hooks/useAddAction'
+import { useDelayed } from '../hooks/useDelayed'
 import { ago } from '../utils/format'
 import type { ContentPlan, Instance, ProjectDetail as ProjectDetailData, SearchResult, VersionChoice } from '../api/types'
 
@@ -48,6 +49,8 @@ export default function ProjectDetail({ result, instanceId }: Props) {
     return () => { live = false }
   }, [result.id])
 
+  // A wait you would notice shows the loader for at least 450ms, and the page waits for it: no one-frame blink.
+  const waiting = useDelayed(!detail, 250, 450)
   const modpack = result.projectType === 'modpack'
   const datapack = result.projectType === 'datapack' // goes into a world: its own picker, no per-instance preview
   // Only what can really take it: the aggregate check sorts the candidates, the plan below is the precise answer.
@@ -83,8 +86,8 @@ export default function ProjectDetail({ result, instanceId }: Props) {
 
   return (
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
-      <AutoLoader active={!detail} label={t.common.loading} />
-      {detail && (
+      <AutoLoader active={!detail || waiting} label={t.common.loading} />
+      {detail && !waiting && (
         <>
           <header className="flex gap-6 items-start flex-wrap">
             <ProjectIcon url={detail.iconUrl} size={72} />
@@ -117,7 +120,8 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                       {candidates.map((c) => <option key={c.id} value={c.id}>{c.name}{c.server ? ` · ${t.nav.servers}` : ''}</option>)}
                     </Select>
                   )}
-                  <Button variant={installed ? 'idle' : 'primary'} disabled={installed || busy || preview?.status === 'error'} onClick={() => enqueue(inst.id, result)}>
+                  {/* Quiet until the plan says whether it is already in: never a blue Install that turns into Installed. */}
+                  <Button variant={preview?.status === 'ready' && !installed ? 'primary' : 'idle'} disabled={preview?.status !== 'ready' || installed || busy} onClick={() => enqueue(inst.id, result)}>
                     {busy && <Spinner size={12} />}
                     {installed ? t.detail.installed : busy ? t.search.adding : candidates.length > 1 ? t.detail.install : fmt(t.detail.installTo, { name: inst.name })}
                   </Button>

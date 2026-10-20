@@ -179,12 +179,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // switch (or a removal, whose instances and skins move to the active
   // profile) they are reloaded (skins follow `profile`) and the player lands
   // on the dashboard, since the page they were on may belong to the other profile.
+  // Everything is read first and set together, so the page changes once: never the new name over
+  // the old instances, or the new instances with the old face.
   const switchTo = useCallback(async (patch: Partial<Profile>) => {
-    const saved = await persistPrefs(patch)
-    if (saved) { setThemeState(saved.theme); setColorsState(saved.colors); setLanguageState(saved.language) }
-    await refreshInstances()
+    if (!profile) return
+    const saved = await api.SaveProfile({ ...profile, ...patch })
+    const [i, s, k] = await Promise.all([api.ListInstances(), api.ListServers(), api.ListSkins()])
+    setProfile(saved); setThemeState(saved.theme); setColorsState(saved.colors); setLanguageState(saved.language)
+    setInstances(i); setServers(s); setSkins(k)
     go({ name: 'dashboard' })
-  }, [persistPrefs, refreshInstances, go])
+  }, [profile, go])
   const setNickname = useCallback((name: string, prefs?: { language: Language; theme: Theme; colors: CustomColors }) => switchTo({ nickname: name, nicknames: [name, ...(profile?.nicknames ?? [])], ...prefs }), [switchTo, profile])
   const removeNickname = useCallback((name: string) => {
     const rest = (profile?.nicknames ?? []).filter((n) => n !== name)
