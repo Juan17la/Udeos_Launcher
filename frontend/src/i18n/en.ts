@@ -1,7 +1,7 @@
 const en = {
   app: { name: 'Udeos Launcher' },
   nav: {
-    dashboard: 'Instances', servers: 'Servers', skins: 'Skins', search: 'Addons', newInstance: 'New Instance', privacy: 'Privacy & Terms',
+    dashboard: 'Instances', servers: 'Servers', skins: 'Skins', search: 'Addons', newInstance: 'New Instance', privacy: 'Privacy & Terms', collapse: 'Collapse sidebar', expand: 'Expand sidebar',
     theme: 'Theme',
     addProfile: 'Add profile', removeProfile: 'Remove profile',
   },

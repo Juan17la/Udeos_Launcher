@@ -17,7 +17,7 @@ export default function ThemePicker({ theme, colors, onTheme, onColors }: { them
   const order: Theme[] = ['light', 'dark', 'custom']
   // Each card previews the real theme: canvas, a sidebar-like panel and the accent.
   const swatch: Record<Theme, { bg: string; panel: string; accent: string }> = {
-    dark: { bg: '#05070D', panel: '#151C2B', accent: '#336CEB' },
+    dark: { bg: '#0E1423', panel: '#1F293C', accent: '#336CEB' },
     light: { bg: '#EEF3FC', panel: '#FFFFFF', accent: '#2563EB' },
     custom: { bg: colors.background, panel: colors.panel, accent: colors.primary },
   }

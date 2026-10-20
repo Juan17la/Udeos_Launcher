@@ -45,6 +45,8 @@
   --color-idle: var(--color-idle);
   --color-idle-hover: var(--color-idle-hover);
   --color-on-primary: var(--color-on-primary);
+  --color-feature: var(--color-feature);
+  --color-on-feature: var(--color-on-feature);
   --color-on-secondary: var(--color-on-secondary);
   --color-on-idle: var(--color-on-idle);
   --color-bg: var(--color-bg);
@@ -82,23 +84,25 @@
 /* ── Dark: the reference theme ───────────────────────────────────────────── */
 :root, :root[data-theme='dark'] {
   color-scheme: dark;
-  --color-bg: #05070D;               /* night sky, not pure black */
-  --color-panel: #0C111C;
-  --color-panel-2: #151C2B;
-  --color-line: rgba(150, 180, 255, 0.12);
+  --color-bg: #0E1423;               /* deep night blue: dark, never black */
+  --color-panel: #161E2E;
+  --color-panel-2: #1F293C;
+  --color-line: rgba(150, 180, 255, 0.13);
   --color-primary: #336CEB;          /* blue: Play, selected, progress (white on it passes AA) */
   --color-primary-hover: #4E86F8;    /* also the readable blue for small text on dark */
   --color-on-primary: #FFFFFF;
-  --color-secondary: #1B2335;
-  --color-secondary-hover: #253049;
+  --color-feature: #2B4F9E;          /* the accent, muted: the last played card */
+  --color-on-feature: #FFFFFF;
+  --color-secondary: #232D43;
+  --color-secondary-hover: #2D3953;
   --color-on-secondary: #EDF1FA;
-  --color-idle: #161D2C;
-  --color-idle-hover: #20293C;
+  --color-idle: #1D2638;
+  --color-idle-hover: #27324A;
   --color-on-idle: #E4E9F3;
-  --color-tag-gray: #1F2738;
-  --color-green-soft: #1C3A22;
+  --color-tag-gray: #27324A;
+  --color-green-soft: #1F4127;
   --color-green: #5BE38A;
-  --color-gold-soft: #3B311B;
+  --color-gold-soft: #43381E;
   --color-gold: #F2B63D;
   --color-gold-deep: #D99A22;
   --color-ink: #E3E8F2;
@@ -106,15 +110,15 @@
   --color-muted: #8E98AE;
   --color-error: #E5566B;
   --color-error-soft: #FF8794;
-  --color-glass: #0E1422;
-  --color-glass-border: rgba(150, 180, 255, 0.14);
-  --shadow-neu: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 8px 20px -14px rgba(0, 0, 0, 0.7);
+  --color-glass: #18202F;
+  --color-glass-border: rgba(150, 180, 255, 0.15);
+  --shadow-neu: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 8px 20px -14px rgba(0, 0, 0, 0.6);
   --shadow-neu-inset: inset 0 0 0 1px rgba(150, 180, 255, 0.12);
   --shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 6px 16px -8px rgba(51, 108, 235, 0.5);
   --shadow-secondary: 0 0 0 1px rgba(150, 180, 255, 0.14);
   --shadow-pop: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 18px 40px -12px rgba(0, 0, 0, 0.75);
   --decor-glow: none;
-  --decor-opacity: 0.3;
+  --decor-opacity: 0.26;
 }
 
 /* ── Light: cool sky paper, the same blue one step deeper ───────────────── */
@@ -127,6 +131,8 @@
   --color-primary: #2563EB;
   --color-primary-hover: #1D4ED8;
   --color-on-primary: #FFFFFF;
+  --color-feature: #2A55B8;
+  --color-on-feature: #FFFFFF;
   --color-secondary: #E2E9F6;
   --color-secondary-hover: #D5DEEF;
   --color-on-secondary: #121A2B;
@@ -158,13 +164,19 @@
 /* ── Custom: the player's own colours; utils/theme.ts sets every variable above inline. ── */
 
 *, *::before, *::after { box-sizing: border-box; }
-/* The sidebar is a fixed column; below 1000px it folds to an icon rail. --nav-h
-   stays for pages sized against a top bar; there is none now. */
+/* The sidebar is a fixed column; it folds to an icon rail below 1000px, or when the
+   player squeezes it (html[data-rail], components/Sidebar). The `rail:` variant styles
+   both cases. --nav-h stays for pages sized against a top bar; there is none now. */
 :root { --nav-h: 0px; --side-w: 232px; }
 @media (max-width: 1000px) { :root { --side-w: 68px; } }
+:root[data-rail] { --side-w: 68px; }
+@custom-variant rail {
+  @media (max-width: 1000px) { @slot; }
+  :root[data-rail] & { @slot; }
+}
 html, body, #root { height: 100vh; overflow: hidden; }
 /* Backdrop: two accent glows on the body (static gradients, no blur filter), and the
-   two faint items of ui/Backdrop (sidebar middle) in a fixed layer above it. #root stays transparent and
+   faint items of ui/Backdrop (sidebar middle and the page's open space) in a fixed layer above it. #root stays transparent and
    creates no stacking context, so z-index -1 puts the layer behind every page. Every
    glow is mixed from the theme's own colours, so personalised themes get their tint. */
 body {
@@ -263,11 +275,30 @@ input, textarea { caret-color: var(--color-primary); }
 /* ── Surfaces: look only, no layout, so the caller writes its own flex/gap/padding. ── */
 /* Panel: a step lighter than the canvas with a hairline. Cards, forms, side panels.
    `panel-hover` brightens a clickable card's fill and edge; it never moves it. */
-@utility panel {
-  @apply rounded-lg bg-panel shadow-neu transition-[background-color,box-shadow];
-  background-image: linear-gradient(180deg, color-mix(in srgb, var(--color-primary) 7%, transparent), transparent 120px);
-}
+@utility panel { @apply rounded-lg bg-panel shadow-neu transition-[background-color,box-shadow]; }
 @utility panel-hover { @apply hover:bg-panel-2 hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-primary)_55%,transparent),0_10px_24px_-14px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]; }
+/* Feature: the one card that should be found first (the instance played last). A flat
+   fill of the muted accent (--color-feature), no wash and no glow: a different tone, not a
+   brighter panel. Text on it is on-feature (set by the caller on its content, so loaders and
+   chips inside keep their own colours); tags turn into translucent on-feature pills. */
+@utility panel-feature {
+  @apply rounded-lg bg-feature shadow-neu transition-[background-color];
+  &:hover { background-color: color-mix(in srgb, var(--color-feature) 88%, #000); }
+  & .tag { background-color: color-mix(in srgb, var(--color-on-feature) 18%, transparent); color: var(--color-on-feature); }
+}
+/* Content standing on panel-feature: text, muted text and hairlines re-pointed at
+   on-feature, the live green at its bright value (light theme's deep green sinks into the
+   blue), and a progress bar's accent fill turned on-feature so it shows on the blue.
+   Put it on the content blocks, not the card, so opaque chips inside (launch strip,
+   Playing, a Stop button) keep the page's own colours. */
+@utility on-feature {
+  --color-text: var(--color-on-feature);
+  --color-muted: color-mix(in srgb, var(--color-on-feature) 80%, var(--color-feature));
+  --shadow-neu: inset 0 0 0 1px color-mix(in srgb, var(--color-on-feature) 30%, transparent);
+  --color-green: #5BE38A;
+  color: var(--color-text);
+  & [role=progressbar] > .bg-primary { background-color: var(--color-on-feature); }
+}
 /* Glass keeps its name for dialogs, popovers and notices; it is an opaque raised sheet. */
 @utility glass { @apply rounded-xl bg-glass shadow-glass; }
 /* Tag: add the fill: bg-tag-gray (neutral metadata), bg-green-soft (version),

@@ -40,11 +40,13 @@ export function customVars(c: CustomColors): Record<string, string> {
   const hover = (f: string) => mix(f, luminance(f) > 0.5 ? '#000000' : '#FFFFFF', 0.12)
   const dark = isDark(c.background)
   const tag = (f: string) => (dark ? mix(f, c.background, 0.45) : mix(f, '#FFFFFF', 0.72))
+  const feature = mix(c.primary, dark ? c.background : '#000000', 0.25)
   return {
     '--color-bg': c.background,
     '--color-panel': c.panel,
     '--color-panel-2': mix(c.panel, text, 0.08),
     '--color-primary': c.primary, '--color-primary-hover': hover(c.primary), '--color-on-primary': readableOn(c.primary),
+    '--color-feature': feature, '--color-on-feature': readableOn(feature),
     '--color-secondary': c.secondary, '--color-secondary-hover': hover(c.secondary), '--color-on-secondary': readableOn(c.secondary),
     '--color-idle': c.third, '--color-idle-hover': hover(c.third), '--color-on-idle': readableOn(c.third),
     // Tags, loader labels and the loading ring follow the palette: tints of third, primary and secondary,

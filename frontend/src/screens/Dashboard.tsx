@@ -54,9 +54,9 @@ const counts = (inst: Instance, t: ReturnType<typeof useApp>['t']) => {
   return [n(inst.counts.mods, d.mod, d.mods), n(inst.counts.resourcePacks, d.pack, d.packs), n(inst.counts.worlds, d.world, d.worlds)].filter(Boolean) as string[]
 }
 
-/** The instance played last, first in the grid and two cards tall: everything worth a
- *  glance before jumping back in (when, how long, what is in it) and the screen's one
- *  solid Play. The card itself opens the instance, like the others. */
+/** The instance played last, first in the grid and two cards tall, on a flat fill of
+ *  the muted accent (tokens.css panel-feature) with an inverted Play: everything worth a glance before jumping back in (when, how long, what is in it) and
+ *  the screen's one solid Play. The card itself opens the instance, like the others. */
 function LastCard({ inst }: { inst: Instance }) {
   const { t, language, go } = useApp()
   const open = () => go({ name: 'instance', id: inst.id })
@@ -68,26 +68,26 @@ function LastCard({ inst }: { inst: Instance }) {
     [t.instance.tabs.worlds, inst.counts.worlds, 'grass_block_side'],
   ]
   return (
-    <div className="reveal panel panel-hover relative row-span-2 flex flex-col gap-5 p-6 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_40%,transparent),var(--shadow-neu)]">
+    <div className="reveal panel-feature relative row-span-2 flex flex-col gap-5 p-6">
       <CardLink label={`${inst.name}, ${inst.version} ${inst.loaderLabel}`} title={t.dashboard.openInstance} onClick={open} />
-      <div className="relative flex items-center gap-4 pointer-events-none">
-        <span className="flex-none rounded-xl p-2 bg-panel-2"><InstanceIcon inst={inst} size={56} /></span>
+      <div className="relative flex items-center gap-4 text-on-feature pointer-events-none">
+        <span className="flex-none rounded-xl p-2 bg-on-feature/15"><InstanceIcon inst={inst} size={56} /></span>
         <div className="flex-1 min-w-0 flex flex-col gap-2">
           <div className="text-xl font-extrabold leading-[1.15] tracking-tight line-clamp-2 break-words" title={inst.name}>{inst.name}</div>
           <InstanceTags inst={inst} className="flex-wrap" />
         </div>
       </div>
-      <dl className="relative m-0 flex flex-col gap-2 pointer-events-none">
+      <dl className="relative m-0 flex flex-col gap-2 text-on-feature pointer-events-none">
         {stats.map(([label, value, icon]) => (
           <div key={label} className="flex items-center gap-2.5 text-sm">
             <PixelIcon name={icon} size={16} />
-            <dt className="flex-1 min-w-0 truncate text-muted">{label}</dt>
+            <dt className="flex-1 min-w-0 truncate">{label}</dt>
             <dd className="m-0 font-bold tabular-nums">{value}</dd>
           </div>
         ))}
       </dl>
       <div className="relative flex mt-auto">
-        <PlayButton inst={inst} />
+        <PlayButton inst={inst} inverse />
       </div>
     </div>
   )

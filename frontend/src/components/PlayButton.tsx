@@ -11,15 +11,16 @@ import type { Instance } from '../api/types'
 /** Play for one instance. While this instance is being prepared it becomes the
  *  launch strip (phase, percentage, bar, Cancel); while it runs, a "Playing"
  *  chip with the time and Close game. Locked while another instance is preparing.
- *  `quiet`: a neutral button with a blue triangle, for the many cards under the one main Play. */
-export default function PlayButton({ inst, size = 'md', className = '', compact, quiet }: { inst: Instance; size?: 'md' | 'lg'; className?: string; compact?: boolean; quiet?: boolean }) {
+ *  `quiet`: a neutral button with a blue triangle, for the many cards under the one main Play.
+ *  `inverse`: the main Play standing on an accent surface (the last played card). */
+export default function PlayButton({ inst, size = 'md', className = '', compact, quiet, inverse }: { inst: Instance; size?: 'md' | 'lg'; className?: string; compact?: boolean; quiet?: boolean; inverse?: boolean }) {
   const { t } = useApp()
   const { play, launch } = useLaunch()
   const busy = launch.status === 'preparing'
   if (busy && launch.instanceId === inst.id) return <LaunchStrip id={inst.id} compact={compact} className={`flex-1 ${className}`} />
   if (inst.running) return <Playing inst={inst} size={size} className={className} />
   return (
-    <Button variant={quiet ? 'secondary' : 'primary'} size={size} block className={className} disabled={busy} onClick={() => play(inst.id)}>
+    <Button variant={quiet ? 'secondary' : inverse ? 'inverse' : 'primary'} size={size} block className={className} disabled={busy} onClick={() => play(inst.id)}>
       <span className={`flex ${quiet ? 'text-primary' : ''}`}><Play size={size === 'lg' ? 15 : 12} /></span>{t.common.play}
     </Button>
   )

@@ -6,8 +6,9 @@ import { Spinner } from './Loader'
  *  secondary: raised neutral with a hairline: Manage, Open
  *  idle:      quiet neutral fill, for anything unselected
  *  danger:    destructive actions
- *  ghost:     hairline outline, no fill */
-export type ButtonVariant = 'primary' | 'secondary' | 'idle' | 'danger' | 'ghost'
+ *  ghost:     hairline outline, no fill
+ *  inverse:   the main action on an accent surface (panel-feature): on-primary fill, accent text */
+export type ButtonVariant = 'primary' | 'secondary' | 'idle' | 'danger' | 'ghost' | 'inverse'
 export type ButtonSize = 'sm' | 'md' | 'lg'
 
 type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -35,6 +36,7 @@ const VARIANT: Record<ButtonVariant, string> = {
   idle: 'bg-idle text-on-idle hover:bg-idle-hover',
   danger: 'bg-error/15 text-error-soft hover:bg-error hover:text-white shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-error)_45%,transparent)]',
   ghost: 'bg-transparent text-text shadow-neu hover:bg-idle',
+  inverse: 'bg-on-primary text-primary hover:bg-on-primary/88 shadow-neu',
 }
 
 /* No transform on hover and no permanent layer: a page of cards has dozens of

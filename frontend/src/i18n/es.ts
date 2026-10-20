@@ -3,7 +3,7 @@ import type { Dict } from './en'
 const es: Dict = {
   app: { name: 'Udeos Launcher' },
   nav: {
-    dashboard: 'Instancias', servers: 'Servidores', skins: 'Skins', search: 'Complementos', newInstance: 'Nueva instancia', privacy: 'Privacidad y términos',
+    dashboard: 'Instancias', servers: 'Servidores', skins: 'Skins', search: 'Complementos', newInstance: 'Nueva instancia', privacy: 'Privacidad y términos', collapse: 'Contraer barra lateral', expand: 'Expandir barra lateral',
     addProfile: 'Añadir perfil', removeProfile: 'Quitar perfil',
     theme: 'Tema',
   },

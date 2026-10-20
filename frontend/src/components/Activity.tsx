@@ -93,15 +93,15 @@ export default function Activity() {
   return (
     <div className="relative" ref={root}>
       <button type="button" aria-expanded={open} title={t.activity.title} onClick={() => { setOpen((v) => !v); setStrip(null) }}
-        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-medium text-left transition-colors duration-150 max-[1000px]:justify-center max-[1000px]:px-0 ${open ? 'bg-idle text-text' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
+        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-medium text-left transition-colors duration-150 rail:justify-center rail:px-0 ${open ? 'bg-idle text-text' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
         <span className={`relative flex ${busy ? 'text-primary motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]' : failed.length ? 'text-error-soft' : ''}`}>
           {busy ? <Spinner size={18} /> : failed.length ? <X size={16} /> : <Pulse />}
           {!busy && live.length > 0 && <span aria-hidden className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gold ring-2 ring-bg motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]" />}
         </span>
-        <span className="flex-1 min-w-0 truncate max-[1000px]:hidden">{t.activity.title}</span>
-        <span className={`font-mono text-xs tabular-nums max-[1000px]:hidden ${busy ? 'text-primary-hover' : ''}`}>{busy ? (ring > 0 ? `${ring}%` : count) : live.length || (items > 0 ? (failed.length || '') : '')}</span>
+        <span className="flex-1 min-w-0 truncate rail:hidden">{t.activity.title}</span>
+        <span className={`font-mono text-xs tabular-nums rail:hidden ${busy ? 'text-primary-hover' : ''}`}>{busy ? (ring > 0 ? `${ring}%` : count) : live.length || (items > 0 ? (failed.length || '') : '')}</span>
       </button>
-      {busy && <div className="px-3 pt-1.5 pb-1 max-[1000px]:hidden"><ProgressBar value={ring > 0 ? ring : undefined} /></div>}
+      {busy && <div className="px-3 pt-1.5 pb-1 rail:hidden"><ProgressBar value={ring > 0 ? ring : undefined} /></div>}
 
       {open && (
         <div role="region" aria-label={t.activity.title} className="glass absolute bottom-0 left-[calc(100%+12px)] z-9001 w-85 max-w-[calc(100vw-var(--side-w)-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto flex flex-col gap-3 p-4 animate-[dialog-fade_0.2s_var(--ease-out)]">

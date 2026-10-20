@@ -124,3 +124,7 @@ export const List = ({ size = 16 }: P) => (
 export const Tiles = ({ size = 16 }: P) => (
   <svg {...base(size, 2)}><rect x="4" y="4" width="6.5" height="6.5" rx="1.5" /><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" /><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" /><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5" /></svg>
 )
+// A window with its left column: collapse / expand the sidebar.
+export const SidebarIcon = ({ size = 16 }: P) => (
+  <svg {...base(size, 2)}><rect x="3" y="4" width="18" height="16" rx="3" /><path d="M9 4v16" /></svg>
+)
