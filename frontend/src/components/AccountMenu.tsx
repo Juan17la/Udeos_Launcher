@@ -33,13 +33,13 @@ export default function AccountMenu() {
   return (
     <div className="relative flex-none" ref={ref}>
       <button type="button" title={nickname} aria-expanded={open} onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-3 w-full h-12 px-2 rounded-md border-0 bg-transparent text-text cursor-pointer text-left transition-colors duration-150 hover:bg-panel-2 max-[1000px]:justify-center">
+        className="flex items-center gap-3 w-full h-12 px-2 rounded-md border-0 bg-transparent text-text cursor-pointer text-left transition-colors duration-150 hover:bg-panel-2 rail:justify-center">
         <span className="flex-none grid place-items-center w-8 h-8 rounded-md bg-idle"><SkinFace png={face} size={22} /></span>
-        <span className="flex-1 min-w-0 flex flex-col leading-tight max-[1000px]:hidden">
+        <span className="flex-1 min-w-0 flex flex-col leading-tight rail:hidden">
           <span className="truncate text-sm font-semibold">{nickname || '?'}</span>
           <span className="text-[11px] text-muted">{t.profiles.switch}</span>
         </span>
-        <span className="text-muted max-[1000px]:hidden"><ChevronDown size={14} /></span>
+        <span className="text-muted rail:hidden"><ChevronDown size={14} /></span>
       </button>
       {open && (
         <div role="menu" className="glass absolute bottom-[calc(100%+8px)] left-0 z-9001 w-72 flex flex-col gap-1 p-2 animate-[dialog-fade_0.2s_var(--ease-out)]">
