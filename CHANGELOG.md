@@ -5,6 +5,32 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.1.0-beta] - 2026-10-20
+
+### New
+
+- **Last played panel:** the instance you played last has its own full-height
+  panel on the right of the library, with when you played, play time, what is
+  in it, Play, Manage and Folder.
+- **Collapsible sidebar:** it folds into a bar of icons and remembers it.
+- **Live servers stand out:** servers that are running, starting or stopping
+  get the accent tone, with a green online dot.
+
+### Changes
+
+- The dark theme is a deep night blue instead of near black.
+- More faint Minecraft items across every page, a bit bigger.
+- The library shows three columns of cards on a full screen and keeps two
+  until the window is really narrow; tags wrap instead of being cut off.
+- Less space around the library and the last played panel.
+
+### Fixes
+
+- Switching profiles changes the page once, instead of showing the new name
+  over the old instances first.
+- Opening a mod's details no longer blinks a loading message, and Install no
+  longer shows as blue for a moment before turning into Installed.
+
 ## [3.0.0-beta] - 2026-10-19
 
 ### New
