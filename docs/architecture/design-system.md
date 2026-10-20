@@ -11,8 +11,9 @@ a blue-tinted hairline and a low soft shadow. One blue accent carries every
 primary action; the Minecraft textures supply the rest of the colour. The page
 stays clean; the Minecraft flavour lives in moments (an item dropping into an
 empty list, the hopping-block loader, the icon dropping in on the Create page,
-the live Playing chip, "GG" when a game closes). Two faint items sit in the
-sidebar's empty middle and a grass strip closes it.
+the live Playing chip, "GG" when a game closes). Faint items are scattered on the
+canvas (the sidebar's empty middle and the page's open space, behind the
+cards) and a grass strip closes the sidebar.
 Dark is the reference theme. Light (cool sky paper, the same blue one step
 deeper) and Custom (a light or dark base plus one accent, everything else
 derived with contrast checked) use the same tokens with other values.
@@ -27,7 +28,9 @@ derived with contrast checked) use the same tokens with other values.
 - **Decoration.** Item sprites only (no full block textures, they read as
   missing images), pixel items beside page headings, instance stats and empty
   states. Decoration never sits behind a label.
-- **Surfaces.** `panel` (card, form, side panel), `glass` (dialog, popover,
+- **Surfaces.** `panel-feature` (the one card to find first: the instance
+  played last; a flat `--color-feature` fill (the muted accent), its Play is the `inverse` button; also every
+  server card that is up, starting or stopping; content on it goes in `on-feature`), `panel` (card, form, side panel), `glass` (dialog, popover,
   notice; an opaque raised sheet, no blur), `tag` and `skeleton` are utility
   classes. Panels inside panels use `bg-panel-2`.
 - **One primary action per view.** `primary` is the solid accent, `secondary`
@@ -50,7 +53,8 @@ derived with contrast checked) use the same tokens with other values.
   the hops, drops and nudges.
 - **Shell.** A left sidebar (brand, the contextual New button, Instances,
   Servers, Skins, Addons, then Activity and the profile at the bottom). Under
-  1000px it folds to an icon rail. A page that has a parent shows a Back row
+  1000px, or when the player collapses it (Collapse sidebar, remembered in
+  `udeos.sideRail`), it folds to an icon rail; style both with the `rail:` variant. A page that has a parent shows a Back row
   over its content; top-level pages do not.
 
 ## Waiting
@@ -92,6 +96,6 @@ Every wait shows where it happens.
 | Launch strip | `components/LaunchStrip.tsx`, fed by `hooks/useLaunchProgress.ts` |
 | Activity tray | `components/Activity.tsx` |
 | Playing chip, Close game | `components/PlayButton.tsx`, `StopGame` in `app_play.go` |
-| Sidebar items | `frontend/src/ui/Backdrop.tsx`, `.backdrop` in tokens.css |
+| Canvas items | `frontend/src/ui/Backdrop.tsx`, `.backdrop` in tokens.css |
 | Card click target | `frontend/src/ui/CardLink.tsx` |
 | Empty states, loaders | `ui/Empty.tsx`, `ui/Loader.tsx` (`BlockHop`) |
