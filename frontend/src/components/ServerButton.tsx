@@ -69,7 +69,7 @@ export function ServerStatus({ server, className = '' }: { server: Server; class
   const { t } = useApp()
   const s = server.state
   const [dot, label] = s.stopping ? ['bg-gold animate-pulse', t.servers.stopping]
-    : s.ready ? ['bg-primary', `${t.servers.status.online} · ${fmt(t.servers.playersOf, { n: s.players.length, max: server.maxPlayers })}`]
+    : s.ready ? ['bg-green', `${t.servers.status.online} · ${fmt(t.servers.playersOf, { n: s.players.length, max: server.maxPlayers })}`]
     : server.running ? ['bg-gold animate-pulse', t.servers.status.starting] : ['bg-muted', t.servers.status.stopped]
   return <span className={`flex items-center gap-2 min-w-0 text-xs ${className}`}><span className={`flex-none w-2 h-2 rounded-sm ${dot}`} /><span className="truncate" title={label}>{label}</span></span>
 }

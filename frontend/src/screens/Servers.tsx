@@ -25,26 +25,30 @@ export default function Servers() {
 }
 
 /** One server: icon, name, version/loader, status, the address to share and a quiet
- *  Start. The whole card opens the server (CardLink). */
+ *  Start. The whole card opens the server (CardLink). A server that is up, coming up or
+ *  shutting down stands on the feature tone (tokens.css panel-feature), like the
+ *  instance played last, so the live ones are found at a glance. */
 function ServerCard({ server }: { server: Server }) {
   const { t, go } = useApp()
   const open = () => go({ name: 'server', id: server.id })
   const address = shareAddress(server)
+  const active = server.running || server.state.stopping
+  const on = active ? 'on-feature' : ''
   return (
-    <div className="panel panel-hover relative flex flex-col gap-4 p-5">
+    <div className={`${active ? 'panel-feature' : 'panel panel-hover'} relative flex flex-col gap-4 p-5`}>
       <CardLink label={`${server.name}, ${server.version} ${server.loaderLabel}`} title={t.servers.manage} onClick={open} />
-      <div className="relative flex items-center gap-4 pointer-events-none">
+      <div className={`relative flex items-center gap-4 pointer-events-none ${on}`}>
         <InstanceIcon inst={server} size={44} />
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="font-bold text-base leading-[1.2] truncate">{server.name}</div>
           <InstanceTags inst={server} short />
         </div>
       </div>
-      <div className="relative flex flex-col gap-4 pointer-events-none">
+      <div className={`relative flex flex-col gap-4 pointer-events-none ${on}`}>
         <ServerStatus server={server} className="text-muted" />
         <ServerProgress server={server} />
       </div>
-      <div className="relative pointer-events-none [&_button]:pointer-events-auto">{address ? <CopyAddress compact label={t.servers.addressKinds[address.kind]} address={address.address} /> : <div className="h-9 pointer-events-none" />}</div>
+      <div className={`relative pointer-events-none [&_button]:pointer-events-auto ${on}`}>{address ? <CopyAddress compact label={t.servers.addressKinds[address.kind]} address={address.address} /> : <div className="h-9 pointer-events-none" />}</div>
       <div className="relative flex mt-auto">
         <ServerButton server={server} quiet />
       </div>
