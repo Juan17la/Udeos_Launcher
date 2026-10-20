@@ -44,7 +44,7 @@ export default function ProfileDialog({ onClose }: { onClose: () => void }) {
                   <SkinFace png={faceOf(n)} size={24} />
                   <span className="flex-1 min-w-0 flex flex-col">
                     <span className="font-bold truncate">{n}</span>
-                    <span className={`text-xs ${active ? 'text-on-primary/80' : 'text-muted'}`}>{fmt(t.profiles.instances, { n: counts[n] ?? 0 })}</span>
+                    <span className={`text-xs ${active ? 'text-on-primary/80' : 'text-muted'}`}>{n in counts ? fmt(t.profiles.instances, { n: counts[n] }) : '\u00a0'}</span>
                   </span>
                   {active && <span className="text-xs font-bold">{t.profiles.active}</span>}
                 </button>
