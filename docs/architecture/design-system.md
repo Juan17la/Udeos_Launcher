@@ -44,8 +44,9 @@ derived with contrast checked) use the same tokens with other values.
   Settings, away from Play. Addons folds version, loader, sort and topics
   behind one Filters button; long mod lists start as rows with a filter box,
   and remove shows on hover or focus.
-- **Motion.** Exponential ease-out, 160ms for states. No page or card
-  entrance: it replayed on every page change and read as a flicker. Motion is
+- **Motion.** Exponential ease-out, 160ms for states. No page, card, dialog or popover
+  entrance: it replayed on every page change, and WebKitGTK flashed twice on a
+  surface's first fade. Motion is
   for what needs noticing: the hopping block loader, an item dropping into an
   empty list, an error's one nudge, a pulse while something runs. Hover is
   colour only: no transforms on cards or buttons, no `will-change`, because a
