@@ -48,11 +48,13 @@ func main() {
 			EnableFileDrop: true,
 		},
 		// With options.Linux left nil, Wails forces WebviewGpuPolicyNever and
-		// WebKitGTK rasterizes every frame on the CPU. OnDemand lets it
-		// composite on the GPU when content asks for it (transforms, scroll).
+		// WebKitGTK rasterizes every frame on the CPU. Always keeps it in GPU
+		// compositing mode for good: OnDemand entered and left that mode each
+		// time an animation started or stopped (a dialog opening, a page or
+		// list loading), and every switch flashed the whole window.
 		// Switch to WebviewGpuPolicyNever if a driver shows artefacts.
 		Linux: &linux.Options{
-			WebviewGpuPolicy: linux.WebviewGpuPolicyOnDemand,
+			WebviewGpuPolicy: linux.WebviewGpuPolicyAlways,
 		},
 	})
 	if err != nil {
