@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Empty from '../../ui/Empty'
-import { List, Plus, Search as SearchIcon, Tiles, X } from '../../ui/icons'
+import { List, Search as SearchIcon, Tiles, X } from '../../ui/icons'
 import CardLink from '../../ui/CardLink'
 import { Input } from '../../ui/Field'
 import Button from '../../ui/Button'
@@ -14,14 +14,14 @@ import { FILE_KINDS, FileKind, datapackSource } from '../../utils/instanceConten
 import { bytes } from '../../utils/format'
 import { fmt } from '../../i18n/format'
 import StatusMessage from '../../ui/StatusMessage'
-import { DropArea, Feedback, FolderLink, Toolbar } from './TabParts'
+import { AddMenu, DropArea, Feedback, FolderLink, Toolbar } from './TabParts'
 import type { ContentEntry, FileEntry } from '../../api/types'
 
 type View = 'card' | 'compact'
 const VIEW_KEY = 'files:view'
 
-/** Mods, shader packs and resource packs: one toolbar (Add from Addons, Ask AI,
- *  Browse; dropping a file anywhere on the tab works), the file list, Remove per row. Two views of the list: cards
+/** Mods, shader packs and resource packs: one toolbar (Add, a menu of Addons or
+ *  this device, and Ask AI; dropping a file anywhere on the tab works), the file list, Remove per row. Two views of the list: cards
  *  (default: icon, title, description and version from Modrinth) and
  *  compact rows (file name and size). Files added by hand have no Modrinth
  *  record, so their card is the file name alone. */
@@ -69,7 +69,7 @@ export default function FilesTab({ id, kind, world = '' }: { id: string; kind: F
       )}
       <SkeletonRows active={items === null} />
       {items?.length === 0 && (
-        <Empty icon={EMPTY_ICON[kind]} action={source.modrinth && <Button variant="primary" size="sm" onClick={() => go({ name: 'search', instanceId: id, type: source.modrinth })}><Plus size={13} /> {t.instance.add[kind]}</Button>}>
+        <Empty icon={EMPTY_ICON[kind]} action={<AddMenu id={id} kind={kind} onPick={pick} modrinth={source.modrinth} />}>
           {t.instance.empty[kind]}
         </Empty>
       )}
