@@ -11,7 +11,7 @@ export default function Dialog({ title, children, actions, onClose, width = 440 
   useEffect(() => { ref.current?.showModal() }, [])
   return (
     <dialog ref={ref} onCancel={onClose} onClick={(e) => { if (e.target === ref.current) onClose() }}
-      className="glass p-0 m-auto max-w-[calc(100%-2rem)] text-text animate-[dialog-fade_0.22s_var(--ease-out)] backdrop:bg-black/55"
+      className="glass p-0 m-auto max-w-[calc(100%-2rem)] text-text backdrop:bg-black/55"
       style={{ width }}>
       {/* The padding lives on an inner block so a click on it is not a click on the backdrop. */}
       <div className="flex flex-col gap-5 p-6">

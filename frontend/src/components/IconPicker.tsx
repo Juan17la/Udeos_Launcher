@@ -39,7 +39,7 @@ export default function IconPicker({ value, onChange, extra, inline }: Props) {
         <span className={`inline-flex transition-transform duration-150 ${open ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
       </button>
       {open && (
-        <div className={`max-h-56 overflow-y-auto p-3 animate-[dialog-fade_0.15s_ease-in-out] ${inline ? 'w-full rounded-md bg-panel-2 shadow-neu-inset' : 'glass absolute left-0 top-[calc(100%+8px)] z-30 w-[22rem] max-w-[calc(100vw-3rem)]'}`}>
+        <div className={`max-h-56 overflow-y-auto p-3 ${inline ? 'w-full rounded-md bg-panel-2 shadow-neu-inset' : 'glass absolute left-0 top-[calc(100%+8px)] z-30 w-[22rem] max-w-[calc(100vw-3rem)]'}`}>
           <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))' }}>
             {extra && <Cell selected={value === 'modpack'} title="Modpack" onClick={() => pick('modpack')}>{extra}</Cell>}
             {ICON_CHOICES.map((key) => (

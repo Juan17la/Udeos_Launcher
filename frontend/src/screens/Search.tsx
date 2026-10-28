@@ -67,7 +67,8 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
   const [topics, setTopics] = useState<string[]>([])
   const [moreTopics, setMoreTopics] = useState(false)
   const [filtersOpen, setFiltersOpen] = useState(false)
-  const [installed, setInstalled] = useState<Set<string>>(() => new Set())
+  // null until the instance's list is in, so the cards never show Add and then flip to Added.
+  const [installed, setInstalled] = useState<Set<string> | null>(() => (instanceId ? null : new Set()))
   const { add, dialog } = useAddAction(inst?.id, { gameVersion, loader })
   const [versions, setVersions] = useState<SearchGameVersion[] | null>(null)
   const [pageIndex, setPageIndex] = useState(init?.pageIndex ?? 0)
@@ -102,7 +103,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
   useEffect(() => {
     if (!inst) { setInstalled(new Set()); return }
     let live = true
-    api.ListInstalledProjects(inst.id).then((ids) => { if (live) setInstalled(new Set(ids)) }).catch(() => {})
+    api.ListInstalledProjects(inst.id).then((ids) => { if (live) setInstalled(new Set(ids)) }).catch(() => { if (live) setInstalled((s) => s ?? new Set()) })
     return () => { live = false }
   }, [inst?.id, finished]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -146,7 +147,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
   // Per-card state in instance mode: already there, or on its way.
   const stateOf = (r: SearchResult): 'added' | 'busy' | undefined => {
     if (!inst) return undefined
-    if (installed.has(r.id)) return 'added'
+    if (installed?.has(r.id)) return 'added'
     const job = jobs.find((j) => j.instanceId === inst.id && j.result.id === r.id)
     if (job?.status === 'done') return 'added'
     if (job?.status === 'queued' || job?.status === 'installing') return 'busy'
@@ -162,7 +163,13 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
     ...categories.map((c) => [topicName(c), () => setCategories(categories.filter((x) => x !== c))] as [string, () => void]),
   ]
   const activeFilters = active.length
-  const slow = useDelayed(loading, 250) // dim and skeletons only for a wait you would notice
+  // Skeleton cards from the first frame until the first answer (and, in an instance, its
+  // installed list) is in, held at least 400ms once shown so a quick answer does not flash them.
+  const waiting = !error && (!page || installed === null)
+  const skeletons = useDelayed(waiting, 0, 400) || waiting
+  // A later search keeps the old grid as it is (no dimming: an opacity change flickers in
+  // WebKitGTK) and says "Searching" in the count line once the wait is one you would notice.
+  const slow = useDelayed(loading, 250)
   const clearAll = () => { if (!inst) { setGameVersion(''); setLoader('') } setSortBy('relevance'); setCategories([]) }
 
   return (
@@ -206,7 +213,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
         </div>
       )}
       {filtersOpen && (
-      <div className="panel flex flex-col gap-4 p-4 -mt-2 animate-[dialog-fade_0.2s_var(--ease-out)]">
+      <div className="panel flex flex-col gap-4 p-4 -mt-2">
       <div className="flex gap-3 flex-wrap items-center">
         {!inst && (
           <>
@@ -244,24 +251,24 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
       )}
 
       {error && <ErrorMessage message={error} />}
-      {/* First load of a search: skeleton cards. A new search or page keeps the old grid, dimmed, until the answer
-          arrives: no loader block above it (it pushed the grid down and back up). The count line always holds its row. */}
-      <p className="m-0 h-5 text-[13px] text-muted">
-        {page && page.total > 0 && fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
+      {/* First load: skeleton cards. A new search or page keeps the old grid until the answer arrives, with
+          "Searching" in the count line (a loader block above the grid pushed it down and back up). The line always holds its row. */}
+      <p className="m-0 h-5 flex items-center gap-2 text-[13px] text-muted" role="status" aria-live="polite">
+        {skeletons ? null : slow ? <><Spinner size={12} />{t.search.searching}</> : page && page.total > 0 && fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
       </p>
-      {page?.results.length === 0 && <Empty icon="ender_eye">{t.search.empty}</Empty>}
+      {!skeletons && page?.results.length === 0 && <Empty icon="ender_eye">{t.search.empty}</Empty>}
 
-      <div className={`grid gap-6 transition-opacity duration-150 ease-in-out ${slow ? 'opacity-50' : ''}`} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
-        {page?.results.map((r) => (
+      <div className="grid gap-6" aria-busy={loading} style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))' }}>
+        {!skeletons && page?.results.map((r) => (
           <ResultCard key={r.id} result={r} state={stateOf(r)} onAdd={() => add(r)}
             onDetails={() => go({ name: 'detail', result: r, instanceId: inst?.id })} />
         ))}
-        {!page && slow && Array.from({ length: 6 }, (_, n) => <SkeletonCard key={n} />)}
+        {skeletons && Array.from({ length: 6 }, (_, n) => <SkeletonCard key={n} />)}
       </div>
 
       {dialog}
 
-      {pages > 1 && <Pager index={pageIndex} pages={pages} disabled={loading} onGo={goToPage} />}
+      {!skeletons && pages > 1 && <Pager index={pageIndex} pages={pages} disabled={loading} onGo={goToPage} />}
     </main>
   )
 }
@@ -289,7 +296,7 @@ function Pager({ index, pages, disabled, onGo }: { index: number; pages: number;
 /** A result card's shape while its search loads. */
 function SkeletonCard() {
   return (
-    <div className="panel flex flex-col gap-4 p-5 animate-[fade-in_0.3s_ease-out]" aria-hidden>
+    <div className="panel flex flex-col gap-4 p-5" aria-hidden>
       <div className="flex items-center gap-4">
         <div className="skeleton w-11 h-11 shrink-0" />
         <div className="flex-1 flex flex-col gap-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/2" /></div>

@@ -43,7 +43,7 @@ export default function Login({ adding = false }: { adding?: boolean }) {
 
   return (
     // <main> is the page scroller (see tokens.css); my-auto centres while it fits and scrolls from the top when it doesn't. Keyed by language like the other pages (App.tsx), but inside Login so the typed nickname survives.
-    <main key={language} className="flex flex-col items-center gap-6 px-6 py-10 relative animate-[page-in_0.3s_var(--ease-out)]">
+    <main key={language} className="flex flex-col items-center gap-6 px-6 py-10 relative">
       {/* Heading on the canvas, never inside the panel. */}
       <div className="relative z-1 flex flex-col items-center gap-4 mt-auto">
         <Logo size={64} />

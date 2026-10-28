@@ -49,7 +49,7 @@ export default function AutoLoader({ active: wanted, label, overlay, subtle }: {
   if (!active) return null
   if (subtle) {
     return (
-      <div className="flex items-center gap-2 text-[13px] text-muted animate-[fade-in_0.3s_ease-out]" role="status" aria-live="polite" aria-busy="true">
+      <div className="flex items-center gap-2 text-[13px] text-muted" role="status" aria-live="polite" aria-busy="true">
         <Spinner size={14} />
         {label && <span>{label}</span>}
       </div>
@@ -59,7 +59,7 @@ export default function AutoLoader({ active: wanted, label, overlay, subtle }: {
   if (overlay) {
     return (
       <div className="fixed inset-0 z-9000 grid place-items-center p-4 bg-bg/80" role="status" aria-live="polite" aria-busy="true">
-        <div className="flex flex-col items-center gap-4 animate-[fade-in_0.3s_ease-out]">
+        <div className="flex flex-col items-center gap-4">
           <BlockHop size={48} icon="ender_pearl" />
           {label && <span className="text-sm font-medium text-muted">{label}</span>}
         </div>
@@ -67,7 +67,7 @@ export default function AutoLoader({ active: wanted, label, overlay, subtle }: {
     )
   }
   const pill = (
-    <div className="glass inline-flex items-center gap-3 px-5 py-3 animate-[dialog-fade_0.2s_var(--ease-out)]" role="status" aria-live="polite" aria-busy="true">
+    <div className="glass inline-flex items-center gap-3 px-5 py-3" role="status" aria-live="polite" aria-busy="true">
       <BlockHop size={22} />
       {label && <span className="text-sm font-medium text-text whitespace-nowrap">{label}</span>}
     </div>
@@ -82,7 +82,7 @@ export function SkeletonRows({ active: wanted, n = 4, grid }: { active: boolean;
   const active = useDelayed(wanted)
   if (!active) return null
   return (
-    <div className={`animate-[fade-in_0.3s_ease-out] ${grid ? 'grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'flex flex-col gap-2'}`} role="status" aria-busy="true" aria-label="Loading">
+    <div className={` ${grid ? 'grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'flex flex-col gap-2'}`} role="status" aria-busy="true" aria-label="Loading">
       {Array.from({ length: n }, (_, i) => <div key={i} className={`skeleton ${grid ? 'aspect-16/10' : 'h-14'}`} style={{ animationDelay: `${i * 90}ms` }} />)}
     </div>
   )
