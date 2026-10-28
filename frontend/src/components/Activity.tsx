@@ -104,7 +104,7 @@ export default function Activity() {
       {busy && <div className="px-3 pt-1.5 pb-1 rail:hidden"><ProgressBar value={ring > 0 ? ring : undefined} /></div>}
 
       {open && (
-        <div role="region" aria-label={t.activity.title} className="glass absolute bottom-0 left-[calc(100%+12px)] z-9001 w-85 max-w-[calc(100vw-var(--side-w)-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto flex flex-col gap-3 p-4 animate-[dialog-fade_0.2s_var(--ease-out)]">
+        <div role="region" aria-label={t.activity.title} className="glass absolute bottom-0 left-[calc(100%+12px)] z-9001 w-85 max-w-[calc(100vw-var(--side-w)-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto flex flex-col gap-3 p-4">
           <div className="flex items-center justify-between gap-4">
             <span className="font-semibold text-sm">{t.activity.title} <span className="text-muted font-normal">{items > 0 ? `· ${label}` : ''}</span></span>
             <Button variant="ghost" size="sm" square aria-label={t.activity.hide} title={t.activity.hide} onClick={() => setOpen(false)}><X size={12} /></Button>

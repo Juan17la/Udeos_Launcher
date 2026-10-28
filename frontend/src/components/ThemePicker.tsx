@@ -39,7 +39,7 @@ export default function ThemePicker({ theme, colors, onTheme, onColors }: { them
         ))}
       </div>
       {theme === 'custom' && (
-        <div className="flex items-center gap-3 animate-[fade-in_0.2s_ease-out]">
+        <div className="flex items-center gap-3">
           <SegmentedControl aria-label={s.title} value={dark ? 'dark' : 'light'} onChange={(m) => onColors(paletteFrom(colors.primary, m === 'dark'))}
             options={[{ value: 'light', label: <Sun size={16} />, title: s.light }, { value: 'dark', label: <Moon size={16} />, title: s.dark }]} />
           <label title={s.accent} className="relative w-9 h-9 shrink-0 rounded-full overflow-hidden shadow-neu cursor-pointer">

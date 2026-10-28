@@ -19,14 +19,14 @@ type Props = {
   /** Tooltip and screen-reader name of the × (default "Close"; "Cancel" on a download). */
   dismissLabel?: string
   className?: string
-  /** No entrance, pulse or nudge: for messages that are re-shown, not new (the Activity list on every open). */
+  /** No pulse or nudge: for messages that are re-shown, not new (the Activity list on every open). */
   still?: boolean
 }
 
 export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, accent, onDismiss, dismissLabel = 'Close', className: cls, still }: Props) {
-  const className = cls ?? (still ? '' : 'animate-[dialog-fade_0.2s_var(--ease-out)]')
+  const className = cls ?? ''
   return (
-    <div role={kind === 'error' ? 'alert' : 'status'} style={kind === 'error' && !still ? { animation: 'dialog-fade 0.2s var(--ease-out), nudge 0.45s ease-out 0.15s' } : undefined}
+    <div role={kind === 'error' ? 'alert' : 'status'} style={kind === 'error' && !still ? { animation: 'nudge 0.45s ease-out' } : undefined}
       className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'shadow-[0_0_0_1px_var(--color-error),var(--shadow-pop)]' : ''} ${kind === 'success' && !still ? 'animate-[pulse-primary_0.9s_ease-out]' : ''}`}>
       <div className="flex items-start gap-3">
         {kind !== 'neutral' && (

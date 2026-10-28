@@ -42,7 +42,7 @@ export default function AccountMenu() {
         <span className="text-muted rail:hidden"><ChevronDown size={14} /></span>
       </button>
       {open && (
-        <div role="menu" className="glass absolute bottom-[calc(100%+8px)] left-0 z-9001 w-72 flex flex-col gap-1 p-2 animate-[dialog-fade_0.2s_var(--ease-out)]">
+        <div role="menu" className="glass absolute bottom-[calc(100%+8px)] left-0 z-9001 w-72 flex flex-col gap-1 p-2">
           <Button variant="idle" block className="justify-start bg-transparent" onClick={() => { setProfilesOpen(true); setOpen(false) }}>
             <User size={16} /> {t.profiles.switch}
           </Button>

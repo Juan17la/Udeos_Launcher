@@ -34,7 +34,7 @@ export default function LaunchStrip({ id, className = '', compact }: { id: strin
       </div>
       <ProgressBar value={pct} tone={note ? 'gold' : undefined} label={label} />
       {note && !compact && (
-        <p className="m-0 flex items-start gap-2 text-xs text-muted animate-[fade-in_0.3s_ease-out]">
+        <p className="m-0 flex items-start gap-2 text-xs text-muted">
           <span className="flex shrink-0 mt-px text-gold motion-safe:animate-[hourglass_2.4s_ease-in-out_infinite]"><Hourglass size={13} /></span>{note}
         </p>
       )}
