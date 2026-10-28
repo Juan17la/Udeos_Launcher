@@ -5,6 +5,23 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.2.0-beta] - 2026-10-28
+
+### New
+
+- **Add menu:** on the Mods, Resource packs, Shaders and Datapacks tabs, Add
+  opens a menu with Search in Addons or From my computer; the separate Browse
+  files button is gone.
+
+### Fixes
+
+- Linux: the webview stays in GPU compositing mode, so the window stops
+  flickering when dialogs open or pages load.
+- Dialogs, popovers, loaders and skeletons appear at once instead of fading
+  in, so they no longer flash the first time they open.
+- Addons: skeleton cards from the first frame, the old grid stays while a new
+  search runs, and cards no longer flip from Add to Added.
+
 ## [3.1.0-beta] - 2026-10-20
 
 ### New
