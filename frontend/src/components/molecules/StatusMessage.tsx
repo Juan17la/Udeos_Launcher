@@ -11,6 +11,8 @@ type Props = {
   kind?: 'neutral' | 'success' | 'error'
   headline: ReactNode
   detail?: ReactNode
+  /** What the message is about (a mod's or instance's icon), shown before the headline; on success it carries a small check. */
+  icon?: ReactNode
   aside?: ReactNode
   percent?: number
   onDismiss?: () => void
@@ -23,13 +25,18 @@ type Props = {
   still?: boolean
 }
 
-export default function StatusMessage({ kind = 'neutral', headline, detail, aside, percent, accent, onDismiss, dismissLabel = 'Close', className: cls, still }: Props) {
+export default function StatusMessage({ kind = 'neutral', headline, detail, icon, aside, percent, accent, onDismiss, dismissLabel = 'Close', className: cls, still }: Props) {
   const className = cls ?? ''
   return (
     <div role={kind === 'error' ? 'alert' : 'status'} style={kind === 'error' && !still ? { animation: 'nudge 0.45s ease-out' } : undefined}
       className={`glass flex flex-col gap-3 px-4 py-3 ${className} ${kind === 'error' ? 'shadow-[0_0_0_1px_var(--color-error),var(--shadow-pop)]' : ''} ${kind === 'success' && !still ? 'animate-[pulse-primary_0.9s_ease-out]' : ''}`}>
       <div className="flex items-start gap-3">
-        {kind !== 'neutral' && (
+        {icon && kind !== 'error' ? (
+          <span className="relative flex-none flex">
+            {icon}
+            {kind === 'success' && <span className="absolute -bottom-1 -right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-on-primary ring-2 ring-panel"><Check size={9} /></span>}
+          </span>
+        ) : kind !== 'neutral' && (
           <span className={`flex-none inline-flex items-center justify-center w-6 h-6 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-on-primary'}`}>
             {kind === 'error' ? <X size={12} /> : <Check size={12} />}
           </span>

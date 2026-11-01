@@ -283,6 +283,7 @@ const en = {
     noCompatible: 'No instance can use this yet. Create a {loaders} instance for {versions} to install it.',
     noInstancesTitle: 'No instances yet', noInstancesBody: 'Create an instance first, then add {title} to it.',
     planning: 'Checking versions…',
+    into: 'Into {name}', files: '{done} of {total} files', installing: 'Installing…',
     queued: 'Waiting…',
     newInstance: 'New instance', orAddTo: 'Or pour its mods into an instance you already have:',
     creating: 'Creating {name}', created: 'Created {name}. It is in your instances.', createdServer: 'Created {name}. It is in your servers.',
