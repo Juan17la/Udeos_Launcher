@@ -14,6 +14,7 @@ type InstanceView struct {
 	Counts      instance.Counts `json:"counts"`
 	Installed   bool            `json:"installed"`
 	Running     bool            `json:"running"`
+	Starting    bool            `json:"starting"` // running, but the game's window has not appeared yet
 }
 
 func (a *App) view(inst instance.Instance) InstanceView {
@@ -27,6 +28,7 @@ func (a *App) view(inst instance.Instance) InstanceView {
 		Counts:      instance.CountContent(a.launcher.Dirs.GameDir(inst.ID)),
 		Installed:   a.launcher.IsInstalled(inst),
 		Running:     a.launcher.IsRunning(inst.ID),
+		Starting:    a.launcher.IsStarting(inst.ID),
 	}
 }
 

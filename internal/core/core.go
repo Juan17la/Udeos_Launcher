@@ -33,9 +33,15 @@ import (
 type GameEvent struct {
 	InstanceID string `json:"instanceId"`
 	Running    bool   `json:"running"`
-	ExitCode   int    `json:"exitCode"`
-	LogPath    string `json:"logPath"`
-	Error      string `json:"error,omitempty"`
+	// Ready: the game's window is up (a second running event after the first one); on exit, whether it ever was.
+	Ready    bool   `json:"ready"`
+	ExitCode int    `json:"exitCode"`
+	LogPath  string `json:"logPath"`
+	Error    string `json:"error,omitempty"`
+	// Crashes only (a bad exit, or closing before the window opened): see Diagnosis.
+	Reason      string `json:"reason,omitempty"`
+	Detail      string `json:"detail,omitempty"`
+	CrashReport string `json:"crashReport,omitempty"`
 }
 
 // Launcher is the application service.
@@ -56,6 +62,7 @@ type Launcher struct {
 
 	mu      sync.Mutex
 	running map[string]*exec.Cmd
+	ready   map[string]bool // running games whose window is up
 	stopped map[string]bool // games closed with StopGame: their exit is not a crash
 	servers map[string]*serverProc
 	// skinServer starts the local skin server the first time a game or a
@@ -87,7 +94,7 @@ func New(dirs paths.Dirs, version string, report, reportContent func(download.Pr
 		Content:  modinstall.New(dirs, search.Provider, reportContent),
 		Modpacks: modpack.New(dirs, search.Provider, store, reportContent),
 		Skins:    skins,
-		OnGame:   onGame, running: map[string]*exec.Cmd{}, stopped: map[string]bool{}, servers: map[string]*serverProc{},
+		OnGame:   onGame, running: map[string]*exec.Cmd{}, ready: map[string]bool{}, stopped: map[string]bool{}, servers: map[string]*serverProc{},
 	}
 	l.skinServer = sync.OnceValues(func() (*skin.Server, error) {
 		return skin.Start(skins, func() []string { p, _ := l.Profile(); return p.Nicknames })
@@ -187,6 +194,27 @@ func (l *Launcher) IsRunning(id string) bool {
 	return ok
 }
 
+// IsStarting reports whether the instance's game is running but its window has not appeared yet.
+func (l *Launcher) IsStarting(id string) bool {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	_, ok := l.running[id]
+	return ok && !l.ready[id]
+}
+
+// markReady records that the game's window is up and tells the UI, once per run.
+func (l *Launcher) markReady(id string, cmd *exec.Cmd, logPath string) {
+	l.mu.Lock()
+	fresh := l.running[id] == cmd && !l.ready[id]
+	if fresh {
+		l.ready[id] = true
+	}
+	l.mu.Unlock()
+	if fresh && l.OnGame != nil {
+		l.OnGame(GameEvent{InstanceID: id, Running: true, Ready: true, LogPath: logPath})
+	}
+}
+
 // StopGame force-closes a running game (a frozen one, or the player is done).
 // The exit is reported as a normal one, not a crash.
 func (l *Launcher) StopGame(id string) error {
@@ -253,8 +281,11 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 	if agentErr != nil {
 		fmt.Fprintf(logFile, "# skins are off for this session: %v\n\n", agentErr)
 	}
-	cmd.Stdout = logFile
-	cmd.Stderr = logFile
+	// The window marker in the output says the game is visible; a game whose logging is
+	// unusual still counts as open after readyAfter, so it never stays "starting" forever.
+	out := &readyWatch{w: logFile, onReady: func() { go l.markReady(id, cmd, logPath) }}
+	cmd.Stdout = out
+	cmd.Stderr = out
 
 	if err := cmd.Start(); err != nil {
 		logFile.Close()
@@ -269,21 +300,30 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 	}
 
 	started := time.Now()
+	fallback := time.AfterFunc(readyAfter, func() { l.markReady(id, cmd, logPath) })
 	go func() {
 		waitErr := cmd.Wait()
+		fallback.Stop()
 		logFile.Close()
 		l.mu.Lock()
 		delete(l.running, id)
+		ready := l.ready[id]
+		delete(l.ready, id)
 		stopped := l.stopped[id]
 		delete(l.stopped, id)
 		l.mu.Unlock()
 		_ = l.Instances.Touch(id, time.Since(started))
-		ev := GameEvent{InstanceID: id, Running: false, LogPath: logPath}
+		ev := GameEvent{InstanceID: id, Running: false, Ready: ready, LogPath: logPath}
 		if cmd.ProcessState != nil && !stopped {
 			ev.ExitCode = cmd.ProcessState.ExitCode()
 		}
 		if waitErr != nil && ev.ExitCode == 0 && !stopped {
 			ev.Error = waitErr.Error()
+		}
+		// A bad exit, or a game gone before anyone saw it: say why, as best the logs tell.
+		if !stopped && (ev.ExitCode != 0 || ev.Error != "" || !ready) {
+			d := diagnose(params.GameDir, logPath, started, ready)
+			ev.Reason, ev.Detail, ev.CrashReport = d.Reason, d.Detail, d.CrashReport
 		}
 		if l.OnGame != nil {
 			l.OnGame(ev)
@@ -291,6 +331,9 @@ func (l *Launcher) Launch(ctx context.Context, id string) error {
 	}()
 	return nil
 }
+
+// readyAfter is how long a game can run without its window marker before it counts as open anyway.
+const readyAfter = 3 * time.Minute
 
 // redact keeps the command log readable without the huge classpath.
 func redact(args []string) []string {
