@@ -11,6 +11,9 @@ import Button from '../atoms/Button'
 import StatusMessage from '../molecules/StatusMessage'
 import { ProgressBar, Spinner } from '../atoms/Loader'
 import { ChevronRight, Pulse, X } from '../atoms/icons'
+import ProjectIcon from '../atoms/ProjectIcon'
+import PixelIcon from '../atoms/PixelIcon'
+import InstanceIcon from '../atoms/InstanceIcon'
 
 /** How long a "done" note stays in the strip. Errors stay until closed. */
 const STRIP_MS = 4000
@@ -128,7 +131,7 @@ export default function Activity() {
               <span className="text-xs text-muted">{t.activity.emptyHint}</span>
             </div>
           )}
-          {launching && inst && <StatusMessage still headline={inst.name} aside={`${launchPct}%`} percent={launchPct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />}
+          {launching && inst && <StatusMessage still icon={<InstanceIcon inst={inst} size={32} />} headline={inst.name} aside={`${launchPct}%`} percent={launchPct} onDismiss={cancelLaunch} dismissLabel={t.common.cancel} />}
           {jobs.map((j) => <JobRow key={j.id} job={j} onDismiss={() => dismiss(j.id)} onCancel={() => cancel(j.id)} onOptions={() => { setOpen(false); setOptions(j) }} />)}
         </div>
       )}
@@ -150,6 +153,9 @@ export default function Activity() {
 
 const jobPct = (job: ContentJob) => { const p = job.progress; return p && p.total > 0 ? Math.round((p.done / p.total) * 100) : 0 }
 
+/** The job's picture: the mod's or modpack's icon, or the block picked for an instance made from a join file. */
+const jobIcon = (job: ContentJob) => job.create?.file ? <PixelIcon name={job.create.icon} size={32} /> : <ProjectIcon url={job.result.iconUrl} size={32} />
+
 /** One job: progress with Cancel, a short success line, or the failure headline. */
 function JobRow({ job, onDismiss, onCancel, onOptions, compact }: { job: ContentJob; onDismiss: () => void; onCancel: () => void; onOptions: () => void; compact?: boolean }) {
   const { t, instances, servers } = useApp()
@@ -163,11 +169,20 @@ function JobRow({ job, onDismiss, onCancel, onOptions, compact }: { job: Content
   }
   if (job.status === 'done') {
     const text = job.create ? fmt(job.create.server ? t.content.createdServer : t.content.created, { name }) : job.count === 0 ? fmt(t.content.alreadyInstalled, { title, name }) : job.count === 1 ? fmt(t.content.doneOne, { title, name }) : fmt(t.content.done, { n: job.count, name })
-    return <StatusMessage kind="success" still={!compact} headline={text} onDismiss={onDismiss} />
+    return <StatusMessage kind="success" still={!compact} icon={jobIcon(job)} headline={text} onDismiss={onDismiss} />
   }
   const pct = jobPct(job)
+  const p = job.progress
+  // Where it goes, then how far along: "Into My World · 12 of 140 files · sodium.jar".
+  const detail = [
+    !job.create && name && fmt(t.content.into, { name }),
+    job.status === 'installing' && p && p.total > 0 && fmt(t.content.files, { done: p.done, total: p.total }),
+    job.status === 'installing' && p?.current,
+  ].filter(Boolean).join(' · ')
   return (
-    <StatusMessage still={!compact} headline={job.create ? fmt(t.content.creating, { name }) : title} aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
+    <StatusMessage still={!compact} icon={jobIcon(job)} headline={job.create ? fmt(t.content.creating, { name }) : title}
+      detail={detail ? <span className="block truncate" title={detail}>{detail}</span> : undefined}
+      aside={job.status === 'installing' ? `${pct}%` : t.content.queued}
       percent={job.status === 'installing' ? pct : 0} onDismiss={onCancel} dismissLabel={t.common.cancel} />
   )
 }

@@ -284,6 +284,7 @@ const es: Dict = {
     noCompatible: 'Ninguna instancia puede usar esto todavía. Crea una instancia {loaders} para {versions} para instalarlo.',
     noInstancesTitle: 'Aún no hay instancias', noInstancesBody: 'Crea una instancia primero y luego añádele {title}.',
     planning: 'Comprobando versiones…',
+    into: 'En {name}', files: '{done} de {total} archivos', installing: 'Instalando…',
     queued: 'Esperando…',
     newInstance: 'Nueva instancia', orAddTo: 'O vuelca sus mods en una instancia que ya tengas:',
     creating: 'Creando {name}', created: '{name} creada. Ya está en tus instancias.', createdServer: '{name} creado. Ya está en tus servidores.',

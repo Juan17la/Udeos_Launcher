@@ -8,7 +8,10 @@ import CardLink from '../components/atoms/CardLink'
 import { InstanceTags } from '../components/molecules/Tags'
 import Button from '../components/atoms/Button'
 import { Folder, List, Plus, Tiles } from '../components/atoms/icons'
-import { useApp } from '../state'
+import { useApp, useContent } from '../state'
+import type { ContentJob } from '../state'
+import ProjectIcon from '../components/atoms/ProjectIcon'
+import { ProgressBar } from '../components/atoms/Loader'
 import { api } from '../api/bridge'
 import { ago, hours } from '../utils/format'
 import type { Instance } from '../api/types'
@@ -18,6 +21,8 @@ const readView = (): View => { try { return localStorage.getItem('udeos.dashView
 
 export default function Dashboard() {
   const { t, instances, go } = useApp()
+  // Instances still being made from a modpack (or join file): shown grayed out until they exist.
+  const pending = useContent().jobs.filter((j) => j.create && !j.create.server && (j.status === 'queued' || j.status === 'installing'))
   const [view, setViewState] = useState<View>(readView)
   const setView = (v: View) => { setViewState(v); try { localStorage.setItem('udeos.dashView', v) } catch { /* the choice just is not remembered */ } }
   // Most recently played first (never played after, newest first): the first card is the one to jump back into.
@@ -35,6 +40,7 @@ export default function Dashboard() {
         {view === 'cards' ? (
           // Columns follow the room the grid has (beside the panel), not the window: 3 when there is space, 2 down to a tight width, 1 only when two would crush the cards.
           <div className="grid gap-4 grid-cols-1 @min-[360px]:grid-cols-2 @min-[640px]:grid-cols-3">
+            {pending.map((j) => <PendingCard key={j.id} job={j} />)}
             {rest.map((inst) => <InstanceCard key={inst.id} inst={inst} />)}
             <NewTile label={t.nav.newInstance} onClick={() => go({ name: 'create' })} />
           </div>
@@ -44,6 +50,7 @@ export default function Dashboard() {
               className="flex items-center gap-3 h-14 px-4 rounded-lg cursor-pointer border border-dashed border-text/20 bg-transparent text-muted font-[inherit] text-sm font-medium transition-colors duration-150 hover:border-primary hover:text-text">
               <Plus size={15} /> {t.nav.newInstance}
             </button>
+            {pending.map((j) => <PendingCard key={j.id} job={j} row />)}
             {rest.map((inst) => <InstanceRow key={inst.id} inst={inst} />)}
           </div>
         )}
@@ -145,6 +152,34 @@ function InstanceRow({ inst }: { inst: Instance }) {
       <div className="relative flex-none flex w-52">
         <PlayButton inst={inst} compact quiet />
       </div>
+    </div>
+  )
+}
+
+/** An instance that is still installing: the same card, grayed out and inert, with the install's progress
+ *  where Play will be. It turns into the real card once the instance exists. */
+function PendingCard({ job, row }: { job: ContentJob; row?: boolean }) {
+  const { t } = useApp()
+  const name = job.create!.name || job.result.title
+  const p = job.progress
+  const pct = job.status === 'installing' && p && p.total > 0 ? Math.round((p.done / p.total) * 100) : undefined
+  const icon = job.create!.file ? <PixelIcon name={job.create!.icon} size={row ? 36 : 40} /> : <ProjectIcon url={job.result.iconUrl} size={row ? 36 : 40} />
+  const status = job.status === 'installing' ? `${t.content.installing}${pct !== undefined ? ` ${pct}%` : ''}` : t.content.queued
+  if (row) return (
+    <div aria-busy="true" aria-label={`${name}, ${status}`} className="panel relative flex items-center gap-4 px-4 py-2.5 min-h-16 grayscale opacity-60 cursor-progress">
+      <span className="flex">{icon}</span>
+      <div className="flex-1 min-w-0 font-bold text-base truncate">{name}</div>
+      <div className="flex-none w-52 flex flex-col gap-1.5 text-xs text-muted"><span className="tabular-nums">{status}</span><ProgressBar value={pct} /></div>
+    </div>
+  )
+  return (
+    <div aria-busy="true" aria-label={`${name}, ${status}`} className="panel relative flex flex-col gap-4 p-5 grayscale opacity-60 cursor-progress">
+      <div className="flex items-center gap-3.5">
+        <span className="flex-none rounded-lg p-1.5 bg-panel-2">{icon}</span>
+        <div className="flex-1 min-w-0 font-bold text-base leading-[1.2] truncate" title={name}>{name}</div>
+      </div>
+      <div className="h-4 truncate text-xs text-muted tabular-nums">{status}</div>
+      <div className="mt-auto"><ProgressBar value={pct} /></div>
     </div>
   )
 }
