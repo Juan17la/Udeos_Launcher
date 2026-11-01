@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Play, Stop } from '../atoms/icons'
+import { Spinner } from '../atoms/Loader'
 import Button from '../atoms/Button'
 import { ConfirmDialog } from '../molecules/Dialog'
 import LaunchStrip from '../molecules/LaunchStrip'
@@ -18,6 +19,7 @@ export default function PlayButton({ inst, size = 'md', className = '', compact,
   const { play, launch } = useLaunch()
   const busy = launch.status === 'preparing'
   if (busy && launch.instanceId === inst.id) return <LaunchStrip id={inst.id} compact={compact} className={`flex-1 ${className}`} />
+  if (inst.running && inst.starting) return <Opening inst={inst} size={size} className={className} />
   if (inst.running) return <Playing inst={inst} size={size} className={className} />
   return (
     <Button variant={quiet ? 'secondary' : inverse ? 'inverse' : 'primary'} size={size} block className={className} disabled={busy} onClick={() => play(inst.id)}>
@@ -48,6 +50,20 @@ function Playing({ inst, size, className }: { inst: Instance; size: 'md' | 'lg';
         <ConfirmDialog danger title={t.game.stopTitle} body={fmt(t.game.stopBody, { name: inst.name })} confirmLabel={t.game.stop} busy={closing}
           onClose={() => setAsk(false)} onConfirm={async () => { setClosing(true); try { await stop(inst.id) } finally { setClosing(false); setAsk(false) } }} />
       )}
+    </div>
+  )
+}
+
+/** Java is up but the game's window is not yet: a loading chip, so "Playing" only shows once the player can see the game.
+ *  Close game stays, for a start that hangs. */
+function Opening({ inst, size, className }: { inst: Instance; size: 'md' | 'lg'; className: string }) {
+  const { t } = useApp()
+  const { stop } = useLaunch()
+  return (
+    <div role="status" aria-busy="true" className={`flex items-center gap-2.5 w-full min-w-0 ${size === 'lg' ? 'h-13 pl-4' : 'h-11 pl-3.5'} pr-1.5 rounded-lg bg-panel-2 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_40%,transparent)] ${className}`}>
+      <span className="flex-none flex text-primary"><Spinner size={size === 'lg' ? 16 : 14} /></span>
+      <span className="flex-1 min-w-0 truncate text-sm font-bold text-text" title={t.game.opening}>{size === 'lg' ? t.game.opening : t.game.openingShort}</span>
+      <Button variant="ghost" size="sm" square title={t.game.stop} aria-label={t.game.stop} onClick={() => stop(inst.id)}><Stop size={11} /></Button>
     </div>
   )
 }

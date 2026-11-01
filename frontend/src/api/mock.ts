@@ -304,17 +304,31 @@ export function createMock() {
       canceled.delete('launch:' + id)
       if (!inst.installed) { await fakeInstall(inst.loader, 'launch:' + id); inst.installed = true }
       emit('install:progress', { phase: 'done', done: 0, total: 0, bytes: 0, totalBytes: 0, current: '' } satisfies Progress)
-      inst.running = true
-      emit('game:state', { instanceId: id, running: true, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
-      gameTimers[id] = setTimeout(() => backend.StopGame(id), 60000)
+      inst.running = true; inst.starting = true
+      emit('game:state', { instanceId: id, running: true, ready: false, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
+      // Forge instances show the crash dialog (a mod problem before the window); the rest open after a few seconds.
+      if (inst.loader === 'Forge') {
+        gameTimers[id] = setTimeout(() => {
+          inst.running = false; inst.starting = false
+          emit('game:state', { instanceId: id, running: false, ready: false, exitCode: 1, logPath: '/mock/.minecraft/logs/udeos-launcher.log', reason: 'mods',
+            detail: '[main/ERROR]: Missing or unsupported mandatory dependencies:\n\tMod ID: \'geckolib\', Requested by: \'mowziesmobs\', Expected range: \'[4.4.9,)\', Actual version: \'[MISSING]\'' } satisfies GameEvent)
+        }, 3000)
+        return
+      }
+      gameTimers[id] = setTimeout(() => {
+        inst.starting = false
+        emit('game:state', { instanceId: id, running: true, ready: true, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
+        gameTimers[id] = setTimeout(() => backend.StopGame(id), 60000)
+      }, 4000)
     },
     async IsRunning(id: string) { return !!instances.find((x) => x.id === id)?.running },
     async StopGame(id: string) {
       const inst = instances.find((x) => x.id === id)
       if (!inst?.running) throw new Error('this instance is not running')
       clearTimeout(gameTimers[id])
-      inst.running = false; inst.lastPlayed = new Date().toISOString()
-      emit('game:state', { instanceId: id, running: false, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
+      const ready = !inst.starting
+      inst.running = false; inst.starting = false; inst.lastPlayed = new Date().toISOString()
+      emit('game:state', { instanceId: id, running: false, ready, exitCode: 0, logPath: '/mock/log' } satisfies GameEvent)
     },
     async ListWorlds(id: string) { return (worlds[id] ?? []).map((w) => ({ ...w })) },
     async ExportWorld(_id: string, folder: string) { await sleep(600); return `/home/player/${folder}.zip` },
