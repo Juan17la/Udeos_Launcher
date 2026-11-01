@@ -165,7 +165,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 /* The sidebar is a fixed column; it folds to an icon rail below 1000px, or when the
-   player squeezes it (html[data-rail], components/Sidebar). The `rail:` variant styles
+   player squeezes it (html[data-rail], components/organisms/Sidebar). The `rail:` variant styles
    both cases. --nav-h stays for pages sized against a top bar; there is none now. */
 :root { --nav-h: 0px; --side-w: 232px; }
 @media (max-width: 1000px) { :root { --side-w: 68px; } }
@@ -176,7 +176,7 @@
 }
 html, body, #root { height: 100vh; overflow: hidden; }
 /* Backdrop: two accent glows on the body (static gradients, no blur filter), and the
-   faint items of ui/Backdrop (sidebar middle and the page's open space) in a fixed layer above it. #root stays transparent and
+   faint items of components/templates/Backdrop (sidebar middle and the page's open space) in a fixed layer above it. #root stays transparent and
    creates no stacking context, so z-index -1 puts the layer behind every page. Every
    glow is mixed from the theme's own colours, so personalised themes get their tint. */
 body {

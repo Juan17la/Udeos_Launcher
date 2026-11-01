@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
-import SaveSettingsButton from '../../components/SaveSettingsButton'
-import { Checkbox, Input, Label, Select } from '../../ui/Field'
-import AutoLoader from '../../ui/Loader'
+import SaveSettingsButton from '../../components/organisms/SaveSettingsButton'
+import { Checkbox, Input, Label, Select } from '../../components/atoms/Field'
+import AutoLoader from '../../components/atoms/Loader'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
 import { messageOf } from '../../utils/errors'
 import { DangerZone, Feedback } from '../instance/TabParts'
 import { LaunchFields, useLaunchForm } from '../instance/SettingsTab'
-import SegmentedControl from '../../ui/SegmentedControl'
+import SegmentedControl from '../../components/molecules/SegmentedControl'
 import type { Server, ServerLogin } from '../../api/types'
 
 /** Vanilla's defaults for the keys this form shows, used when server.properties
