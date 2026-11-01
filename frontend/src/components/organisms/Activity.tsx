@@ -5,12 +5,11 @@ import { fmt } from '../../i18n/format'
 import { useLaunchProgress } from '../../hooks/useLaunchProgress'
 import ErrorMessage from '../molecules/ErrorMessage'
 import ConflictDialog from './ConflictDialog'
-import PlayButton from './PlayButton'
 import { playingSince } from '../../state/useLaunchController'
 import Button from '../atoms/Button'
 import StatusMessage from '../molecules/StatusMessage'
 import { ProgressBar, Spinner } from '../atoms/Loader'
-import { ChevronRight, Pulse, X } from '../atoms/icons'
+import { Pulse, X } from '../atoms/icons'
 import ProjectIcon from '../atoms/ProjectIcon'
 import PixelIcon from '../atoms/PixelIcon'
 import InstanceIcon from '../atoms/InstanceIcon'
@@ -20,11 +19,11 @@ const STRIP_MS = 4000
 
 /** Everything that runs in the background lives here, in the sidebar, so it
  *  never covers the page: an always-there item (a ring and a count while
- *  something runs), a popover with every job and Cancel plus the open games and
- *  servers, and a short notice beside the sidebar announcing a finished or failed
- *  job, or a game that just opened. */
+ *  something runs), a popover with only downloads and installs (every job with Cancel; open games and
+ *  servers show on their own cards, not here), and a short notice beside the sidebar announcing a finished
+ *  or failed job, or a game that just opened. */
 export default function Activity() {
-  const { t, instances, servers, nickname, go } = useApp()
+  const { t, instances, nickname } = useApp()
   const { jobs, dismiss, cancel } = useContent()
   const { launch, cancelLaunch } = useLaunch()
   const { inst, pct: launchPct } = useLaunchProgress()
@@ -42,11 +41,11 @@ export default function Activity() {
   const started = useRef(new Map<string, number>())
   useEffect(() => {
     const before = wasRunning.current
-    const now = new Set(instances.filter((i) => i.running).map((i) => i.id))
+    const now = new Set(instances.filter((i) => i.running && !i.starting).map((i) => i.id))
     now.forEach((id) => started.current.set(id, playingSince(id)))
     wasRunning.current = now
     if (!before) return
-    const opened = instances.find((i) => i.running && !before.has(i.id))
+    const opened = instances.find((i) => now.has(i.id) && !before.has(i.id))
     const closed = instances.find((i) => !i.running && before.has(i.id))
     if (opened) setHello({ headline: fmt(t.game.welcome, { nick: nickname }), detail: fmt(t.game.welcomeDetail, { name: opened.name }) })
     else if (closed && !(launch.status === 'exited' && launch.instanceId === closed.id)) {
@@ -89,9 +88,7 @@ export default function Activity() {
   const ring = launching ? launchPct : installing ? jobPct(installing) : 0
   const busy = active.length > 0 || launching
   const count = active.length + (launching ? 1 : 0)
-  const games = instances.filter((i) => i.running)
-  const live = [...games, ...servers.filter((s) => s.running)]
-  const label = busy || live.length ? fmt(t.activity.running, { n: count + live.length }) : failed.length ? fmt(t.activity.failed, { n: failed.length }) : items > 0 ? t.activity.done : t.activity.empty
+  const label = busy ? fmt(t.activity.running, { n: count }) : failed.length ? fmt(t.activity.failed, { n: failed.length }) : items > 0 ? t.activity.done : t.activity.empty
 
   return (
     <div className="relative" ref={root}>
@@ -99,10 +96,9 @@ export default function Activity() {
         className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-medium text-left transition-colors duration-150 rail:justify-center rail:px-0 ${open ? 'bg-idle text-text' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
         <span className={`relative flex ${busy ? 'text-primary motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]' : failed.length ? 'text-error-soft' : ''}`}>
           {busy ? <Spinner size={18} /> : failed.length ? <X size={16} /> : <Pulse />}
-          {!busy && live.length > 0 && <span aria-hidden className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-gold ring-2 ring-bg motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]" />}
         </span>
         <span className="flex-1 min-w-0 truncate rail:hidden">{t.activity.title}</span>
-        <span className={`font-mono text-xs tabular-nums rail:hidden ${busy ? 'text-primary-hover' : ''}`}>{busy ? (ring > 0 ? `${ring}%` : count) : live.length || (items > 0 ? (failed.length || '') : '')}</span>
+        <span className={`font-mono text-xs tabular-nums rail:hidden ${busy ? 'text-primary-hover' : ''}`}>{busy ? (ring > 0 ? `${ring}%` : count) : items > 0 ? (failed.length || '') : ''}</span>
       </button>
       {busy && <div className="px-3 pt-1.5 pb-1 rail:hidden"><ProgressBar value={ring > 0 ? ring : undefined} /></div>}
 
@@ -112,19 +108,7 @@ export default function Activity() {
             <span className="font-semibold text-sm">{t.activity.title} <span className="text-muted font-normal">{items > 0 ? `· ${label}` : ''}</span></span>
             <Button variant="ghost" size="sm" square aria-label={t.activity.hide} title={t.activity.hide} onClick={() => setOpen(false)}><X size={12} /></Button>
           </div>
-          {live.map((i) => i.server ? (
-            <button key={i.id} type="button" onClick={() => { setOpen(false); go({ name: 'server', id: i.id }) }}
-              className="flex items-center gap-3 h-11 px-3 rounded-lg border-0 bg-green-soft text-ink text-sm text-left cursor-pointer hover:brightness-105">
-              <span aria-hidden className="w-2 h-2 rounded-full bg-current motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]" />
-              <span className="flex-1 min-w-0 truncate"><b className="font-extrabold">{i.name}</b> · {t.game.serverOn}</span><ChevronRight size={13} />
-            </button>
-          ) : (
-            <div key={i.id} className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-muted truncate">{i.name}</span>
-              <PlayButton inst={i} />
-            </div>
-          ))}
-          {items === 0 && live.length === 0 && (
+          {items === 0 && (
             <div className="flex flex-col items-center gap-1 py-6 text-center">
               <span className="text-muted"><Pulse size={22} /></span>
               <span className="text-sm font-medium">{t.activity.empty}</span>

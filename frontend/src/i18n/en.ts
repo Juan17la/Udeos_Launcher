@@ -20,8 +20,8 @@ const en = {
     looking: 'Looking for options…', nothing: 'Nothing else fits this instance right now. You can remove the mod it clashes with, or pick another Minecraft version.',
     otherVersions: 'Other versions of the same mod', similar: 'Similar mods that work', see: 'See options',
   },
-  activity: { title: 'Activity', hide: 'Hide', done: 'Done', empty: 'Nothing running', emptyHint: 'Downloads, installs and server starts show up here.', running: '{n} running', failed: '{n} failed', cancel: 'Cancel' },
-  game: { justStarted: 'Playing · just started', playingFor: 'Playing · {n} min', stop: 'Close game', stopTitle: 'Close the game?', stopBody: 'This closes {name} right away. Anything since the last autosave is lost, so save and quit from the game menu when you can. Use this when the game is frozen.', welcome: 'Have fun, {nick}!', welcomeDetail: '{name} is opening. It can take a minute.', ended: 'GG, {nick}!', endedDetail: '{n} min in {name}. See you next time.', endedShort: 'A quick one in {name}. See you next time.', serverOn: 'Server on' },
+  activity: { title: 'Activity', hide: 'Hide', done: 'Done', empty: 'Nothing running', emptyHint: 'Downloads and installs show up here.', running: '{n} running', failed: '{n} failed', cancel: 'Cancel' },
+  game: { justStarted: 'Playing · just started', playingFor: 'Playing · {n} min', stop: 'Close game', stopTitle: 'Close the game?', stopBody: 'This closes {name} right away. Anything since the last autosave is lost, so save and quit from the game menu when you can. Use this when the game is frozen.', welcome: 'Have fun, {nick}!', welcomeDetail: '{name} is open. Enjoy the game.', ended: 'GG, {nick}!', endedDetail: '{n} min in {name}. See you next time.', endedShort: 'A quick one in {name}. See you next time.', opening: 'Opening the game…', openingShort: 'Opening…' },
   common: { next: 'Next', prev: 'Back', back: 'Back to {name}', cancel: 'Cancel', save: 'Save', gotIt: 'Got it', close: 'Close', play: 'Play', delete: 'Delete', or: 'or', running: 'Running…', loading: 'Loading' },
   profiles: {
     title: 'Profiles', active: 'Active', instances: '{n} instance(s)', switch: 'Switch profile',
@@ -297,6 +297,15 @@ const en = {
     firstInstall: 'Minecraft {version} is not installed yet: the first launch downloads the whole game and can take a few minutes. It is not frozen.',
     loaderTakesAWhile: '{loader} patches the game files on first install; this can take a couple of minutes.',
     exitBody: 'Exit code {code}. The launcher log is at:', openLogs: 'Open logs folder',
+    retry: 'Try again', openReport: 'Open crash report', exitCode: 'Exit code {code}', gameSaid: 'What the game said', copy: 'Copy', copied: 'Copied', instanceSettings: 'Instance settings',
+    crash: {
+      memory: ['Out of memory', 'The game ran out of RAM. Give it more under the instance settings (Memory), or close other programs and try again.'],
+      java: ['Wrong Java version', 'The game or one of its mods needs a different Java version. Check the instance settings, or update the mods for this Minecraft version.'],
+      mods: ['Mod problem', 'The mod loader stopped because a mod is missing, clashes with another or is for another version. The lines below name it; remove or update that mod.'],
+      graphics: ['Graphics problem', 'The game could not open a window with your graphics card. Update your graphics drivers, then try again.'],
+      closedEarly: ['Closed before opening', 'The game stopped before its window appeared. The lines below are the last thing it did; a mod or the Java version is the usual cause.'],
+      crash: ['Game crashed', 'The game stopped unexpectedly. The lines below say where; if it keeps happening, open the crash report or the logs.'],
+    },
   },
 }
 export default en

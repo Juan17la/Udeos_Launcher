@@ -53,6 +53,8 @@ export type Instance = {
   counts: Counts
   installed: boolean
   running: boolean
+  /** The game is running but its window has not appeared yet. */
+  starting?: boolean
 }
 
 /** How the internet reaches a server: through a bore relay (default; relay '' = bore.pub) or the router (UPnP).
@@ -86,7 +88,10 @@ export type VersionList = { latestRelease: string; latestSnapshot: string; versi
 export type LoaderOption = { minecraft: string; version: string; label: string }
 
 export type Progress = { phase: string; done: number; total: number; bytes: number; totalBytes: number; current: string }
-export type GameEvent = { instanceId: string; running: boolean; exitCode: number; logPath: string; error?: string }
+/** Crash causes the backend can tell apart (internal/core/crash.go). */
+export type CrashReason = 'memory' | 'java' | 'mods' | 'graphics' | 'closedEarly' | 'crash'
+/** running + ready: the window is up (a second event after running alone). On exit, reason/detail/crashReport describe a crash. */
+export type GameEvent = { instanceId: string; running: boolean; ready: boolean; exitCode: number; logPath: string; error?: string; reason?: CrashReason; detail?: string; crashReport?: string }
 
 /** totalMemoryMB is 0 when the machine's RAM could not be read. */
 export type Update = { version: string; url: string }

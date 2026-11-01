@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api, on } from '../api/bridge'
-import type { GameEvent, Progress } from '../api/types'
+import type { CrashReason, GameEvent, Progress } from '../api/types'
 import { isCanceled, messageOf } from '../utils/errors'
 
 /** What the Play button is doing right now. */
@@ -8,7 +8,7 @@ export type LaunchState =
   | { status: 'idle' }
   | { status: 'preparing'; instanceId: string; progress: Progress | null; minimized: boolean }
   | { status: 'error'; instanceId: string; message: string }
-  | { status: 'exited'; instanceId: string; exitCode: number; logPath: string }
+  | { status: 'exited'; instanceId: string; exitCode: number; logPath: string; reason: CrashReason; detail: string; crashReport: string }
 
 /** minimizeLaunch hides the loading modal; the progress carries on as a notification. */
 export type LaunchController = { launch: LaunchState; play: (id: string) => Promise<void>; stop: (id: string) => Promise<void>; dismissLaunch: () => void; minimizeLaunch: () => void; cancelLaunch: () => void }
@@ -28,12 +28,16 @@ export function useLaunchController(refreshInstances: () => Promise<void>): Laun
       setLaunch((cur) => (cur.status === 'preparing' ? { ...cur, progress: p } : cur))
     })
     const offGame = on('game:state', (ev: GameEvent) => {
-      if (ev.running) since.set(ev.instanceId, Date.now())
-      else since.delete(ev.instanceId)
       if (ev.running) {
-        setLaunch({ status: 'idle' })
-      } else if (ev.exitCode !== 0 || ev.error) {
-        setLaunch({ status: 'exited', instanceId: ev.instanceId, exitCode: ev.exitCode, logPath: ev.logPath })
+        // The clock starts when the window is up, not when Java does.
+        if (ev.ready) since.set(ev.instanceId, Date.now())
+        // Play keeps its progress until the refreshed list shows the game as starting, so it never flashes back to Play.
+        refreshInstances().then(() => setLaunch((cur) => (cur.status === 'preparing' && cur.instanceId === ev.instanceId ? { status: 'idle' } : cur)))
+        return
+      }
+      since.delete(ev.instanceId)
+      if (ev.reason || ev.exitCode !== 0 || ev.error) {
+        setLaunch({ status: 'exited', instanceId: ev.instanceId, exitCode: ev.exitCode, logPath: ev.logPath, reason: ev.reason ?? 'crash', detail: ev.detail || ev.error || '', crashReport: ev.crashReport ?? '' })
       }
       refreshInstances()
     })

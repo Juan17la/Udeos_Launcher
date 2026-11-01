@@ -22,8 +22,8 @@ const es: Dict = {
     looking: 'Buscando opciones…', nothing: 'Nada más encaja con esta instancia ahora mismo. Puedes quitar el mod con el que choca o elegir otra versión de Minecraft.',
     otherVersions: 'Otras versiones del mismo mod', similar: 'Mods parecidos que funcionan', see: 'Ver opciones',
   },
-  activity: { title: 'Actividad', hide: 'Ocultar', done: 'Listo', empty: 'Nada en curso', emptyHint: 'Aquí aparecen las descargas, instalaciones e inicios de servidor.', running: '{n} en curso', failed: '{n} con error', cancel: 'Cancelar' },
-  game: { justStarted: 'Jugando · recién abierto', playingFor: 'Jugando · {n} min', stop: 'Cerrar juego', stopTitle: '¿Cerrar el juego?', stopBody: 'Esto cierra {name} de golpe. Se pierde lo hecho desde el último autoguardado, así que guarda y sal desde el menú del juego cuando puedas. Úsalo si el juego se quedó congelado.', welcome: '¡A jugar, {nick}!', welcomeDetail: '{name} se está abriendo. Puede tardar un minuto.', ended: '¡GG, {nick}!', endedDetail: '{n} min en {name}. Hasta la próxima.', endedShort: 'Una partida rápida en {name}. Hasta la próxima.', serverOn: 'Servidor encendido' },
+  activity: { title: 'Actividad', hide: 'Ocultar', done: 'Listo', empty: 'Nada en curso', emptyHint: 'Aquí aparecen las descargas e instalaciones.', running: '{n} en curso', failed: '{n} con error', cancel: 'Cancelar' },
+  game: { justStarted: 'Jugando · recién abierto', playingFor: 'Jugando · {n} min', stop: 'Cerrar juego', stopTitle: '¿Cerrar el juego?', stopBody: 'Esto cierra {name} de golpe. Se pierde lo hecho desde el último autoguardado, así que guarda y sal desde el menú del juego cuando puedas. Úsalo si el juego se quedó congelado.', welcome: '¡A jugar, {nick}!', welcomeDetail: '{name} ya está abierto. Disfruta la partida.', ended: '¡GG, {nick}!', endedDetail: '{n} min en {name}. Hasta la próxima.', endedShort: 'Una partida rápida en {name}. Hasta la próxima.', opening: 'Abriendo el juego…', openingShort: 'Abriendo…' },
   common: { next: 'Siguiente', prev: 'Atrás', save: 'Guardar', back: 'Volver a {name}', cancel: 'Cancelar', gotIt: 'Entendido', close: 'Cerrar', play: 'Jugar', delete: 'Eliminar', or: 'o', running: 'Jugando…', loading: 'Cargando' },
   profiles: {
     title: 'Perfiles', active: 'Activo', instances: '{n} instancia(s)', switch: 'Cambiar de perfil',
@@ -298,6 +298,15 @@ const es: Dict = {
     firstInstall: 'Minecraft {version} aún no está instalado: el primer inicio descarga todo el juego y puede tardar unos minutos. No está congelado.',
     loaderTakesAWhile: '{loader} parchea los archivos del juego en la primera instalación; puede tardar un par de minutos.',
     exitBody: 'Código de salida {code}. El registro del launcher está en:', openLogs: 'Abrir carpeta de registros',
+    retry: 'Reintentar', openReport: 'Abrir informe del fallo', exitCode: 'Código de salida {code}', gameSaid: 'Lo que dijo el juego', copy: 'Copiar', copied: 'Copiado', instanceSettings: 'Ajustes de la instancia',
+    crash: {
+      memory: ['Sin memoria', 'El juego se quedó sin RAM. Dale más en los ajustes de la instancia (Memoria), o cierra otros programas y vuelve a intentarlo.'],
+      java: ['Versión de Java incorrecta', 'El juego o alguno de sus mods necesita otra versión de Java. Revisa los ajustes de la instancia, o actualiza los mods para esta versión de Minecraft.'],
+      mods: ['Problema con un mod', 'El cargador de mods se detuvo porque falta un mod, choca con otro o es de otra versión. Las líneas de abajo lo nombran; quítalo o actualízalo.'],
+      graphics: ['Problema gráfico', 'El juego no pudo abrir una ventana con tu tarjeta gráfica. Actualiza los controladores gráficos y vuelve a intentarlo.'],
+      closedEarly: ['Se cerró al abrir', 'El juego se detuvo antes de que apareciera su ventana. Las líneas de abajo son lo último que hizo; suele ser un mod o la versión de Java.'],
+      crash: ['El juego falló', 'El juego se detuvo de forma inesperada. Las líneas de abajo dicen dónde; si se repite, abre el informe del fallo o los registros.'],
+    },
   },
 }
 export default es
