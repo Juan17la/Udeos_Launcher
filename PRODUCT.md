@@ -25,8 +25,8 @@ Long waits are the norm: game and Java downloads, loader installs, content downl
 - Screens: Login, Dashboard (instances), CreateInstance, Instance page (Worlds, Screenshots, Resource Packs, Mods, Shaders, Settings tabs), Search/Addons, ProjectDetail, Servers and server page, Skins and SkinEditor, Advisor (AI), dialogs (launch, profile, update, close, conflicts, datapacks).
 - English and Spanish; all copy goes through `frontend/src/i18n`. Layouts must tolerate longer Spanish strings.
 - Light, dark and custom themes selectable per profile (`ThemePicker`, `utils/theme.ts`).
-- Real Minecraft textures in `frontend/src/assets/icons/` are the icon set; the logo is an ender pearl plus a mace rotated -45 degrees (`ui/Logo.tsx`).
-- Existing architecture rule: flat `frontend/src/ui/`, shared components only when reused in more than one place, logic out of screens (docs/architecture/frontend.md).
+- Real Minecraft textures in `frontend/src/assets/icons/` are the icon set; the logo is an ender pearl plus a mace rotated -45 degrees (`components/atoms/Logo.tsx`).
+- Existing architecture rule: atomic `frontend/src/components/` (atoms, molecules, organisms, templates), shared components only when reused in more than one place, logic out of screens (docs/architecture/frontend.md).
 - Real progress (game install, downloads) must be shown as measured progress; unmeasurable waits use an indeterminate loader. Never animate a bar updated every frame with a CSS transition.
 - Nav is 72px sticky; header and back chrome must never make a page overflow.
 - Open: the visual world, typeface (PT Mono is being replaced) and shell layout are to be decided in new-work.

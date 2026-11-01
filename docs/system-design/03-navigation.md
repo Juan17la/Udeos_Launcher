@@ -93,7 +93,7 @@ The lit pill follows "which section am I in", not just the screen name:
   `cameBack = true`.
 - Back with an empty stack falls back to the dashboard.
 
-`components/BackButton.tsx` shows "Back to <name>" using `previous`
+`components/molecules/BackButton.tsx` shows "Back to <name>" using `previous`
 (the instance's name, the project title, "Addons", …). It is a sticky strip
 under the nav and must be a direct child of the page's `<main>` so it stays
 visible while the page scrolls.

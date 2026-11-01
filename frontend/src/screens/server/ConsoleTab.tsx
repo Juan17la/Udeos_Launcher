@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import Button from '../../ui/Button'
-import { Input } from '../../ui/Field'
+import Button from '../../components/atoms/Button'
+import { Input } from '../../components/atoms/Field'
 import { useApp } from '../../state'
 import { api, on } from '../../api/bridge'
 import { messageOf } from '../../utils/errors'

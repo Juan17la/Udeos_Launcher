@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import Empty from '../../ui/Empty'
-import { Label, Select } from '../../ui/Field'
+import Empty from '../../components/molecules/Empty'
+import { Label, Select } from '../../components/atoms/Field'
 import { useApp } from '../../state'
 import { api } from '../../api/bridge'
 import FilesTab from './FilesTab'

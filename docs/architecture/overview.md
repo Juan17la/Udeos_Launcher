@@ -100,8 +100,7 @@ its own.
 | `api/` | The typed bridge to the Go bindings and events, and an in-memory mock used when the page runs in a normal browser. |
 | `state/` | The app context (profile, instances, servers, current screen and history) plus `useLaunchController` (launch state, game events) and `useContentQueue` (the serial install queue). |
 | `screens/` | One file per page; `instance/` and `server/` hold the tabbed pages. |
-| `components/` | Pieces shared by several screens: navigation, dialogs, tags, the skin view. |
-| `ui/` | Building blocks with no app knowledge: Button, Field, Dialog, StatusMessage, SegmentedControl, DropZone, icons. |
+| `components/` | Shared pieces by atomic level, each importing only from the levels below: `atoms/` (Button, Field, Loader, icons, the skin view), `molecules/` (Dialog, StatusMessage, SegmentedControl, DropZone, Tags), `organisms/` (navigation, dialogs, Play button), `templates/` (split page layout, backdrop). |
 | `hooks/` | `useFileList` (what every file tab does) and `useAddAction` (the shared Add flow). |
 | `utils/` | Plain logic with no React: validation, formatting, errors, compatibility, search rules, the Markdown renderer, the skin renderer. |
 | `theme/` | Design tokens (`tokens.css`). |

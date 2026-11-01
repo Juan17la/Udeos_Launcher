@@ -100,8 +100,10 @@ screens never call the network. Details of each layer:
 | Folder | Role | Rule |
 |---|---|---|
 | `screens/` | One file (or folder) per page | Pages own their layout and local pieces |
-| `components/` | Reused in more than one page (Nav, dialogs, tags, Play button) | Only extract on second use |
-| `ui/` | Look-and-feel primitives (Button, Field, Dialog, …) | Flat folder, no logic |
+| `components/templates/` | Page layouts (split page, backdrop) | No content of their own |
+| `components/organisms/` | Sections with behaviour (Sidebar, dialogs, Play button) | Only extract on second use |
+| `components/molecules/` | Small groups of atoms (Dialog, StatusMessage, Tags, Tabs) | Import atoms only |
+| `components/atoms/` | Single elements (Button, Field, Loader, icons) | No other components, no logic |
 | `hooks/`, `state/` | Behaviour shared across screens; app state (profile, instances, navigation) | Screens read state, don't own it |
 | `utils/` | Pure functions, no React | Testable in isolation |
 | `api/` | Bridge + types + browser mock | Single boundary to Go |

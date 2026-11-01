@@ -92,11 +92,11 @@ Every wait shows where it happens.
 | Colours, radii, shadows, fonts, easing | `frontend/src/theme/tokens.css` (`@theme` plus the `:root` and `[data-theme]` blocks) |
 | Custom theme derivation | `frontend/src/utils/theme.ts` (`customVars`, `paletteFrom`) |
 | Fonts | `@fontsource-variable/geist`, `geist-mono`, `@fontsource/pixelify-sans`, imported in `main.tsx` |
-| Buttons, fields, dialog, tabs, loaders | `frontend/src/ui/` |
-| Sidebar shell | `components/Sidebar.tsx`, grid on `#root` in tokens.css |
-| Launch strip | `components/LaunchStrip.tsx`, fed by `hooks/useLaunchProgress.ts` |
-| Activity tray | `components/Activity.tsx` |
-| Playing chip, Close game | `components/PlayButton.tsx`, `StopGame` in `app_play.go` |
-| Canvas items | `frontend/src/ui/Backdrop.tsx`, `.backdrop` in tokens.css |
-| Card click target | `frontend/src/ui/CardLink.tsx` |
-| Empty states, loaders | `ui/Empty.tsx`, `ui/Loader.tsx` (`BlockHop`) |
+| Buttons, fields, dialog, tabs, loaders | `frontend/src/components/atoms/`, `molecules/` |
+| Sidebar shell | `components/organisms/Sidebar.tsx`, grid on `#root` in tokens.css |
+| Launch strip | `components/molecules/LaunchStrip.tsx`, fed by `hooks/useLaunchProgress.ts` |
+| Activity tray | `components/organisms/Activity.tsx` |
+| Playing chip, Close game | `components/organisms/PlayButton.tsx`, `StopGame` in `app_play.go` |
+| Canvas items | `frontend/src/components/templates/Backdrop.tsx`, `.backdrop` in tokens.css |
+| Card click target | `frontend/src/components/atoms/CardLink.tsx` |
+| Empty states, loaders | `components/molecules/Empty.tsx`, `components/atoms/Loader.tsx` (`BlockHop`) |

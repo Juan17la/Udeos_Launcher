@@ -97,7 +97,7 @@ Modrinth descriptions instead of reasons.
 
 `internal/ai` (Go), bound in `app_ai.go` as `AIStatus`, `SetAI`, `ResetAI`
 and `AskAI(message, types, history, instanceId)`; the UI is `screens/Advisor.tsx`
-(settings in `components/AISettings.tsx`). Requests go out from Go, so
+(settings in `components/organisms/AISettings.tsx`). Requests go out from Go, so
 the webview never sees a key.
 
 - **Providers and models** (`providers` in `internal/ai/ai.go`): each

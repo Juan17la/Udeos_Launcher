@@ -15,7 +15,20 @@ How it is built:
   a Tailwind `@theme` block, backed by runtime CSS variables for the values
   that differ between the light and dark theme. Switching theme only flips
   an attribute on the document root.
-- **Building blocks**: `frontend/src/ui/`, one flat folder, and only for
+- **Atomic layout**: `frontend/src/components/` is split by atomic design
+  level, and a level only imports from the levels below it:
+  - `atoms/`: single elements (Button, Field, Loader, PixelIcon, icons, Logo,
+    CardLink, InstanceIcon, ProjectIcon, SkinView).
+  - `molecules/`: small groups of atoms (Dialog, StatusMessage, ErrorMessage,
+    SegmentedControl, Tabs, DropZone, Empty, Tags, BackButton, CopyAddress,
+    NewTile, IconPicker, LaunchStrip).
+  - `organisms/`: sections with their own behaviour (Sidebar, AccountMenu,
+    Activity, PlayButton, ServerButton, SaveSettingsButton, ThemePicker,
+    AISettings, and every `*Dialog` built on `Dialog`).
+  - `templates/`: page layout with no content of its own (SidePanel's split
+    page, Backdrop).
+  - Pages are `frontend/src/screens/`.
+- **Building blocks**: the atoms and molecules, only for
   things used in more than one place: `Button` (primary, idle, danger,
   ghost), `Field` (Label, Input, Select, Checkbox), `Dialog` (a native
   `<dialog>`: top layer, focus trap and Escape come from the browser;
@@ -26,8 +39,7 @@ How it is built:
   behaviour (`panel` (+ `panel-hover`), `glass` and `tag` (plus a fill:
   `bg-tag-gray`, `bg-green-soft`, `bg-gold-soft`)) are `@utility` classes in
   `theme/tokens.css`, so a card is one `<div className="panel …">`.
-- **Components and screens** (`frontend/src/components`, `frontend/src/screens`)
-  compose the blocks and only write layout classes (flex, grid, gap, width).
+- **Organisms, templates and screens** compose the blocks and only write layout classes (flex, grid, gap, width).
   Something used by one page stays in that page as a local function
   (`InstanceCard` in Dashboard, `ResultCard` in Search, `IconChoice` in
   Create Instance) instead of becoming a shared component, and reads the
@@ -75,7 +87,7 @@ How it is built:
   the game).
 - **Instance page**: the sticky side card (icon, tags, install state, Play,
   Open folder, Delete with confirmation) and the tabs. The card is
-  `components/SidePanel` (shared with a server's page): as tall as the
+  `components/templates/SidePanel` (shared with a server's page): as tall as the
   page, so it never moves or scrolls with the list. The page's `<main>` does
   not scroll either (`SPLIT_MAIN`): the tab bar stays put and only the
   content under it (`ScrollBody`) scrolls. The details are sized to fit the
@@ -103,7 +115,7 @@ title or tab bar fixed above. Check a screen by screenshotting it at 944×600
 (`?screen=…` in `npm run dev`), in both languages.
 
 Every page but the dashboard starts with a Back to … button above its
-title (`components/BackButton`). It sticks under the nav on a strip of
+title (`components/molecules/BackButton`). It sticks under the nav on a strip of
 canvas (`sticky top-[70px]`, tucked 2px under the 72px nav so no hairline shows), so it is in reach however far the page
 scrolls; it must sit straight inside the page's `<main>` (a sticky element
 only sticks within its parent), and its padding is taken back by negative

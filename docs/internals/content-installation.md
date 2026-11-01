@@ -99,7 +99,7 @@ configs and the like copied into the game directory as they are.
   game-side downloads until Play, as with any instance) and fills it. The
   pack's icon is downloaded to `instances/<id>/icon` and the instance's
   `icon` is set to `modpack`, which the UI renders from `/media/<id>/icon`
-  (`components/InstanceIcon.tsx`; a pack with no icon keeps the grass
+  (`components/atoms/InstanceIcon.tsx`; a pack with no icon keeps the grass
   block). A pack that fails to install leaves no half instance behind.
 - **`AddTo(instance, projectID)`** pours the pack's build for the
   instance's version and loader into it. Files the instance already has
