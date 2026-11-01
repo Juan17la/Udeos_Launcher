@@ -5,6 +5,29 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.3.0-beta] - 2026-11-01
+
+### New
+
+- **Playing means playing:** after Play, the card shows "Opening…" with a
+  spinner until the game window is actually on screen; "Playing", the play
+  time and the "Have fun" note start only then.
+- **Crash details:** when the game crashes, or closes before its window opens,
+  the dialog says what most likely happened (out of memory, wrong Java
+  version, a mod problem, graphics drivers), what to do about it, and the
+  lines from the game that show it, with Copy, the crash report or logs, and
+  Try again.
+- **Activity shows what is installing:** each download has the mod's,
+  modpack's or instance's icon, where it is going, how many files are done
+  and the file being downloaded.
+- **Modpacks on the way:** a modpack being turned into an instance shows as a
+  grayed card with its progress in the library until it is ready.
+
+### Changes
+
+- Activity lists only downloads and installs; running games and servers stay
+  on their own cards.
+
 ## [3.2.0-beta] - 2026-10-28
 
 ### New
