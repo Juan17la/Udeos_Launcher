@@ -164,7 +164,7 @@ real server.properties key):
 | `internal/core` | `SkinAgent` starts the server once and returns the JVM flag; `Launch` and `StartServer` add it |
 | `app_skins.go` | Bindings: list, save, delete, equip, read/pick a file |
 | `frontend/src/utils/skin.ts` | Model layout, renderer, hit test |
-| `frontend/src/components/SkinView.tsx` | The turning model, and the face avatar |
+| `frontend/src/components/atoms/SkinView.tsx` | The turning model, and the face avatar |
 | `frontend/src/screens/Skins.tsx`, `SkinEditor.tsx` | The page and the editor |
 
 ## Troubleshooting

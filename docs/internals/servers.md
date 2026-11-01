@@ -140,11 +140,11 @@ Restoring needs a stopped server and backs the current world up first.
 
 | When | What happens | Where |
 |------|--------------|-------|
-| Start while 2 other servers run | "Start another server?": each one takes its own RAM and CPU | `components/ServerButton.tsx` (counts the active profile's servers) |
-| Close the window while servers run | Wails `OnBeforeClose` keeps the window open and emits `app:close` {running}; the dialog's "Close anyway" calls `QuitLauncher`, which stops every server (up to 30 s), then quits | `app.go` `beforeClose`/`QuitLauncher`, `components/CloseDialog.tsx` |
+| Start while 2 other servers run | "Start another server?": each one takes its own RAM and CPU | `components/organisms/ServerButton.tsx` (counts the active profile's servers) |
+| Close the window while servers run | Wails `OnBeforeClose` keeps the window open and emits `app:close` {running}; the dialog's "Close anyway" calls `QuitLauncher`, which stops every server (up to 30 s), then quits | `app.go` `beforeClose`/`QuitLauncher`, `components/organisms/CloseDialog.tsx` |
 | The launcher exits anyway | `OnShutdown` stops every server and waits up to 30 s for them to save; a server still saving after that finishes on its own (it already got `stop`) | `app.go` `shutdown` |
 | Delete a running server | The confirm says it will be stopped; `DeleteInstance` calls `StopServerWait`, then deletes the folder | `app_instances.go`, `screens/server/ServerPage.tsx` |
-| Save changed settings on a running server | "Save and stop the server?": the server reads `server.properties` and its launch settings only when it starts. After saving, it is stopped. Unchanged forms save without asking | `components/SaveSettingsButton.tsx` (server settings + launch settings) |
+| Save changed settings on a running server | "Save and stop the server?": the server reads `server.properties` and its launch settings only when it starts. After saving, it is stopped. Unchanged forms save without asking | `components/organisms/SaveSettingsButton.tsx` (server settings + launch settings) |
 | Save server settings | Refused: a port another server uses (any profile's), port outside 1024–65535, max players outside 1–500, view distance outside 2–32 | `app_servers.go` `SetServerProperties` |
 
 A server still getting its files ready (downloading, running the Forge
