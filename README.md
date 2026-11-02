@@ -12,7 +12,7 @@ helper are all built in.
 
 [![Latest release](https://img.shields.io/github/v/release/Juan17la/Udeos_Launcher?include_prereleases&label=download&color=3C8527)](https://github.com/Juan17la/Udeos_Launcher/releases)
 [![Platforms](https://img.shields.io/badge/Windows%20%7C%20Linux%20%7C%20macOS-555?label=runs%20on)](#download)
-[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-FFAA00)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-FFAA00)](LICENSE)
 
 [Download](#download) · [Features](#what-you-can-do) · [User guide](docs/user-guide/getting-started.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md)
 
@@ -209,12 +209,9 @@ you through it.
 
 ## License
 
-Udeos Launcher is source-available under the
-[PolyForm Noncommercial License 1.0.0](LICENSE). You are free to use it, read
-the code, modify it and share it for any noncommercial purpose. Selling it, or
-using it or any part of it to make money, is reserved to the author. For
-commercial permission, open an issue or contact
-[@Juan17la](https://github.com/Juan17la).
+Udeos Launcher is open source under the [MIT License](LICENSE). You are free to
+use, copy, modify, share and sell it, as long as you keep the copyright and
+license notice.
 
 <div align="center">
 <br />
