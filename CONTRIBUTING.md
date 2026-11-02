@@ -71,8 +71,5 @@ The launcher speaks English and Spanish. To add a language, copy
 
 ## License of contributions
 
-Udeos Launcher is licensed under the
-[PolyForm Noncommercial License 1.0.0](LICENSE). By submitting a contribution
-you agree that it is licensed under the same terms, and that the project author
-may also use and license your contribution under other terms, including
-commercial ones. If you do not agree, please do not submit the contribution.
+Udeos Launcher is licensed under the [MIT License](LICENSE). By submitting a
+contribution you agree that it is licensed under the same terms.

@@ -5,6 +5,12 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- New license: Udeos Launcher is now under the MIT License instead of the
+  PolyForm Noncommercial License 1.0.0. Anyone can use, change, share and sell
+  it, as long as the copyright and license notice stay with it.
+
 ## [3.3.0-beta] - 2026-11-01
 
 ### New
