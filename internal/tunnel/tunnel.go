@@ -30,10 +30,11 @@ const DefaultRelay = "bore.pub"
 // ControlPort is where bore relays take control and accept connections.
 const ControlPort = "7835"
 
-// timeout bounds each handshake step (a var so tests can shorten it);
-// heartbeatTimeout is how long a silent relay is trusted (bore sends a
-// heartbeat every 500 ms).
-var timeout = 10 * time.Second
+// timeout bounds each handshake step (a var so tests can shorten it): 20 s
+// leaves room for a lossy line, where one lost packet costs seconds of TCP
+// retransmission. heartbeatTimeout is how long a silent relay is trusted
+// (bore sends a heartbeat every 500 ms).
+var timeout = 20 * time.Second
 
 const heartbeatTimeout = 30 * time.Second
 

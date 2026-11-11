@@ -21,6 +21,12 @@ import (
 func (m *Manager) InstallServer(ctx context.Context, kind, mc, version, java, dir string) ([]string, error) {
 	switch kind {
 	case Fabric:
+		args := []string{"-jar", "fabric-server-launch.jar", "nogui"}
+		jar := filepath.Join(dir, "fabric-server-launch.jar")
+		// Installed before: start without asking Fabric's servers anything, so a restart works offline or on a bad line.
+		if ServerInstalled(dir, kind, version) && fileExists(jar) {
+			return args, nil
+		}
 		var installers []fabricEntry
 		if err := m.Client.GetJSON(ctx, FabricMetaURL+"/versions/installer", &installers); err != nil {
 			return nil, fmt.Errorf("fabric installer list: %w", err)
@@ -36,13 +42,16 @@ func (m *Manager) InstallServer(ctx context.Context, kind, mc, version, java, di
 			return nil, errors.New("fabric meta lists no installer")
 		}
 		url := fmt.Sprintf("%s/versions/loader/%s/%s/%s/server/jar", FabricMetaURL, mc, version, inst)
-		jar := filepath.Join(dir, "fabric-server-launch.jar")
+		_ = os.Remove(jar) // a launcher for another loader build
 		if err := m.Pool.Run(ctx, Phase, []download.Task{{URL: url, Path: jar}}); err != nil {
 			return nil, fmt.Errorf("fabric server: %w", err)
 		}
-		return []string{"-jar", "fabric-server-launch.jar", "nogui"}, nil
+		if err := os.WriteFile(serverMarker(dir, kind, version), nil, 0o644); err != nil {
+			return nil, err
+		}
+		return args, nil
 	case Forge, NeoForge:
-		marker := filepath.Join(dir, ".udeos-"+strings.ToLower(kind)+"-"+version)
+		marker := serverMarker(dir, kind, version)
 		if !fileExists(marker) {
 			task := forgeInstaller(version)
 			if kind == NeoForge {
@@ -64,6 +73,16 @@ func (m *Manager) InstallServer(ctx context.Context, kind, mc, version, java, di
 		return nil, errors.New("Quilt servers are not supported yet: make a Fabric server, Quilt mods mostly run on it")
 	}
 	return nil, ErrUnknown
+}
+
+// serverMarker is the empty file InstallServer leaves once a loader build's server is in dir.
+func serverMarker(dir, kind, version string) string {
+	return filepath.Join(dir, ".udeos-"+strings.ToLower(kind)+"-"+version)
+}
+
+// ServerInstalled reports whether InstallServer already put this loader build's server into dir.
+func ServerInstalled(dir, kind, version string) bool {
+	return fileExists(serverMarker(dir, kind, version))
 }
 
 // forgeServerArgs finds how the installed server starts: 1.17+ installers

@@ -59,6 +59,8 @@ type Launcher struct {
 	OnGame    func(GameEvent)
 	// OnServer receives a server's console lines, and line == "" when its state changed.
 	OnServer func(id, line string)
+	// OnServerProgress receives a starting server's progress once a second.
+	OnServerProgress func(id string, p StartProgress)
 
 	mu      sync.Mutex
 	running map[string]*exec.Cmd
@@ -87,9 +89,17 @@ func New(dirs paths.Dirs, version string, report, reportContent func(download.Pr
 		return nil, err
 	}
 	search := modsearch.New(dirs)
-	l := &Launcher{
+	var l *Launcher
+	// Install progress also feeds servers that are getting ready (see feedServers).
+	feed := func(p download.Progress) {
+		if report != nil {
+			report(p)
+		}
+		l.feedServers(p)
+	}
+	l = &Launcher{
 		Dirs: dirs, Version: version, Instances: store,
-		Installer: install.New(dirs, report), JRE: jre.New(dirs, report), Loaders: loader.New(dirs, report),
+		Installer: install.New(dirs, feed), JRE: jre.New(dirs, feed), Loaders: loader.New(dirs, feed),
 		Search:   search,
 		Content:  modinstall.New(dirs, search.Provider, reportContent),
 		Modpacks: modpack.New(dirs, search.Provider, store, reportContent),

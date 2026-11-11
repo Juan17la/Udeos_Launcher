@@ -43,8 +43,12 @@ type Instance struct {
 	Internet Internet `json:"internet"`
 	// UdeosLogin: players join through Udeos Launcher (online mode against
 	// the launcher's own skin server), so their skins show; players of other
-	// launchers cannot join. New servers start with it on.
+	// launchers cannot join. Off for new servers (anyone can join, like on any
+	// other launcher); an opt-in in the server's Settings.
 	UdeosLogin bool `json:"udeosLogin,omitempty"`
+	// BootSec: how long the server took from Java starting to "Done" (averaged
+	// over starts); the start progress bar's estimate.
+	BootSec int `json:"bootSec,omitempty"`
 }
 
 // Internet is how a public server is reached from outside the local network.

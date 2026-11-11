@@ -26,9 +26,17 @@ import (
 
 // Events pushed while servers run.
 const (
-	EventServerLog   = "server:log"   // {id, line}
-	EventServerState = "server:state" // {id}: re-read ListServers
+	EventServerLog      = "server:log"      // {id, line}
+	EventServerState    = "server:state"    // {id}: re-read ListServers
+	EventServerProgress = "server:progress" // {id, percent, etaSec, step}: a start, once a second
 )
+
+// lightDefaults go into a new server's settings unless its files (a
+// modpack's) already set them. Friends usually join over a home upload and
+// the relay, so the server sends less: 8 chunks of view (vanilla 10, about a
+// third less map data to every player) and 6 of simulation (vanilla 10,
+// much less CPU). Chunk saves do not wait for the disk on every write.
+var lightDefaults = map[string]string{"view-distance": "8", "simulation-distance": "6", "sync-chunk-writes": "false"}
 
 // ServerView is a server instance plus its live state and the bits of
 // server.properties the cards show.
@@ -83,9 +91,9 @@ func (a *App) ListServers() []ServerView {
 }
 
 // CreateServer makes a server folder: the EULA accepted (the form asks),
-// the name as its MOTD, players joining through Udeos Launcher so skins
-// show (Udeos players have no Microsoft account; see Instance.UdeosLogin),
-// open to the internet, and the first port no other server or program uses. iconPNG is the 64×64
+// the name as its MOTD, players of any launcher let in (offline mode, the
+// way every other launcher's servers work; Udeos-only login with skins is
+// an opt-in in Settings, see Instance.UdeosLogin), open to the internet, and the first port no other server or program uses. iconPNG is the 64×64
 // server-icon.png, base64. Nothing is downloaded until the first start.
 func (a *App) CreateServer(name, version, ldr, loaderVersion, icon, iconPNG string) (ServerView, error) {
 	if !loader.Valid(ldr) || ldr == loader.Quilt {
@@ -129,14 +137,23 @@ func (a *App) initServer(inst instance.Instance, iconPNG string) (ServerView, er
 	if p, perr := a.launcher.Profile(); perr == nil {
 		owner = p.Nickname
 	}
+	props := map[string]string{"motd": inst.Name, "online-mode": "false", "enforce-secure-profile": "false", "server-port": strconv.Itoa(port),
+		// Anyone with the address can join until the owner turns the whitelist on (Players tab).
+		"white-list": "false", "enforce-whitelist": "false"}
+	have, _ := server.ReadProperties(dir)
+	for k, v := range lightDefaults {
+		if _, ok := have[k]; !ok {
+			props[k] = v
+		}
+	}
 	err := errors.Join(
 		// The address name is fixed now, so renaming the server later does not change the address friends saved.
 		// Owner is set now so the Servers page lists it at once (see ListServers).
 		a.launcher.Instances.Update(inst.ID, func(i *instance.Instance) {
-			i.Server, i.Public, i.Internet.Name, i.UdeosLogin, i.Owner = true, true, server.DefaultAddressName(inst.Name), true, owner
+			i.Server, i.Public, i.Internet.Name, i.Owner = true, true, server.DefaultAddressName(inst.Name), owner
 		}),
 		os.WriteFile(filepath.Join(dir, "eula.txt"), []byte("# Accepted in Udeos Launcher: https://aka.ms/MinecraftEULA\neula=true\n"), 0o644),
-		server.WriteProperties(dir, map[string]string{"motd": inst.Name, "online-mode": "true", "enforce-secure-profile": "false", "server-port": strconv.Itoa(port)}),
+		server.WriteProperties(dir, props),
 	)
 	if err == nil && iconPNG != "" {
 		err = a.SetServerIcon(inst.ID, iconPNG)

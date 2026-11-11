@@ -41,6 +41,16 @@ type ServerState struct {
 	PublicError   string `json:"publicError,omitempty"`
 }
 
+// StartProgress is how far a starting server is: Percent 0-99 and about
+// how many seconds are left. Step is "download" (measured bytes), "install"
+// (the Forge/NeoForge installer) or "world" (Java loading the game and world);
+// "prepare" before any of them.
+type StartProgress struct {
+	Percent int    `json:"percent"`
+	EtaSec  int    `json:"etaSec"`
+	Step    string `json:"step"`
+}
+
 // logLines is how much console history a server keeps for the UI.
 const logLines = 500
 
@@ -55,6 +65,16 @@ type serverProc struct {
 	public  context.CancelFunc // closes internet access (relay or router forward); nil when closed
 	exited  chan struct{}      // closed once the server is gone (stopped or failed to start)
 	cancel  context.CancelFunc // stops the preparation (downloads, Forge installer) before Java runs
+
+	// Start progress (see trackStart): when the start began, the latest
+	// download report and its rate, when the loader installer began, the
+	// percent last shown (it never goes back).
+	begin      time.Time
+	dl         download.Progress
+	dlAt       time.Time
+	rate       float64 // bytes/s, smoothed
+	installing time.Time
+	shown      int
 }
 
 var (
@@ -109,6 +129,15 @@ func (l *Launcher) serverLine(id, line string) {
 	switch {
 	case strings.Contains(line, "]: Done (") && strings.Contains(line, "For help"):
 		p.state.Ready, p.state.Starting, changed = true, false, true
+		boot := int(time.Since(p.started).Seconds() + 0.5)
+		go func() { // learned for the next start's estimate (averaged: the first start also builds the world)
+			_ = l.Instances.Update(id, func(i *instance.Instance) {
+				if i.BootSec > 0 {
+					boot = (boot + i.BootSec) / 2
+				}
+				i.BootSec = boot
+			})
+		}()
 	case joinedRe.MatchString(line):
 		p.state.Players = append(p.state.Players, joinedRe.FindStringSubmatch(line)[1])
 		changed = true
@@ -149,10 +178,11 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 		return errors.New("this server is already running")
 	}
 	ctx, cancel := context.WithCancel(ctx)
-	p := &serverProc{state: ServerState{Starting: true, Players: []string{}}, exited: make(chan struct{}), cancel: cancel}
+	p := &serverProc{state: ServerState{Starting: true, Players: []string{}}, exited: make(chan struct{}), cancel: cancel, begin: time.Now()}
 	l.servers[id] = p
 	l.mu.Unlock()
 	l.serverEmit(id, "")
+	go l.trackStart(id, p, inst)
 
 	fail := func(err error) error {
 		defer cancel()
@@ -205,7 +235,11 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 			mem = prof.MaxMemoryMB
 		}
 	}
-	full := append(append([]string{fmt.Sprintf("-Xmx%dM", mem)}, agent...), strings.Fields(inst.Launch.JvmArgs)...)
+	jvm := strings.Fields(inst.Launch.JvmArgs)
+	if len(jvm) == 0 {
+		jvm = serverJVM()
+	}
+	full := append(append([]string{fmt.Sprintf("-Xmx%dM", mem)}, agent...), jvm...)
 	cmd := exec.Command(loader.ConsoleJava(java), append(full, args...)...)
 	cmd.Dir = dir
 	launch.HideConsole(cmd)
@@ -257,6 +291,27 @@ func (l *Launcher) StartServer(ctx context.Context, id string) error {
 	return nil
 }
 
+// serverJVM is the default tuning for a server whose Java flags were left
+// empty (the player's own flags replace all of it, so they never clash):
+//   - G1 tuned for Minecraft (short pauses, young generation sized for its
+//     many short-lived objects); the heap grows only as needed, nothing is
+//     reserved up front (no AlwaysPreTouch, no -Xms).
+//
+// Checked on Mojang's Java 8, 17, 21 and 25. Not used: an auto class-data
+// archive (faster starts) needs the base CDS archive, which Mojang's builds
+// do not ship.
+func serverJVM() []string {
+	return []string{
+		"-XX:+IgnoreUnrecognizedVMOptions",
+		"-XX:+UseG1GC", "-XX:+ParallelRefProcEnabled", "-XX:MaxGCPauseMillis=200",
+		"-XX:+UnlockExperimentalVMOptions", "-XX:+DisableExplicitGC",
+		"-XX:G1NewSizePercent=30", "-XX:G1MaxNewSizePercent=40", "-XX:G1HeapRegionSize=8M",
+		"-XX:G1ReservePercent=20", "-XX:InitiatingHeapOccupancyPercent=15",
+		"-XX:G1MixedGCCountTarget=4", "-XX:G1MixedGCLiveThresholdPercent=90",
+		"-XX:SurvivorRatio=32", "-XX:MaxTenuringThreshold=1", "-XX:+PerfDisableSharedMem",
+	}
+}
+
 // prepareServer downloads what the server needs and returns java and the
 // arguments that start it from dir.
 func (l *Launcher) prepareServer(ctx context.Context, inst instance.Instance, dir string) (string, []string, error) {
@@ -274,18 +329,105 @@ func (l *Launcher) prepareServer(ctx context.Context, inst instance.Instance, di
 			return "", nil, fmt.Errorf("Mojang publishes no server for Minecraft %s", inst.Version)
 		}
 		task := download.Task{URL: jar.URL, Path: filepath.Join(dir, "server.jar"), SHA1: jar.SHA1, Size: jar.Size}
-		if err := download.NewPool(nil).Run(ctx, "server", []download.Task{task}); err != nil {
+		if err := download.NewPool(l.feedServers).Run(ctx, "server", []download.Task{task}); err != nil {
 			return "", nil, fmt.Errorf("server jar: %w", err)
 		}
 	}
 	if inst.Loader == loader.Vanilla {
 		return java, []string{"-jar", "server.jar", "nogui"}, nil
 	}
-	if inst.Loader == loader.Forge || inst.Loader == loader.NeoForge {
+	if (inst.Loader == loader.Forge || inst.Loader == loader.NeoForge) && !loader.ServerInstalled(dir, inst.Loader, inst.LoaderVersion) {
 		l.note(inst.ID, inst.Loader+" installs its server on the first start; this can take a couple of minutes.")
+		l.mu.Lock()
+		if p := l.servers[inst.ID]; p != nil {
+			p.installing = time.Now()
+		}
+		l.mu.Unlock()
 	}
 	args, err := l.Loaders.InstallServer(ctx, inst.Loader, inst.Version, inst.LoaderVersion, java, dir)
 	return java, args, err
+}
+
+// feedServers takes every download report (game, Java, loader, server jar)
+// so a server getting ready can show measured progress and a rate.
+// ponytail: a game installing at the same moment feeds it too; tag reports
+// with the instance if that ever shows.
+func (l *Launcher) feedServers(pr download.Progress) {
+	now := time.Now()
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	for _, p := range l.servers {
+		if p.cmd != nil || !p.state.Starting {
+			continue
+		}
+		if dt := now.Sub(p.dlAt).Seconds(); pr.Phase == p.dl.Phase && pr.Bytes > p.dl.Bytes && dt > 0 && dt < 5 {
+			r := float64(pr.Bytes-p.dl.Bytes) / dt
+			if p.rate == 0 {
+				p.rate = r
+			} else {
+				p.rate = 0.8*p.rate + 0.2*r
+			}
+		}
+		p.dl, p.dlAt = pr, now
+	}
+}
+
+// Guesses for a server never started before: how long Java takes to load
+// it (twice that when it also builds a new world) and the Forge installer.
+// After the first start the measured time (Instance.BootSec) replaces them.
+// ponytail: fixed guesses; scale by CPU or mod count if they read badly.
+const (
+	guessBootSec    = 15
+	guessModdedSec  = 60
+	guessInstallSec = 120
+)
+
+// trackStart sends the start's progress once a second until the server is
+// ready, stopped or gone. Percent is elapsed / (elapsed + left), so it
+// moves with real time, speeds up when the download is fast, and never
+// reaches 100 before the server says "Done".
+func (l *Launcher) trackStart(id string, p *serverProc, inst instance.Instance) {
+	boot := float64(inst.BootSec)
+	if boot == 0 {
+		boot = guessBootSec
+		if inst.Loader == loader.Forge || inst.Loader == loader.NeoForge {
+			boot = guessModdedSec
+		}
+		if _, err := os.Stat(filepath.Join(worldDir(l.Dirs.GameDir(id)), "level.dat")); err != nil {
+			boot *= 2
+		}
+	}
+	tick := time.NewTicker(time.Second)
+	defer tick.Stop()
+	for {
+		l.mu.Lock()
+		if l.servers[id] != p || !p.state.Starting || p.state.Stopping {
+			l.mu.Unlock()
+			return
+		}
+		now := time.Now()
+		left, step := boot, "prepare"
+		switch {
+		case p.cmd != nil:
+			step, left = "world", max(boot-now.Sub(p.started).Seconds(), 3)
+		case now.Sub(p.dlAt) < 3*time.Second && p.dl.TotalBytes > p.dl.Bytes && p.rate > 0:
+			step, left = "download", boot+float64(p.dl.TotalBytes-p.dl.Bytes)/p.rate
+		case !p.installing.IsZero():
+			step, left = "install", boot+max(guessInstallSec-now.Sub(p.installing).Seconds(), 10)
+		}
+		elapsed := now.Sub(p.begin).Seconds()
+		p.shown = max(p.shown, min(int(100*elapsed/(elapsed+left)), 99))
+		pr := StartProgress{Percent: p.shown, EtaSec: int(left + 0.5), Step: step}
+		l.mu.Unlock()
+		if l.OnServerProgress != nil {
+			l.OnServerProgress(id, pr)
+		}
+		select {
+		case <-tick.C:
+		case <-p.exited:
+			return
+		}
+	}
 }
 
 // ServerCommand types a line into the server console.
@@ -552,9 +694,10 @@ func (l *Launcher) relayPublic(ctx context.Context, id string, inst instance.Ins
 			if ctx.Err() != nil {
 				return
 			}
-			l.note(id, "Internet access failed: "+err.Error()+" Trying again in 15 s.")
+			// A blip comes back fast; a long outage is not hammered: 2, 4, 8, 16, then every 30 s.
+			wait = min(max(2*wait, 2*time.Second), 30*time.Second)
+			l.note(id, fmt.Sprintf("Internet access failed: %s Trying again in %d s.", err.Error(), int(wait.Seconds())))
 			l.setPublic(ctx, id, "", "", err.Error())
-			wait = 15 * time.Second
 			continue
 		}
 		if t.Port != want {
@@ -581,7 +724,7 @@ func (l *Launcher) relayPublic(ctx context.Context, id string, inst instance.Ins
 			}
 			l.note(id, "Internet access interrupted ("+problem+"). Reconnecting…")
 			l.setPublic(ctx, id, "", "", problem)
-			wait = 3 * time.Second
+			wait = time.Second // reconnect after 1 s; failures from there wait 2, 4, 8 s...
 		}
 	}
 }

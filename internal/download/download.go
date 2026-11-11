@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -39,6 +40,17 @@ type Progress struct {
 // workers is how many files download at once.
 const workers = 8
 
+// Bad connections: a download that receives nothing for stallTimeout is
+// dropped and retried (up to attempts times, waiting 1, 2, 4, 8, 15 s),
+// resuming from what it already has instead of starting over. There is no
+// cap on the total time, so a big file on a slow line still finishes.
+var stallTimeout = 30 * time.Second
+
+const attempts = 6
+
+// errPermanent marks an answer retrying cannot fix (404, 403...).
+var errPermanent = errors.New("permanent")
+
 // Pool runs tasks on a fixed number of workers.
 type Pool struct {
 	http       *http.Client
@@ -47,31 +59,36 @@ type Pool struct {
 
 // NewPool returns a pool whose progress goes to onProgress.
 func NewPool(onProgress func(Progress)) *Pool {
-	return &Pool{http: &http.Client{Timeout: 10 * time.Minute}, OnProgress: onProgress}
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	t.TLSHandshakeTimeout = 30 * time.Second // the default 10 s fails on lossy links
+	t.ResponseHeaderTimeout = stallTimeout
+	return &Pool{http: &http.Client{Transport: t}, OnProgress: onProgress}
 }
 
 // Run downloads every task, stopping at the first error or context cancel.
+// Progress comes after every file and, while bytes arrive, at most 4 times a second.
 func (p *Pool) Run(ctx context.Context, phase string, tasks []Task) error {
 	if len(tasks) == 0 {
 		return nil
 	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
 	var totalBytes int64
 	for _, t := range tasks {
 		totalBytes += t.Size
 	}
-	var done int64
-	var bytes int64
-	report := func(t Task) {
-		d := atomic.AddInt64(&done, 1)
-		b := atomic.AddInt64(&bytes, t.Size)
-		if p.OnProgress != nil {
-			p.OnProgress(Progress{Phase: phase, Done: int(d), Total: len(tasks), Bytes: b, TotalBytes: totalBytes, Current: filepath.Base(t.Path)})
+	var done, bytes, last atomic.Int64
+	report := func(force bool, cur string) {
+		if p.OnProgress == nil {
+			return
 		}
+		now, prev := time.Now().UnixNano(), last.Load()
+		if !force && (now-prev < int64(250*time.Millisecond) || !last.CompareAndSwap(prev, now)) {
+			return
+		}
+		last.Store(now)
+		p.OnProgress(Progress{Phase: phase, Done: int(done.Load()), Total: len(tasks), Bytes: bytes.Load(), TotalBytes: totalBytes, Current: cur})
 	}
-
 	queue := make(chan Task)
 	errs := make(chan error, workers)
 	var wg sync.WaitGroup
@@ -80,12 +97,15 @@ func (p *Pool) Run(ctx context.Context, phase string, tasks []Task) error {
 		go func() {
 			defer wg.Done()
 			for t := range queue {
-				if err := p.fetch(ctx, t); err != nil {
-					errs <- fmt.Errorf("%s: %w", filepath.Base(t.Path), err)
+				name := filepath.Base(t.Path)
+				add := func(n int64) { bytes.Add(n); report(false, name) }
+				if err := p.fetch(ctx, t, add); err != nil {
+					errs <- fmt.Errorf("%s: %w", name, err)
 					cancel()
 					return
 				}
-				report(t)
+				done.Add(1)
+				report(true, name)
 			}
 		}()
 	}
@@ -107,56 +127,130 @@ loop:
 	return ctx.Err()
 }
 
-// fetch downloads one task unless the file is already valid. Retries three times.
-func (p *Pool) fetch(ctx context.Context, t Task) error {
+// fetch downloads one task unless the file is already valid, retrying with
+// a growing wait. add credits bytes to the progress; got is what this task
+// has credited so far, so a restart from zero takes its bytes back.
+func (p *Pool) fetch(ctx context.Context, t Task, add func(int64)) error {
 	if Valid(t.Path, t.SHA1, t.Size) {
+		add(t.Size)
 		return nil
 	}
 	if err := os.MkdirAll(filepath.Dir(t.Path), 0o755); err != nil {
 		return err
 	}
+	var got int64
+	credit := func(to int64) { add(to - got); got = to }
 	var err error
-	for attempt := 0; attempt < 3; attempt++ {
-		if err = p.fetchOnce(ctx, t); err == nil {
+	for attempt := 0; attempt < attempts; attempt++ {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(min(time.Second<<(attempt-1), 15*time.Second)):
+			}
+		}
+		if err = p.fetchOnce(ctx, t, credit); err == nil {
+			if t.Size > 0 {
+				credit(t.Size)
+			}
 			return nil
 		}
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
+		if errors.Is(err, errPermanent) {
+			return err
+		}
 	}
 	return err
 }
 
-func (p *Pool) fetchOnce(ctx context.Context, t Task) error {
+// fetchOnce downloads into <path>.part, continuing a part left by an
+// earlier attempt (Range request) when the server allows it.
+func (p *Pool) fetchOnce(ctx context.Context, t Task, credit func(int64)) error {
+	tmp := t.Path + ".part"
+	var off int64
+	if st, err := os.Stat(tmp); err == nil && (t.Size == 0 || st.Size() < t.Size) {
+		off = st.Size()
+	}
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	var stalled atomic.Bool
+	timer := time.AfterFunc(stallTimeout, func() { stalled.Store(true); cancel() })
+	defer timer.Stop()
+	fail := func(err error) error {
+		if stalled.Load() {
+			return fmt.Errorf("the download stalled (nothing received for %s)", stallTimeout)
+		}
+		return err
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, t.URL, nil)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("User-Agent", "UdeosLauncher")
+	if off > 0 {
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-", off))
+	}
 	res, err := p.http.Do(req)
 	if err != nil {
-		return err
+		return fail(err)
 	}
 	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
+	flags := os.O_CREATE | os.O_WRONLY | os.O_TRUNC
+	switch {
+	case res.StatusCode == http.StatusPartialContent && off > 0 && strings.HasPrefix(res.Header.Get("Content-Range"), fmt.Sprintf("bytes %d-", off)):
+		flags = os.O_WRONLY | os.O_APPEND
+	case res.StatusCode == http.StatusOK:
+		off = 0 // no resume support: start over
+	case off > 0: // 416 or a range we did not ask for: drop the part and retry from zero
+		os.Remove(tmp)
+		return fmt.Errorf("GET %s: %s", t.URL, res.Status)
+	case res.StatusCode >= 400 && res.StatusCode < 500 && res.StatusCode != http.StatusRequestTimeout && res.StatusCode != http.StatusTooManyRequests:
+		return fmt.Errorf("GET %s: %s: %w", t.URL, res.Status, errPermanent)
+	default:
 		return fmt.Errorf("GET %s: %s", t.URL, res.Status)
 	}
-	tmp := t.Path + ".part"
-	f, err := os.Create(tmp)
+	h := sha1.New()
+	if off > 0 { // the hash covers the whole file: read back what is there
+		if err := hashFile(h, tmp); err != nil {
+			return err
+		}
+	}
+	credit(off)
+	f, err := os.OpenFile(tmp, flags, 0o644)
 	if err != nil {
 		return err
 	}
-	h := sha1.New()
-	_, copyErr := io.Copy(io.MultiWriter(f, h), res.Body)
-	closeErr := f.Close()
-	if copyErr != nil {
-		os.Remove(tmp)
-		return copyErr
+	buf := make([]byte, 64*1024)
+	n := off
+	var copyErr error
+	for {
+		k, rerr := res.Body.Read(buf)
+		if k > 0 {
+			timer.Reset(stallTimeout)
+			if _, werr := f.Write(buf[:k]); werr != nil {
+				copyErr = werr
+				break
+			}
+			h.Write(buf[:k])
+			n += int64(k)
+			credit(n)
+		}
+		if rerr == io.EOF {
+			break
+		}
+		if rerr != nil {
+			copyErr = fail(rerr)
+			break
+		}
 	}
-	if closeErr != nil {
-		os.Remove(tmp)
-		return closeErr
+	if err := f.Close(); copyErr == nil {
+		copyErr = err
+	}
+	if copyErr != nil {
+		return copyErr // the part stays: the next attempt resumes it
 	}
 	if t.SHA1 != "" && hex.EncodeToString(h.Sum(nil)) != t.SHA1 {
 		os.Remove(tmp)
@@ -172,6 +266,16 @@ func (p *Pool) fetchOnce(ctx context.Context, t Task) error {
 	return os.Rename(tmp, t.Path)
 }
 
+func hashFile(h io.Writer, path string) error {
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = io.Copy(h, f)
+	return err
+}
+
 // Valid reports whether the file exists and matches the expected hash (or size).
 func Valid(path, sha string, size int64) bool {
 	st, err := os.Stat(path)
@@ -181,14 +285,6 @@ func Valid(path, sha string, size int64) bool {
 	if sha == "" {
 		return size == 0 || st.Size() == size
 	}
-	f, err := os.Open(path)
-	if err != nil {
-		return false
-	}
-	defer f.Close()
 	h := sha1.New()
-	if _, err := io.Copy(h, f); err != nil {
-		return false
-	}
-	return hex.EncodeToString(h.Sum(nil)) == sha
+	return hashFile(h, path) == nil && hex.EncodeToString(h.Sum(nil)) == sha
 }

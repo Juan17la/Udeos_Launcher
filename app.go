@@ -67,6 +67,9 @@ func (a *App) startup(ctx context.Context) {
 			wailsrt.EventsEmit(a.ctx, EventServerLog, map[string]string{"id": id, "line": line})
 		}
 	}
+	a.launcher.OnServerProgress = func(id string, p core.StartProgress) {
+		wailsrt.EventsEmit(a.ctx, EventServerProgress, map[string]any{"id": id, "percent": p.Percent, "etaSec": p.EtaSec, "step": p.Step})
+	}
 }
 
 // beforeClose keeps the window open while servers run and asks the UI to
