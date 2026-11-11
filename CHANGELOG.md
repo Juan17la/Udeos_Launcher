@@ -5,11 +5,49 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.4.0-beta] - 2026-11-11
+
 ### Changed
 
+- Starting a server shows a real progress bar with about how long is left,
+  instead of a bar sliding forever. It measures the download, then uses how
+  long this server took to load last time.
+- Servers cope with bad connections. Downloads that stall are retried and
+  continue where they stopped instead of starting over, and big files no
+  longer fail after 10 minutes on a slow line. A Fabric server that started
+  once starts again without internet. The internet address comes back after
+  1 second when the relay drops, and waits longer between tries during a
+  long outage.
+- Servers use less: new servers send 8 chunks of view and simulate 6 (was
+  10 and 10), and Java gets garbage collection tuned for Minecraft unless you
+  set your own flags.
+- The whitelist is off on every new server, modpack servers included, so
+  friends with the address can join. Turn it on in Players.
+
+- Servers are simpler to host. New servers let friends on any launcher join,
+  like a server made with any other launcher (Udeos Launcher only, with
+  skins, is still in Settings → Advanced). Server cards show the whole
+  address with Copy and where friends paste it, never cut with "…". Settings
+  shows the few things most hosts change; who can join, port, seed, view
+  distance and the rest are under Advanced. A new server only needs Start.
 - New license: Udeos Launcher is now under the MIT License instead of the
   PolyForm Noncommercial License 1.0.0. Anyone can use, change, share and sell
   it, as long as the copyright and license notice stay with it.
+- Buttons, tags and loaders look like part of the launcher now. Buttons are
+  flat with a darker bottom edge, like a block, and they press in when
+  clicked. Every loading mark is the hopping grass block, so the spinning
+  ring is gone. Version and loader tags are neutral grey, so green and gold
+  only show when something is live or working.
+- Fewer blue buttons: on each screen only the main action is solid blue.
+  Card buttons, Add, Copy and New are quiet with a blue icon. A picked chip,
+  icon, row, theme or page is marked by a blue edge instead of a solid fill.
+- Pixel items stand on their own at whole sizes (no tinted boxes around them).
+  Notices show an emerald when something worked and redstone when it failed.
+- Fixed: on a card that is launching, the progress bar now runs along the
+  bottom edge, so the step name and Cancel fit again.
+- Small buttons such as Stop and Close are easier to hit. Focus is easier to
+  see on live server cards, and the gold progress text is easier to read in
+  the light theme.
 
 ## [3.3.0-beta] - 2026-11-01
 
