@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Udeos Product Vision</title>
+<meta name="description" content="The objective of Udeos Launcher, the visual style that characterises it, and the audience it is designed for.">
+<script>try { document.documentElement.dataset.theme = localStorage.getItem('udeos-planning-theme') || 'dark' } catch {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="planning.css">
+<link rel="icon" href="../../build/appicon.png">
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1><img src="../../frontend/src/assets/icons/nether_star.png" alt="">Product vision</h1>
+  <p>Why Udeos Launcher exists, how it should feel, and who it is for. This page
+  is the reference for any design or product decision: when two options are
+  both reasonable, pick the one that serves the objective and the audience
+  described here.</p>
+  <div class="toc"><a href="#objective">Objective</a><a href="#problem">Problem</a><a href="#audience">Audience</a><a href="#style">Style</a><a href="#feel">Personality</a><a href="#principles">Principles</a><a href="#success">Success</a><a href="#not">What it is not</a></div>
+</header>
+
+<section class="section" id="objective">
+  <h2><img src="../../frontend/src/assets/icons/ender_pearl.png" alt="">Objective</h2>
+  <p class="big-quote">Get any player from opening the app to playing Minecraft with no account and no configuration, and give the players who want more everything they need without leaving the launcher.</p>
+  <div class="grid-3" style="margin-top:24px">
+    <div class="panel aside"><h3 class="h4">Play</h3>Install any version of Minecraft: Java Edition, its Java runtime and a mod loader with one button.</div>
+    <div class="panel aside"><h3 class="h4">Grow</h3>Find, install and manage mods, packs, shaders and modpacks safely, with compatibility checked before anything is written.</div>
+    <div class="panel aside"><h3 class="h4">Share</h3>Host a world friends can join from anywhere, and look the way you want with your own skins.</div>
+  </div>
+</section>
+
+<section class="section" id="problem">
+  <h2><img src="../../frontend/src/assets/icons/lava_bucket.png" alt="">The problem it solves</h2>
+  <div class="grid-2">
+    <div class="dont"><h3 class="h4">Today, without Udeos</h3><ul>
+      <li>An account wall before the first block is placed.</li>
+      <li>A separate installer for each mod loader, and folders to find by hand.</li>
+      <li>Mods that crash the game because a dependency or loader is wrong.</li>
+      <li>Port forwarding or paid hosting to play with friends.</li>
+      <li>Several tools for mods, skins and servers, each with its own look.</li>
+    </ul></div>
+    <div class="do"><h3 class="h4">With Udeos</h3><ul>
+      <li>A nickname and Play.</li>
+      <li>Loaders and Java install themselves on first Play.</li>
+      <li>Every install is planned: version, loader, dependencies, conflicts.</li>
+      <li>Start a server and share an address that works behind any router.</li>
+      <li>One launcher, one style, everything in one place.</li>
+    </ul></div>
+  </div>
+</section>
+
+<section class="section" id="audience">
+  <h2><img src="../../frontend/src/assets/icons/totem_of_undying.png" alt="">Audience</h2>
+  <p class="lead">Two primary groups pull the design in different directions. The answer is
+  "casual by default, dense on demand": the surface is for the first group, one step in
+  is for the second.</p>
+  <div class="grid-2">
+    <div class="panel persona">
+      <div class="who"><img src="../../frontend/src/assets/icons/cake.png" alt=""><div><h3>The casual player</h3><span class="muted" style="font-size:13px">Primary · kids, teens, families</span></div></div>
+      <ul>
+        <li>Kids and teens, or a parent setting it up for them.</li>
+        <li>Often a shared family PC or a modest laptop.</li>
+        <li>Reads short sentences, scans for big buttons and familiar items.</li>
+        <li>Wants: Play, a skin, a mod a friend mentioned.</li>
+        <li>Frustrated by: accounts, waiting with no feedback, English-only text.</li>
+      </ul>
+      <span class="tag v" style="justify-self:start">Designs for: big targets, plain words, Spanish and English</span>
+    </div>
+    <div class="panel persona">
+      <div class="who"><img src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt=""><div><h3>The modder</h3><span class="muted" style="font-size:13px">Primary · modpack players and tinkerers</span></div></div>
+      <ul>
+        <li>Runs several modded instances on different versions and loaders.</li>
+        <li>Knows what Fabric and Forge are, tunes memory and JVM flags.</li>
+        <li>Wants density: lists, filters, versions, exact control.</li>
+        <li>Frustrated by: dependency hunts, conflicts found after a crash, slow UIs.</li>
+      </ul>
+      <span class="tag l" style="justify-self:start">Designs for: list views, filters, version picker, settings</span>
+    </div>
+    <div class="panel persona">
+      <div class="who"><img src="../../frontend/src/assets/icons/campfire.png" alt=""><div><h3>The host</h3><span class="muted" style="font-size:13px">Secondary</span></div></div>
+      <ul>
+        <li>A player who wants a world for their friends.</li>
+        <li>Has no access to the router, or a provider that blocks it.</li>
+        <li>Wants: Start, an address to paste in a chat, backups that just work.</li>
+      </ul>
+    </div>
+    <div class="panel persona">
+      <div class="who"><img src="../../frontend/src/assets/icons/name_tag.png" alt=""><div><h3>The joining friend</h3><span class="muted" style="font-size:13px">Secondary</span></div></div>
+      <ul>
+        <li>Receives an address or a <code>.udeos</code> file.</li>
+        <li>Wants to join without matching versions and mods by hand.</li>
+        <li>May use another launcher: the host can open the server to Anyone.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="style">
+  <h2><img src="../../frontend/src/assets/icons/amethyst_shard.png" alt="">The style that characterises it</h2>
+  <p class="big-quote">Game-native and quiet: a night-sky console menu where the real Minecraft items bring the colour and the charm.</p>
+  <div class="grid-3" style="margin-top:24px">
+    <div class="panel aside"><h3 class="h4">Night-blue canvas</h3>Dark but never black (#0E1423) with two soft accent glows. Flat panels one step lighter, told apart by a blue-tinted hairline. Light theme as cool sky paper.</div>
+    <div class="panel aside"><h3 class="h4">One blue accent</h3>Blue carries the single main action of a view. Gold means working, green means live, red means failure. Nothing else competes.</div>
+    <div class="panel aside"><h3 class="h4">Real pixel textures</h3>Minecraft's own 16 by 16 items as instance icons, heading marks and props, rendered crisp. Faint items drift on the canvas, behind the content.</div>
+    <div class="panel aside"><h3 class="h4">Modern type</h3>Geist for reading, Geist Mono for numbers and addresses, Pixelify Sans only for the wordmark and the big progress figure: one wink at the game, not a costume.</div>
+    <div class="panel aside"><h3 class="h4">Soft, rounded shapes</h3>Radii of 6, 10, 16 and 22 px, pill tags, low soft shadows. Friendly for kids, calm for long sessions.</div>
+    <div class="panel aside"><h3 class="h4">Delight in moments</h3>An item drops into an empty list, the loader is a hopping block, Playing is a live green chip, closing a game says "GG". Motion only where something needs noticing.</div>
+  </div>
+  <div class="panel" style="margin-top:16px;padding:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center">
+    <span style="width:48px;height:48px;border-radius:12px;background:#0E1423;box-shadow:var(--shadow-neu)"></span>
+    <span style="width:48px;height:48px;border-radius:12px;background:#161E2E;box-shadow:var(--shadow-neu)"></span>
+    <span style="width:48px;height:48px;border-radius:12px;background:#336CEB"></span>
+    <span style="width:48px;height:48px;border-radius:12px;background:#2B4F9E"></span>
+    <span style="width:48px;height:48px;border-radius:12px;background:#5BE38A"></span>
+    <span style="width:48px;height:48px;border-radius:12px;background:#F2B63D"></span>
+    <span style="width:48px;height:48px;border-radius:12px;background:#E5566B"></span>
+    <span class="muted" style="font-size:13px">The core palette in the reference theme. Full detail in the <a href="design-system.html#color">design system</a>.</span>
+  </div>
+</section>
+
+<section class="section" id="feel">
+  <h2><img src="../../frontend/src/assets/icons/goat_horn.png" alt="">Personality</h2>
+  <div class="panel table-wrap"><table class="doc">
+    <thead><tr><th>Udeos is</th><th>but never</th></tr></thead>
+    <tbody>
+      <tr><td>Playful</td><td>Childish or noisy</td></tr>
+      <tr><td>Game-native</td><td>A copy of Minecraft's own menus</td></tr>
+      <tr><td>Calm while you work</td><td>Bland or corporate</td></tr>
+      <tr><td>Helpful in plain words</td><td>Technical on the surface</td></tr>
+      <tr><td>Fast and light</td><td>Flashy at the cost of frames</td></tr>
+      <tr><td>Private by default</td><td>Asking for accounts or data</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="principles">
+  <h2><img src="../../frontend/src/assets/icons/book.png" alt="">Product principles</h2>
+  <div class="grid-2">
+    <div class="panel aside"><h3 class="h4">1. Press Play first</h3>The path from opening the launcher to playing is the shortest thing on screen. The last played instance is always one click away.</div>
+    <div class="panel aside"><h3 class="h4">2. Waiting is a feature</h3>Downloads are long. Every wait shows what is running, how far along it is, and what the player can do meanwhile.</div>
+    <div class="panel aside"><h3 class="h4">3. Casual by default, dense on demand</h3>Nothing a child cannot understand on the surface, modder-grade control one step in.</div>
+    <div class="panel aside"><h3 class="h4">4. Light on weak PCs</h3>System web view instead of a bundled browser, no heavy effects, shared downloads.</div>
+    <div class="panel aside"><h3 class="h4">5. Local and private</h3>No account wall, no telemetry. The launcher only talks to the services it needs.</div>
+    <div class="panel aside"><h3 class="h4">6. Safe by construction</h3>Installs are checked before they happen; anything that cannot be recovered asks first; small things can be undone.</div>
+  </div>
+</section>
+
+<section class="section" id="success">
+  <h2><img src="../../frontend/src/assets/icons/emerald.png" alt="">What success looks like</h2>
+  <div class="grid-3">
+    <div class="panel stat"><b>0</b>accounts, forms or settings between a fresh install and the first game</div>
+    <div class="panel stat"><b>1 click</b>to get back into the last played instance</div>
+    <div class="panel stat"><b>≤ 2 clicks</b>to install a compatible addon once found</div>
+    <div class="panel stat"><b>0</b>incompatible mods written to an instance by the launcher</div>
+    <div class="panel stat"><b>1 address</b>for friends to join a hosted world, behind any router</div>
+    <div class="panel stat"><b>2 languages</b>English and Spanish, everywhere in the interface</div>
+  </div>
+  <p class="note" style="margin-top:10px">These are design targets taken from the requirements, not measured usage data. No analytics are collected.</p>
+</section>
+
+<section class="section" id="not">
+  <h2><img src="../../frontend/src/assets/icons/obsidian.png" alt="">What it is not</h2>
+  <div class="grid-2">
+    <div class="panel aside"><h3 class="h4">Not a replacement for buying the game</h3>Udeos plays in offline mode and is not affiliated with Mojang or Microsoft. Players are asked to support the game. Servers that require a Microsoft account will not accept Udeos players.</div>
+    <div class="panel aside"><h3 class="h4">Not a mod platform</h3>Modrinth is the catalogue; Udeos is the friendly door to it. It does not host, rank or review mods itself.</div>
+  </div>
+</section>
+
+<footer class="footer"><span>Related: <a href="../product/overview.md">Product overview</a> · <a href="../../PRODUCT.md">PRODUCT.md</a></span><span>Previous: <a href="navigation-flow.html">Navigation flow</a> · Back to <a href="mockups.html">Mockups</a></span></footer>
+</div>
+<script src="planning.js"></script>
+</body>
+</html>

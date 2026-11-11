@@ -32,11 +32,17 @@ folder:
 - `server.properties` with the server's name as `motd`, the first free
   **port** from 25565 upwards that no other Udeos server uses and no other
   program is listening on, and
-  **"Who can join: Udeos players"**: `online-mode=true` checked by the
-  launcher's own skin server instead of Microsoft, so skins show and Udeos
-  players (who have no Microsoft account) get in; players of other launchers
-  cannot. Settings can switch it to "Anyone" (`online-mode=false`) or
-  "Microsoft accounts". Details in [Skins](skins.md#server-login-who-can-join).
+  **"Who can join: Any launcher"** (`online-mode=false`), so friends on any
+  launcher get in, the way servers from other launchers behave. Settings can
+  switch it to "Udeos Launcher only" (`online-mode=true` checked by the
+  launcher's own skin server instead of Microsoft, so skins show, but players
+  of other launchers cannot join) or "Microsoft accounts only". Details in [Skins](skins.md#server-login-who-can-join).
+  The whitelist is written off (`white-list=false`, `enforce-whitelist=false`),
+  also over a modpack's own file, so anyone with the address gets in until
+  the owner turns it on in the Players tab. Unless the files already set
+  them, `lightDefaults` add `view-distance=8` and `simulation-distance=6`
+  (vanilla 10: less map data over a home upload and the relay, less CPU)
+  and `sync-chunk-writes=false`.
 - `server-icon.png` (64×64) when an icon was chosen: the picture next to the
   server in the multiplayer list.
 - `Instance.Public` on: a new server is open to the internet whenever it
@@ -82,14 +88,16 @@ through two events: `server:log` (a console line) and `server:state`
    - **Vanilla / Fabric**: download Mojang's `server.jar` (hash-checked, skipped
      when already there). Vanilla starts with `-jar server.jar nogui`;
    - **Fabric**: download Fabric's server launcher
-     (`fabric-server-launch.jar`, it loads the vanilla `server.jar` next to it);
+     (`fabric-server-launch.jar`, it loads the vanilla `server.jar` next to it).
+     A marker `.udeos-fabric-<build>` lets later starts skip Fabric's servers
+     entirely, so a restart works offline;
    - **Forge / NeoForge**: download the installer into the shared cache and run
      it headless with `--installServer <folder>` (takes a minute or two; the
      console says so). A marker file `.udeos-<loader>-<build>` stops it running
      again. 1.17+ installers leave an argument file
      (`libraries/…/unix_args.txt` or `win_args.txt`), started as
      `@<that file> nogui`; older ones leave a runnable `forge-<build>.jar`.
-3. **Udeos login** (servers on "Udeos players" only): get the skin agent
+3. **Udeos login** (servers on "Udeos Launcher only"): get the skin agent
    (authlib-injector, downloaded once) and rewrite `online-mode=true` and
    `enforce-secure-profile=false`; the start fails if the agent cannot be
    had, since no Udeos player could join without it.
@@ -112,7 +120,10 @@ through two events: `server:log` (a console line) and `server:state`
    (Windows).
 5. **Start Java** from the server folder:
    `java -Xmx<memory>M [-javaagent:…] <jvm flags> <start arguments>`. Memory is the server's
-   own setting, else the profile's default, else 2048 MB. On Windows
+   own setting, else the profile's default, else 2048 MB. With no JVM flags
+   of the player's own, `serverJVM` adds G1 tuned for Minecraft (short GC
+   pauses, nothing reserved up front); the player's flags replace all of it,
+   so two garbage collectors never clash. On Windows
    `javaw.exe` is swapped for `java.exe` (`ConsoleJava`) so the output can be
    read, and no console window opens.
 6. **Watch the console.** stdout and stderr are read line by line; the last
@@ -121,6 +132,13 @@ through two events: `server:log` (a console line) and `server:state`
    - `…]: Done (…)! For help…` → Ready: players can join;
    - `…]: <name> joined the game` / `left the game` → the online list;
    - `Saved the game` / `Saved the world` → a waiting backup may continue.
+   While it starts, `trackStart` sends `server:progress` once a second:
+   percent and seconds left. Left = bytes still to download / measured rate
+   (every download pool feeds `feedServers`) + the Forge installer guess +
+   the boot time, which is learned: `Instance.BootSec` (Java start to `Done`,
+   averaged over starts), guessed the first time (15 s, 60 s modded, doubled
+   for a new world). Percent = elapsed / (elapsed + left), never backwards,
+   never 100 before `Done`.
 7. **Open to the internet** if the server's `Public` switch is on (below).
 8. When the process exits, internet access is closed, the play time is added
    to the instance and the entry is removed.
@@ -208,8 +226,9 @@ Messages are JSON followed by a 0 byte, on TCP port 7835:
   the custom address even while the server is stopped (under it: "Opens when
   the server starts."). Changing the mode, name or relay forgets it until
   the next open. A server that was never open has no address yet.
-- **Reconnects** (`relayPublic`): 3 seconds after the control connection
-  drops, 15 seconds after a failed attempt, until access is closed. Players
+- **Reconnects** (`relayPublic`): 1 second after the control connection
+  drops, then 2, 4, 8, 16 and every 30 seconds while attempts fail, until
+  access is closed. Each handshake step waits up to 20 seconds (lossy lines). Players
   already in the game are not affected by a control drop: each one has its
   own connection. Closing access (switch off, stop, new settings) cuts them.
 
@@ -297,4 +316,4 @@ Modrinth) and `udeos.json` (`{name, address, resourcePack}`). Things to know:
 | The named address does not resolve | nip.io unreachable from the friend's network: use the raw address |
 | Friends on the same Wi-Fi cannot join | The OS firewall blocks Java; allow it for private networks |
 | Router mode: "shared" / CGNAT warning | The provider shares the public IP: use Relay mode |
-| Friends get "Invalid session" when joining | They use another launcher and the server is on "Udeos players", or it is on "Microsoft accounts": Settings → Who can join |
+| Friends get "Invalid session" when joining | They use another launcher and the server is on "Udeos Launcher only", or it is on "Microsoft accounts": Settings → Who can join |

@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Udeos Navigation Flow</title>
+<meta name="description" content="How a player moves between the pages of Udeos Launcher: the screen map, entry points, Back behaviour, dialogs and the main task journeys.">
+<script>try { document.documentElement.dataset.theme = localStorage.getItem('udeos-planning-theme') || 'dark' } catch {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="planning.css">
+<link rel="icon" href="../../build/appicon.png">
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1><img src="../../frontend/src/assets/icons/minecart.png" alt="">Navigation flow</h1>
+  <p>How a player moves through the launcher. There is no URL router: the page on
+  stage is one state value, changed by two functions, <code>go(screen)</code> and
+  <code>back()</code>. Every button, card and sidebar item calls one of them, so
+  the whole map fits on one diagram.</p>
+  <div class="toc">
+    <a href="#map">Screen map</a><a href="#sections">Sidebar sections</a><a href="#entry">Entry points</a>
+    <a href="#back">Back and history</a><a href="#addons">Two ways into Addons</a><a href="#dialogs">Dialogs</a>
+    <a href="#journeys">Task journeys</a><a href="#keyboard">Keyboard</a>
+  </div>
+</header>
+
+<section class="section" id="map">
+  <h2><img src="../../frontend/src/assets/icons/spyglass.png" alt="">Screen map</h2>
+  <p class="lead">Blue boxes are the four sidebar sections, reachable from every page.
+  Solid arrows are forward navigation, dashed gold arrows are Back with context
+  restored, the dashed box holds the layer of dialogs that can open over any page.</p>
+  <div class="panel">
+    <div class="flow"><svg id="flow" viewBox="0 0 1340 760" role="img" aria-label="Screen map of Udeos Launcher"></svg></div>
+    <div class="legend">
+      <span><i style="border-color:var(--primary-hover)"></i>Sidebar, always available</span>
+      <span><i style="border-color:color-mix(in srgb,var(--text) 40%,transparent)"></i>Forward (go)</span>
+      <span><i style="border-color:var(--gold);border-top-style:dashed"></i>Back, context restored</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="sections">
+  <h2><img src="../../frontend/src/assets/icons/oak_log.png" alt="">Sidebar sections</h2>
+  <p class="lead">The lit sidebar item answers "which section am I in", not only "which screen".
+  The primary button at the top changes with the section.</p>
+  <div class="panel table-wrap"><table class="doc">
+    <thead><tr><th>Screen</th><th>Lit item</th><th>Primary button</th><th>Back row</th></tr></thead>
+    <tbody>
+      <tr><td>Setup (login)</td><td>none, no sidebar</td><td>none</td><td>no, a root</td></tr>
+      <tr><td>Instances (dashboard)</td><td>Instances</td><td>New Instance</td><td>no, a root</td></tr>
+      <tr><td>New instance / New server</td><td>Instances or Servers</td><td>hidden (you are there)</td><td>yes</td></tr>
+      <tr><td>Instance page</td><td>Instances</td><td>New Instance</td><td>yes</td></tr>
+      <tr><td>Servers, server page</td><td>Servers</td><td>New Server</td><td>server page only</td></tr>
+      <tr><td>Skins, skin editor</td><td>Skins</td><td>New skin</td><td>editor only</td></tr>
+      <tr><td>Addons, addon details, Ask AI</td><td>Addons</td><td>New Instance</td><td>details, locked Addons, Ask AI</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="entry">
+  <h2><img src="../../frontend/src/assets/icons/ender_eye.png" alt="">Entry points</h2>
+  <div class="panel table-wrap"><table class="doc">
+    <thead><tr><th>Page</th><th>Reached from</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Setup</td><td>First start with no profile; Add profile in the profile dialog</td><td>Never stored in history: Back can never land on it.</td></tr>
+      <tr><td>Instances</td><td>Start (profile exists), sidebar, profile switch, end of an empty history</td><td>A root: clears history.</td></tr>
+      <tr><td>New instance</td><td>Sidebar New Instance, the New Instance tile, empty states, "Create instance" in the no-compatible-instance dialog</td><td>Import file lives here too.</td></tr>
+      <tr><td>New server</td><td>Sidebar New Server on Servers, empty state, a modpack's "New server from this modpack"</td><td>Same form, server mode.</td></tr>
+      <tr><td>Instance page</td><td>An instance card or row, Manage on Last played, after Create</td><td>Opens on the tab used last for that instance.</td></tr>
+      <tr><td>Server page</td><td>A server card, after Create</td><td>Opens on the tab used last for that server.</td></tr>
+      <tr><td>Addons</td><td>Sidebar; an instance's Add resources; a server's Mods tab</td><td>From an instance or server it is locked to it.</td></tr>
+      <tr><td>Addon details</td><td>A result card, an AI pick's Details, an installed card in a Mods, Resource packs or Shaders tab</td><td>Carries the instance lock.</td></tr>
+      <tr><td>Ask AI</td><td>Ask AI on the Addons header; Ask AI on an instance's file tab</td><td>From an instance it knows its version and loader.</td></tr>
+      <tr><td>Skin editor</td><td>Sidebar New skin on Skins; Edit on a skin card</td><td>Keyed by skin; offers a saved draft.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="back">
+  <h2><img src="../../frontend/src/assets/icons/arrow.png" alt="">Back and history</h2>
+  <div class="grid-2">
+    <div class="panel aside"><h3 class="h4">Rules</h3>
+      <ul style="margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px">
+        <li>Each step stores the page and its scroll position.</li>
+        <li>At most 20 steps are kept; older ones drop off.</li>
+        <li>Instances and Setup are roots: going there clears history.</li>
+        <li>Going to the page you are already on does nothing.</li>
+        <li>Back with an empty history goes to Instances.</li>
+        <li>A new page starts at the top; a page reached with Back restores its scroll.</li>
+      </ul>
+    </div>
+    <div class="panel aside"><h3 class="h4">What Back restores</h3>
+      <ul style="margin:0;padding-left:18px;display:grid;gap:6px;font-size:13.5px">
+        <li>Addons: search text, type, version, loader, sort, topics, page, the results and the AI panel.</li>
+        <li>Instance and server pages: the open tab.</li>
+        <li>Every page: the scroll position.</li>
+        <li>The label names the destination: "Back to Modded Fun", "Back to Addons".</li>
+        <li>Profile switch always lands on Instances, since the page you were on may belong to the other profile.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="addons">
+  <h2><img src="../../frontend/src/assets/icons/enchanted_book.png" alt="">Two ways into Addons</h2>
+  <p class="lead">Same page, different rules. Installing never takes more than two clicks.</p>
+  <div class="panel table-wrap"><table class="doc">
+    <thead><tr><th></th><th>From the sidebar</th><th>From an instance or server</th></tr></thead>
+    <tbody>
+      <tr><td>Version and loader filters</td><td>Free</td><td>Locked to the instance, shown disabled with their value</td></tr>
+      <tr><td>Project types offered</td><td>All five</td><td>Vanilla instance: resource packs and datapacks · modded instance: all five · modded server: mods and datapacks · vanilla server: datapacks</td></tr>
+      <tr><td>Add does</td><td>Opens a picker of compatible instances (1 more click)</td><td>Installs straight away</td></tr>
+      <tr><td>Installed results</td><td>Not marked</td><td>Read Added</td></tr>
+      <tr><td>No instance fits</td><td>A dialog offers Create instance</td><td>Not possible: results are pre-filtered</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="dialogs">
+  <h2><img src="../../frontend/src/assets/icons/name_tag.png" alt="">Dialogs and overlays</h2>
+  <p class="lead">Not pages: they float over whichever page is on stage, never change history, and close with Escape.</p>
+  <div class="grid-3">
+    <div class="panel aside"><h3 class="h4">Activity popover</h3>From the sidebar. Jobs with progress and Cancel, open games, running servers.</div>
+    <div class="panel aside"><h3 class="h4">Profile switcher</h3>From the profile button. Switch, add (opens Setup) or remove a profile.</div>
+    <div class="panel aside"><h3 class="h4">Account menu</h3>Theme, language, Privacy and terms.</div>
+    <div class="panel aside"><h3 class="h4">Add to instance</h3>The compatible-instance picker from sidebar Addons; the world picker for datapacks.</div>
+    <div class="panel aside"><h3 class="h4">Confirmations</h3>Delete instance, world, server, backup or skin; Close game; stop a server to change settings; a third server.</div>
+    <div class="panel aside"><h3 class="h4">System</h3>Update available, game crashed (Open logs folder), servers running on close, conflict with See options.</div>
+  </div>
+</section>
+
+<section class="section" id="journeys">
+  <h2><img src="../../frontend/src/assets/icons/elytra.png" alt="">Task journeys</h2>
+  <p class="lead">The shortest path for the tasks players do most. Counts are clicks from the page where the journey starts.</p>
+  <div style="display:grid;gap:16px">
+    <div class="panel aside"><h3 class="h4">First game, from a fresh install · about 6 clicks</h3>
+      <div class="journey"><span class="stp">Setup: nickname</span><span class="arr">→</span><span class="stp">Language</span><span class="arr">→</span><span class="stp">Theme + agree</span><span class="arr">→</span><span class="stp">New Instance</span><span class="arr">→</span><span class="stp">Create &amp; play</span><span class="arr">→</span><span class="stp">Launch strip</span><span class="arr">→</span><span class="stp end">Playing</span></div></div>
+    <div class="panel aside"><h3 class="h4">Back to the game · 1 click</h3>
+      <div class="journey"><span class="stp">Instances</span><span class="arr">→</span><span class="stp">Play on Last played</span><span class="arr">→</span><span class="stp end">Playing</span></div></div>
+    <div class="panel aside"><h3 class="h4">Add a mod to an instance · 2 clicks after searching</h3>
+      <div class="journey"><span class="stp">Instance page, Mods tab</span><span class="arr">→</span><span class="stp">Add mods (Addons locked)</span><span class="arr">→</span><span class="stp">Search</span><span class="arr">→</span><span class="stp">Add</span><span class="arr">→</span><span class="stp end">Added, progress in Activity</span></div></div>
+    <div class="panel aside"><h3 class="h4">Find mods without knowing names</h3>
+      <div class="journey"><span class="stp">Instance tab</span><span class="arr">→</span><span class="stp">Ask AI</span><span class="arr">→</span><span class="stp">Describe the goal</span><span class="arr">→</span><span class="stp">Add on a pick</span><span class="arr">→</span><span class="stp end">Installed</span></div></div>
+    <div class="panel aside"><h3 class="h4">Host a world for friends · 5 clicks</h3>
+      <div class="journey"><span class="stp">Servers</span><span class="arr">→</span><span class="stp">New Server</span><span class="arr">→</span><span class="stp">Create</span><span class="arr">→</span><span class="stp">Start</span><span class="arr">→</span><span class="stp">Copy address</span><span class="arr">→</span><span class="stp end">Friends join</span></div></div>
+    <div class="panel aside"><h3 class="h4">Join a friend's modded server</h3>
+      <div class="journey"><span class="stp">Receive .udeos file</span><span class="arr">→</span><span class="stp">New Instance</span><span class="arr">→</span><span class="stp">Import file</span><span class="arr">→</span><span class="stp">Play</span><span class="arr">→</span><span class="stp end">Server already listed</span></div></div>
+  </div>
+</section>
+
+<section class="section" id="keyboard">
+  <h2><img src="../../frontend/src/assets/icons/redstone.png" alt="">Keyboard</h2>
+  <div class="panel table-wrap"><table class="doc">
+    <thead><tr><th>Key</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>Tab</code> / <code>Shift+Tab</code></td><td>Moves through sidebar, page actions and cards; focus ring always visible.</td></tr>
+      <tr><td><code>Enter</code> / <code>Space</code></td><td>Opens a focused card (each card is a real button) or presses a button.</td></tr>
+      <tr><td><code>Esc</code></td><td>Closes the open dialog or popover.</td></tr>
+      <tr><td><code>Enter</code> in Setup</td><td>Moves to the next step when the nickname is valid.</td></tr>
+      <tr><td><code>B E G I</code>, <code>Ctrl+Z</code>, <code>Ctrl+Y</code>, <code>0</code></td><td>Skin editor tools, undo, redo, reset view.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<footer class="footer"><span>Source: <code>frontend/src/state/index.tsx</code> (<code>go</code>, <code>back</code>), <code>App.tsx</code></span><span>Previous: <a href="design-system.html">Design system</a> · Next: <a href="vision.html">Product vision</a></span></footer>
+</div>
+
+<script>
+// The screen map, drawn from data so boxes and arrows stay aligned.
+const W = 184, H = 60
+const N = {
+  setup:    { x: 20,   y: 330, t: 'Setup', s: 'nickname, language, theme', k: 'plain' },
+  dash:     { x: 270,  y: 60,  t: 'Instances', s: 'dashboard', k: 'root' },
+  servers:  { x: 270,  y: 250, t: 'Servers', s: 'server list', k: 'root' },
+  skins:    { x: 270,  y: 440, t: 'Skins', s: 'skin library', k: 'root' },
+  addons:   { x: 270,  y: 630, t: 'Addons', s: 'free search', k: 'root' },
+  create:   { x: 560,  y: 20,  t: 'New instance', s: 'or New server', k: 'plain' },
+  inst:     { x: 560,  y: 150, t: 'Instance page', s: 'Mods · Packs · Worlds · Settings', k: 'plain' },
+  server:   { x: 560,  y: 300, t: 'Server page', s: 'Console · Players · Internet …', k: 'plain' },
+  editor:   { x: 560,  y: 440, t: 'Skin editor', s: 'paint on the 3D model', k: 'plain' },
+  ai:       { x: 880,  y: 470, t: 'Ask AI', s: 'chat with real picks', k: 'plain' },
+  locked:   { x: 880,  y: 150, t: 'Addons, locked', s: 'to one instance or server', k: 'plain' },
+  detail:   { x: 1140, y: 300, t: 'Addon details', s: 'About · Versions · Gallery', k: 'plain' },
+  dialogs:  { x: 20,   y: 600, t: 'Dialogs layer', s: 'Activity, profile, update, confirm', k: 'dialog' },
+}
+const E = [
+  ['setup', 'dash', 'start'],
+  ['dash', 'create', 'New Instance'], ['dash', 'inst', 'card'],
+  ['create', 'inst', 'created'], ['servers', 'create', 'New Server'], ['create', 'server', 'created (server)', 'right'],
+  ['servers', 'server', 'card'], ['skins', 'editor', 'New skin · Edit'],
+  ['addons', 'ai', 'Ask AI'], ['addons', 'detail', 'card', 'bottom'],
+  ['inst', 'locked', 'Add resources'], ['server', 'locked', 'Mods tab'], ['inst', 'ai', 'Ask AI'],
+  ['locked', 'detail', 'card'], ['ai', 'detail', 'Details'],
+  ['detail', 'locked', 'Back (lock kept)', 'back'], ['locked', 'inst', 'Back', 'back'],
+]
+const svgEl = document.getElementById('flow')
+const ns = 'http://www.w3.org/2000/svg'
+const add = (tag, attrs, parent = svgEl) => { const el = document.createElementNS(ns, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); parent.appendChild(el); return el }
+
+const defs = add('defs', {})
+for (const [id, color] of [['a', 'color-mix(in srgb, var(--text) 40%, transparent)'], ['b', 'var(--gold)'], ['n', 'var(--primary-hover)']]) {
+  const m = add('marker', { id: 'm' + id, viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 7, markerHeight: 7, orient: 'auto-start-reverse' }, defs)
+  add('path', { d: 'M0 0L10 5L0 10z', style: `fill:${color}` }, m)
+}
+
+// The sidebar group
+add('rect', { class: 'group', x: 250, y: 30, width: W + 40, height: 680, rx: 18 })
+const gl = add('text', { class: 'glabel', x: 262, y: 22 }); gl.textContent = 'SIDEBAR · ALWAYS AVAILABLE'
+
+function anchor(a, b) {
+  const ac = { x: a.x + W / 2, y: a.y + H / 2 }, bc = { x: b.x + W / 2, y: b.y + H / 2 }
+  if (Math.abs(ac.x - bc.x) < 40) {
+    const down = bc.y > ac.y
+    return [{ x: ac.x, y: down ? a.y + H : a.y }, { x: bc.x, y: down ? b.y : b.y + H }, 'v']
+  }
+  const right = bc.x > ac.x
+  return [{ x: right ? a.x + W : a.x, y: ac.y }, { x: right ? b.x : b.x + W, y: bc.y }, 'h']
+}
+for (const [from, to, label, kind] of E) {
+  let [p, q, dir] = anchor(N[from], N[to])
+  if (kind === 'bottom') { p = { x: N[from].x + W, y: N[from].y + H / 2 + 8 }; q = { x: N[to].x + W / 2, y: N[to].y + H }; dir = 'b' }
+  if (kind === 'right') { p = { x: N[from].x + W, y: N[from].y + H / 2 }; q = { x: N[to].x + W, y: N[to].y + H / 2 }; dir = 'r' }
+  const off = kind === 'back' ? 14 : 0
+  p.y += off; q.y += off
+  const d = dir === 'b' ? `M${p.x} ${p.y}C${p.x + 520} ${p.y + 50},${q.x} ${q.y + 330},${q.x} ${q.y}` : dir === 'r' ? `M${p.x} ${p.y}C${p.x + 70} ${p.y},${q.x + 70} ${q.y},${q.x} ${q.y}` : dir === 'v'
+    ? `M${p.x + off} ${p.y}C${p.x + off} ${(p.y + q.y) / 2},${q.x + off} ${(p.y + q.y) / 2},${q.x + off} ${q.y}`
+    : `M${p.x} ${p.y}C${(p.x + q.x) / 2} ${p.y},${(p.x + q.x) / 2} ${q.y},${q.x} ${q.y}`
+  add('path', { class: 'edge' + (kind === 'back' ? ' back' : ''), d, 'marker-end': `url(#m${kind === 'back' ? 'b' : 'a'})` })
+  let lx = dir === 'v' ? p.x + off + 8 : (p.x + q.x) / 2
+  let ly = (p.y + q.y) / 2 + (kind === 'back' ? 16 : -6)
+  if (dir === 'r') { lx = q.x + 50; ly = q.y + 26 }
+  if (dir === 'b') { lx = 980; ly = 655 }
+  const t = add('text', { class: 'elabel', x: lx, y: ly, 'text-anchor': dir === 'v' ? 'start' : 'middle' }); t.textContent = label
+}
+for (const key in N) {
+  const n = N[key]
+  const g = add('g', { class: 'node ' + n.k })
+  add('rect', { x: n.x, y: n.y, width: W, height: H, rx: 12, 'stroke-width': 1.5 }, g)
+  const a = add('text', { x: n.x + 14, y: n.y + 25 }, g); a.textContent = n.t
+  const b = add('text', { class: 'sub', x: n.x + 14, y: n.y + 44 }, g); b.textContent = n.s
+}
+</script>
+<script src="planning.js"></script>
+</body>
+</html>

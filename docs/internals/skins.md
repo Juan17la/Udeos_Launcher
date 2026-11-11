@@ -118,7 +118,7 @@ anyway.
 | Where | Shows? | Why |
 |-------|--------|-----|
 | Singleplayer | Yes, all versions | The game asks the skin server for your own profile at start |
-| Servers you host, "Who can join: Udeos players" (the default for new servers) | Yes: your skin and every profile of this launcher, seen by every Udeos player there | The server asks the skin server who joined (see below) |
+| Servers you host, "Who can join: Udeos Launcher only" (opt-in in Settings → Advanced) | Yes: your skin and every profile of this launcher, seen by every Udeos player there | The server asks the skin server who joined (see below) |
 | Servers you host, "Anyone" | No (only you, on 1.20.1 and older) | An offline-mode server sends no skins; before 1.20.2 the game still looks up its own |
 | Public servers | Usually a default skin | They are not asking your launcher; that is fine by design |
 
@@ -132,7 +132,7 @@ A server's Settings tab has three choices; they are stored as
 settings form reads and writes them as one `login` key, which is not a
 real server.properties key):
 
-- **Udeos players** (`udeosLogin`, new servers): the server starts with
+- **Udeos Launcher only** (`udeosLogin`, opt-in): the server starts with
   authlib-injector too, `online-mode=true` and
   `enforce-secure-profile=false` (rewritten on every start). In online mode
   the server asks "did this player join?" (`hasJoined`); the skin server
@@ -142,8 +142,8 @@ real server.properties key):
   call goes to their own skin server and succeeds. Players of other
   launchers call Mojang instead and get "Invalid session". Microsoft chat
   keys are not required, since Udeos players have none.
-- **Anyone**: `online-mode=false`, no agent. Any launcher joins, no skins.
-- **Microsoft accounts**: `online-mode=true`, no agent. Only real accounts
+- **Any launcher** (new servers): `online-mode=false`, no agent. Any launcher joins, no skins.
+- **Microsoft accounts only**: `online-mode=true`, no agent. Only real accounts
   (Udeos players cannot join); whitelist UUIDs then come from Mojang.
 
 ## Data on disk
@@ -173,5 +173,5 @@ real server.properties key):
 |---------|--------------|
 | Steve in singleplayer instead of your skin | The instance was started before the skin was chosen (it applies from the next Play), or authlib-injector could not be downloaded: see `logs/udeos-launcher.log` |
 | Arms look cut or have a black stripe | The skin is slim but set to Classic, or the other way round |
-| Friends get "Invalid session" | The server is on "Udeos players" and they use another launcher: switch to "Anyone" |
+| Friends get "Invalid session" | The server is on "Udeos Launcher only" and they use another launcher: switch to "Any launcher" |
 | A friend on Udeos sees you with a default skin | Their launcher could not open port 25585 (something else uses it) |

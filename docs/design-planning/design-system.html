@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Udeos Design System</title>
+<meta name="description" content="Colour palette, typography, spacing, surfaces, buttons, controls, loaders and motion rules of Udeos Launcher.">
+<script>try { document.documentElement.dataset.theme = localStorage.getItem('udeos-planning-theme') || 'dark' } catch {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="planning.css">
+<link rel="icon" href="../../build/appicon.png">
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1><img src="../../frontend/src/assets/icons/amethyst_shard.png" alt="">Design system</h1>
+  <p>The visual language of Udeos Launcher: one set of tokens, a handful of
+  building blocks and a few firm rules. Everything on this page is rendered
+  with the same values as <code>frontend/src/theme/tokens.css</code>, so it
+  doubles as a live reference. Switch the theme at the top to compare Dark
+  (the reference) with Light.</p>
+  <div class="toc">
+    <a href="#principles">Principles</a><a href="#color">Colour</a><a href="#type">Typography</a>
+    <a href="#shape">Shape and elevation</a><a href="#space">Spacing and layout</a><a href="#buttons">Buttons</a>
+    <a href="#controls">Form controls</a><a href="#tags">Tags and navigation</a><a href="#surfaces">Surfaces and cards</a>
+    <a href="#waiting">Loaders and progress</a><a href="#icons">Iconography</a><a href="#motion">Motion</a>
+    <a href="#voice">Voice and copy</a><a href="#rules">Do and don't</a>
+  </div>
+</header>
+
+<section class="section" id="principles">
+  <h2><img src="../../frontend/src/assets/icons/nether_star.png" alt="">Design principles</h2>
+  <div class="grid-3">
+    <div class="panel aside"><h3 class="h4">1. Press Play first</h3>The path from opening the launcher to playing is the shortest and most visible thing on every screen.</div>
+    <div class="panel aside"><h3 class="h4">2. Waiting is a feature</h3>Every download, install and start-up shows what is happening, how far along it is, and what the player can do meanwhile, right where it happens.</div>
+    <div class="panel aside"><h3 class="h4">3. Casual by default, dense on demand</h3>Nothing a child cannot understand on the surface; modder-grade control one step in.</div>
+    <div class="panel aside"><h3 class="h4">4. Light on weak PCs</h3>No blur, no gradients on surfaces, no hover transforms. Colour does the work.</div>
+    <div class="panel aside"><h3 class="h4">5. Game-native, not gamer-loud</h3>Real Minecraft textures supply the colour and charm; the chrome stays quiet and flat.</div>
+    <div class="panel aside"><h3 class="h4">6. One blue action per view</h3>Solid accent marks the single main action of a screen. Everything else is neutral.</div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Colour ───────────────────────── -->
+<section class="section" id="color">
+  <h2><img src="../../frontend/src/assets/icons/lapis_block.png" alt="">Colour palette</h2>
+  <p class="lead">A deep night-blue canvas (dark but never black), panels one step
+  lighter with blue-tinted hairlines, and a single blue accent. Three status
+  colours carry meaning: gold is working or slow on purpose, green is live,
+  red is failure. Values shown are for the active theme.</p>
+
+  <h3 style="margin-top:28px">Surfaces and text</h3>
+  <div class="grid-3" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+    <div class="swatch"><div class="chip" style="background:var(--bg);color:var(--text)">--color-bg</div><div class="meta"><b>Canvas</b><code>#0E1423 · #EEF3FC</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--panel);color:var(--text)">--color-panel</div><div class="meta"><b>Panel</b><code>#161E2E · #FFFFFF</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--panel-2);color:var(--text)">--color-panel-2</div><div class="meta"><b>Panel inset</b><code>#1F293C · #E8EEF9</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--glass);color:var(--text)">--color-glass</div><div class="meta"><b>Dialog sheet</b><code>#18202F · #FFFFFF</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--text);color:var(--bg)">--color-text</div><div class="meta"><b>Text</b><code>#ECF0F7 · #121A2B</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--muted);color:var(--bg)">--color-muted</div><div class="meta"><b>Muted text</b><code>#8E98AE · #586379</code></div></div>
+  </div>
+
+  <h3 style="margin-top:28px">Accent and actions</h3>
+  <div class="grid-3" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+    <div class="swatch"><div class="chip" style="background:var(--primary);color:#fff">--color-primary</div><div class="meta"><b>Primary blue</b><code>#336CEB · #2563EB</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--primary-hover);color:#fff">--color-primary-hover</div><div class="meta"><b>Primary hover, blue text</b><code>#4E86F8 · #1D4ED8</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--feature);color:#fff">--color-feature</div><div class="meta"><b>Feature tone</b><code>#2B4F9E · #2A55B8</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--secondary);color:var(--on-secondary)">--color-secondary</div><div class="meta"><b>Secondary</b><code>#232D43 · #E2E9F6</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--idle);color:var(--on-idle)">--color-idle</div><div class="meta"><b>Idle</b><code>#1D2638 · #E6ECF7</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--tag-gray);color:var(--ink)">--color-tag-gray</div><div class="meta"><b>Neutral tag</b><code>#27324A · #E4EAF5</code></div></div>
+  </div>
+
+  <h3 style="margin-top:28px">Status</h3>
+  <div class="grid-3" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">
+    <div class="swatch"><div class="chip" style="background:var(--green);color:#0b1a10">--color-green</div><div class="meta"><b>Live</b>A game playing, a server on<br><code>#5BE38A · #15803D</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--green-soft);color:var(--ink)">--color-green-soft</div><div class="meta"><b>Version tag</b><code>#1F4127 · #D6F0CF</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--gold);color:#1a1406">--color-gold</div><div class="meta"><b>Working</b>Slow on purpose<br><code>#F2B63D · #D9930F</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--gold-soft);color:var(--ink)">--color-gold-soft</div><div class="meta"><b>Loader tag</b><code>#43381E · #F8E7BE</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--error);color:#fff">--color-error</div><div class="meta"><b>Failure</b><code>#E5566B · #C4344A</code></div></div>
+    <div class="swatch"><div class="chip" style="background:var(--error-soft);color:#1a0508">--color-error-soft</div><div class="meta"><b>Error text</b><code>#FF8794 · #D9485E</code></div></div>
+  </div>
+
+  <h3 style="margin-top:28px">Themes</h3>
+  <div class="grid-3">
+    <div class="panel aside"><h3 class="h4">Dark (reference)</h3>Night-blue canvas with two soft accent glows. The theme every screen is designed in first.</div>
+    <div class="panel aside"><h3 class="h4">Light</h3>Cool sky paper, white panels, the same blue one step deeper so white text on it still passes AA.</div>
+    <div class="panel aside"><h3 class="h4">Custom</h3>The player picks a light or dark base and one accent. <code>utils/theme.ts</code> derives every other token and checks contrast.</div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Type ───────────────────────── -->
+<section class="section" id="type">
+  <h2><img src="../../frontend/src/assets/icons/book.png" alt="">Typography</h2>
+  <p class="lead">Three families, each with one job. Fonts are bundled with the app
+  (Fontsource) so the launcher looks the same offline.</p>
+  <div class="grid-3">
+    <div class="panel aside"><h3 class="h4">Geist</h3><div style="font:800 34px var(--sans);letter-spacing:-.03em">Aa Play</div>Everything you read: headings, labels, body.</div>
+    <div class="panel aside"><h3 class="h4">Geist Mono</h3><div style="font:600 30px var(--mono)">1.21.1</div>Versions, sizes, addresses, console output.</div>
+    <div class="panel aside"><h3 class="h4">Pixelify Sans</h3><div style="font:600 32px var(--display)">Udeos 64%</div>Only the wordmark and the big progress figure.</div>
+  </div>
+  <div class="panel" style="padding:8px 20px;margin-top:16px">
+    <div class="specimen"><span class="meta">h1 · 44 / 800 / -0.04em</span><span style="font-size:44px;font-weight:800;letter-spacing:-.04em;line-height:1.1">Your Instances</span></div>
+    <div class="specimen"><span class="meta">h2 · 30 / 800 / -0.035em</span><span style="font-size:30px;font-weight:800;letter-spacing:-.035em">Last played</span></div>
+    <div class="specimen"><span class="meta">h3 · 20 / 700</span><span style="font-size:20px;font-weight:700">Library</span></div>
+    <div class="specimen"><span class="meta">h4 · 17 / 700</span><span style="font-size:17px;font-weight:700">Who can join</span></div>
+    <div class="specimen"><span class="meta">body · 14 / 400 / 1.5</span><span>Each instance keeps its own worlds, mods, packs and settings.</span></div>
+    <div class="specimen"><span class="meta">small · 12.5 / muted</span><span class="muted" style="font-size:12.5px">3 to 16 letters, numbers or underscores.</span></div>
+    <div class="specimen"><span class="meta">tag · 11.5 / 600</span><span><span class="tag v">1.21.1</span></span></div>
+    <div class="specimen"><span class="meta">mono · 13</span><span class="mono">udeoslauncher.friends-smp.nip.io:41234</span></div>
+    <div class="specimen"><span class="meta">display · 18 / 700</span><span style="font:700 18px var(--display)">64%</span></div>
+  </div>
+  <p class="note" style="margin-top:10px">Headings use balanced wrapping and slight negative tracking. No eyebrow labels above headings. Bold is a lead, not decoration.</p>
+</section>
+
+<!-- ───────────────────────── Shape ───────────────────────── -->
+<section class="section" id="shape">
+  <h2><img src="../../frontend/src/assets/icons/stone.png" alt="">Shape and elevation</h2>
+  <div class="grid-2">
+    <div class="panel demo" style="align-items:flex-end">
+      <div style="text-align:center"><div style="width:72px;height:72px;background:var(--primary);border-radius:6px"></div><div class="note">6 sm</div></div>
+      <div style="text-align:center"><div style="width:72px;height:72px;background:var(--primary);border-radius:10px"></div><div class="note">10 md</div></div>
+      <div style="text-align:center"><div style="width:72px;height:72px;background:var(--primary);border-radius:16px"></div><div class="note">16 lg</div></div>
+      <div style="text-align:center"><div style="width:72px;height:72px;background:var(--primary);border-radius:22px"></div><div class="note">22 xl</div></div>
+      <div style="text-align:center"><div style="width:72px;height:28px;background:var(--primary);border-radius:999px"></div><div class="note">pill</div></div>
+    </div>
+    <div class="panel demo-col">
+      <div style="display:flex;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:120px;height:72px;border-radius:16px;background:var(--panel);box-shadow:var(--shadow-neu);display:grid;place-items:center" class="note">shadow-neu</div>
+        <div style="flex:1;min-width:120px;height:72px;border-radius:16px;background:var(--glass);box-shadow:var(--shadow-pop);display:grid;place-items:center" class="note">shadow-pop</div>
+        <div style="flex:1;min-width:120px;height:72px;border-radius:16px;background:var(--primary);box-shadow:var(--shadow-primary);display:grid;place-items:center;color:#fff;font-size:13px">shadow-primary</div>
+      </div>
+      <span class="note">Elevation is a hairline plus a short soft drop. No glow, no neumorphism. Small radii for chips and inputs, 16 px for panels and buttons, 22 px for dialogs.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Space ───────────────────────── -->
+<section class="section" id="space">
+  <h2><img src="../../frontend/src/assets/icons/oak_planks.png" alt="">Spacing and layout</h2>
+  <div class="grid-2">
+    <div class="panel demo-col">
+      <b>Spacing scale (4 px base)</b>
+      <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap">
+        <div><div style="width:4px;height:4px;background:var(--primary)"></div><span class="note">4</span></div>
+        <div><div style="width:8px;height:8px;background:var(--primary)"></div><span class="note">8</span></div>
+        <div><div style="width:12px;height:12px;background:var(--primary)"></div><span class="note">12</span></div>
+        <div><div style="width:16px;height:16px;background:var(--primary)"></div><span class="note">16</span></div>
+        <div><div style="width:20px;height:20px;background:var(--primary)"></div><span class="note">20</span></div>
+        <div><div style="width:24px;height:24px;background:var(--primary)"></div><span class="note">24</span></div>
+        <div><div style="width:32px;height:32px;background:var(--primary)"></div><span class="note">32</span></div>
+      </div>
+      <span class="note">Card padding 20, grid gaps 16, page padding 24 to 32, section gaps 20 to 24.</span>
+    </div>
+    <div class="panel demo-col">
+      <b>Layout rules</b>
+      <ul style="margin:0;padding-left:18px;font-size:13.5px;display:grid;gap:6px">
+        <li>Window: default 1180 by 760, minimum 960 by 640.</li>
+        <li>Sidebar 232 px; icon rail 68 px below 1000 px or when collapsed.</li>
+        <li>Split pages: a fixed 400 px side panel plus tabs; only the list under the tabs scrolls.</li>
+        <li>Rows never wrap: tab bars, tags and status lines truncate with a tooltip.</li>
+        <li>Cards in one grid share the same height.</li>
+        <li>Check every screen at 944 by 600 px of page, in English and Spanish.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Buttons ───────────────────────── -->
+<section class="section" id="buttons">
+  <h2><img src="../../frontend/src/assets/icons/redstone.png" alt="">Buttons</h2>
+  <p class="lead">One component (<code>atoms/Button.tsx</code>), six variants, three sizes.
+  Labels are extra bold, padding is wider than tall, hover changes colour only.</p>
+  <div class="panel table-wrap">
+    <table class="doc">
+      <thead><tr><th>Variant</th><th>Example</th><th>Use for</th></tr></thead>
+      <tbody>
+        <tr><td><code>primary</code></td><td><span class="btn primary"><svg data-i="play"></svg>Play</span></td><td>The one main action of a screen: Play, Create &amp; play, Start, Save.</td></tr>
+        <tr><td><code>secondary</code></td><td><span class="btn secondary">Manage</span></td><td>Raised neutral: Manage, Open, See options.</td></tr>
+        <tr><td><code>secondary quiet</code></td><td><span class="btn secondary quiet"><svg data-i="plus"></svg>Add</span></td><td>Card actions: neutral fill, blue glyph.</td></tr>
+        <tr><td><code>idle</code></td><td><span class="btn idle">Filters<svg data-i="chev"></svg></span></td><td>Quiet fills, unselected options, toolbars.</td></tr>
+        <tr><td><code>ghost</code></td><td><span class="btn ghost">Cancel</span></td><td>Hairline outline: Cancel, Later, minor actions.</td></tr>
+        <tr><td><code>danger</code></td><td><span class="btn danger"><svg data-i="trash"></svg>Delete</span></td><td>Destructive. Red tint at rest, solid red on hover.</td></tr>
+        <tr><td><code>inverse</code></td><td><span class="feature" style="display:inline-flex;padding:10px"><span class="btn inverse"><svg data-i="play"></svg>Play</span></span></td><td>The main action on a feature surface.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid-2" style="margin-top:16px">
+    <div class="panel demo"><span class="btn primary sm">Small 32</span><span class="btn primary">Medium 44</span><span class="btn primary lg">Large 52</span><span class="btn idle sq"><svg data-i="folder"></svg></span></div>
+    <div class="panel demo"><span class="btn primary loading"><span class="spin"></span>Installing</span><span class="btn primary" disabled>Create</span><span class="btn idle" disabled>Disabled</span></div>
+  </div>
+  <p class="note" style="margin-top:10px">Loading keeps the label and swaps the leading icon for a spinner. A disabled primary turns neutral instead of fading the blue.</p>
+</section>
+
+<!-- ───────────────────────── Controls ───────────────────────── -->
+<section class="section" id="controls">
+  <h2><img src="../../frontend/src/assets/icons/iron_pickaxe.png" alt="">Form controls</h2>
+  <div class="grid-2">
+    <div class="panel demo-col">
+      <div><label class="label">Instance name</label><div class="input">My World</div></div>
+      <div><label class="label">Focused</label><div class="input focus">CraftyFox</div></div>
+      <div><label class="label">Error</label><div class="input error" style="animation:nudge .5s var(--ease)">ab</div><div style="color:var(--error-soft);font-size:12.5px;margin-top:6px">Too short: 3 to 16 characters.</div></div>
+      <div><label class="label">Select</label><div class="input">1.21.1 (latest)<svg data-i="chev" class="ic chev"></svg></div></div>
+    </div>
+    <div class="panel demo-col">
+      <div class="input"><svg data-i="search" class="ic muted"></svg><span class="ph">Search…</span></div>
+      <div style="display:flex;gap:20px"><span class="check on"><i><svg data-i="check"></svg></i>Checked</span><span class="check"><i></i>Unchecked</span></div>
+      <div><label class="label">Memory · <span class="mono">4 GB</span></label><div class="slider"><b style="width:35%"></b><i style="left:35%"></i></div></div>
+      <div><label class="label">Memory in the danger zone</label><div class="slider"><b style="width:90%;background:var(--error)"></b><i style="left:90%"></i></div></div>
+      <div style="border:2px dashed color-mix(in srgb,var(--primary) 45%,transparent);border-radius:var(--r-lg);padding:16px;display:flex;gap:12px;align-items:center"><span class="btn primary sm sq"><svg data-i="download"></svg></span><span>Drop a file here, or <span class="link">browse</span></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Tags & navigation ───────────────────────── -->
+<section class="section" id="tags">
+  <h2><img src="../../frontend/src/assets/icons/name_tag.png" alt="">Tags and navigation</h2>
+  <div class="grid-2">
+    <div class="panel demo-col">
+      <b>Tags</b>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.21.1</span><span class="tag l">Fabric</span><span class="tag">Optimization</span><span class="tag v"><svg data-i="check"></svg>In use</span></div>
+      <span class="note">Green-soft marks a version, gold-soft a loader, gray anything else. Always pills, always one line.</span>
+      <b style="margin-top:8px">Segmented control</b>
+      <span class="seg"><span class="on">Vanilla</span><span>With mods</span><span>From a modpack</span></span>
+      <span class="note">For mutually exclusive options and the Addons type switch. Gives up padding, then truncates, never wraps.</span>
+    </div>
+    <div class="panel demo-col">
+      <b>Tabs</b>
+      <div class="tabs"><span class="on">Mods</span><span>Resource packs</span><span>Worlds</span><span>Settings</span></div>
+      <span class="note">Page-level sections of an instance or server. The open tab is remembered per item.</span>
+      <b style="margin-top:8px">Sidebar item</b>
+      <div class="sidebar" style="border:0;background:none;padding:0">
+        <div class="item on"><svg data-i="box" class="ic ic-lg"></svg><span>Instances</span></div>
+        <div class="item"><svg data-i="server" class="ic ic-lg"></svg><span>Servers</span></div>
+      </div>
+      <b style="margin-top:8px">Back row</b>
+      <div style="display:flex;align-items:center;gap:8px;font-weight:700"><svg data-i="back"></svg>Back to Addons</div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Surfaces ───────────────────────── -->
+<section class="section" id="surfaces">
+  <h2><img src="../../frontend/src/assets/icons/iron_block.png" alt="">Surfaces and cards</h2>
+  <div class="grid-3">
+    <div class="panel panel-hover" style="padding:20px;display:grid;gap:12px">
+      <b>panel</b><span class="muted" style="font-size:13px">Cards, forms, side panels. Hover brightens the fill and draws an accent edge; it never moves.</span>
+    </div>
+    <div class="feature" style="padding:20px;display:grid;gap:12px">
+      <b>panel-feature</b><span style="font-size:13px;opacity:.85">The one card to find first: a running server. Flat muted accent, no gradient, content in on-feature colours.</span>
+      <div style="display:flex;gap:6px"><span class="tag">1.21.1</span><span class="tag">Vanilla</span></div>
+    </div>
+    <div class="glass" style="padding:20px;display:grid;gap:12px">
+      <b>glass</b><span class="muted" style="font-size:13px">Dialogs, popovers and notices: an opaque raised sheet with a deep shadow. No blur.</span>
+    </div>
+  </div>
+  <div class="grid-2" style="margin-top:16px">
+    <div class="panel" style="padding:20px;display:grid;gap:16px">
+      <b>Instance card</b>
+      <div class="panel" style="padding:20px;display:grid;gap:16px;background:var(--bg)">
+        <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt="" style="width:40px"></span>
+          <div style="display:grid;gap:6px"><b style="font-size:16px">Modded Fun</b><div style="display:flex;gap:6px"><span class="tag v">1.20.1</span><span class="tag l">Forge</span></div></div></div>
+        <span class="muted" style="font-size:12px">12 mods · 1 world</span>
+        <span class="btn secondary block quiet"><svg data-i="play"></svg>Play</span>
+      </div>
+    </div>
+    <div class="panel" style="padding:20px;display:grid;gap:16px;align-content:start">
+      <b>Empty state</b>
+      <div style="display:grid;justify-items:center;gap:10px;text-align:center;padding:12px">
+        <img src="../../frontend/src/assets/icons/bread.png" alt="" style="width:56px;animation:item-drop .8s var(--ease)">
+        <b>No worlds yet</b><span class="muted" style="font-size:13px">Play once to make one, or import a world you saved.</span>
+        <span class="btn sm primary">Import world</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Waiting ───────────────────────── -->
+<section class="section" id="waiting">
+  <h2><img src="../../frontend/src/assets/icons/experience_bottle.png" alt="">Loaders and progress</h2>
+  <p class="lead">Every wait shows where it happens. Measured work gets a filled bar, unmeasurable
+  work a sliding segment, slow-but-expected work turns gold, loading lists get skeletons of
+  their own shape.</p>
+  <div class="grid-2">
+    <div class="panel demo-col">
+      <b>Measured</b><div class="bar"><b style="width:64%"></b></div>
+      <b>Indeterminate</b><div class="bar indet"><b></b></div>
+      <b>Slow on purpose</b><div class="bar gold"><b style="width:31%"></b></div>
+      <span class="note">The bar is scaled, never transitioned: it updates every frame.</span>
+    </div>
+    <div class="panel demo-col">
+      <b>Launch strip</b>
+      <div class="strip"><div class="row"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:16px;animation:block-hop .9s var(--ease) infinite">Downloading the game<span class="pct">42%</span></div><div class="bar"><b style="width:42%"></b></div></div>
+      <b>Playing chip</b>
+      <div style="display:flex;gap:8px"><span class="chip-playing"><span class="live"></span>Playing · 12 min</span><span class="btn danger">Close game</span></div>
+    </div>
+    <div class="panel demo" style="justify-content:space-around">
+      <div style="text-align:center"><span class="hop"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt=""><i></i></span><div class="note">Block hop (AutoLoader)</div></div>
+      <div style="text-align:center"><span class="spin" style="display:inline-block;width:22px;height:22px"></span><div class="note">Button spinner</div></div>
+      <div style="text-align:center"><span class="live" style="display:inline-block"></span><div class="note" style="margin-top:8px">Live dot</div></div>
+    </div>
+    <div class="panel demo-col">
+      <b>Skeleton rows</b>
+      <div style="display:flex;gap:12px;align-items:center"><div class="skeleton" style="width:36px;height:36px"></div><div style="flex:1;display:grid;gap:6px"><div class="skeleton" style="height:12px;width:60%"></div><div class="skeleton" style="height:10px;width:35%"></div></div></div>
+      <div style="display:flex;gap:12px;align-items:center"><div class="skeleton" style="width:36px;height:36px"></div><div style="flex:1;display:grid;gap:6px"><div class="skeleton" style="height:12px;width:48%"></div><div class="skeleton" style="height:10px;width:30%"></div></div></div>
+    </div>
+  </div>
+  <div class="grid-3" style="margin-top:16px">
+    <div class="glass" style="padding:14px 16px;display:flex;gap:12px;align-items:center"><svg data-i="check" class="ic ic-lg" style="color:var(--green)"></svg><div><b>Sodium added</b><div class="muted" style="font-size:12.5px">to Fabric Fun</div></div></div>
+    <div class="glass" style="padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow-pop),0 0 0 1px var(--error)"><svg data-i="alert" class="ic ic-lg" style="color:var(--error-soft)"></svg><div><b>Connection lost</b><div class="muted" style="font-size:12.5px">Could not reach Modrinth.</div></div></div>
+    <div class="glass" style="padding:14px 16px;display:flex;gap:12px;align-items:center"><span>Removed Create</span><span class="btn sm secondary" style="margin-left:auto"><svg data-i="undo"></svg>Undo</span></div>
+  </div>
+  <p class="note" style="margin-top:10px">Notices: a success clears itself, an error stays until read, an undo lasts five seconds.</p>
+</section>
+
+<!-- ───────────────────────── Icons ───────────────────────── -->
+<section class="section" id="icons">
+  <h2><img src="../../frontend/src/assets/icons/diamond.png" alt="">Iconography</h2>
+  <div class="grid-2">
+    <div class="panel demo-col">
+      <b>Pixel items</b>
+      <div style="display:flex;flex-wrap:wrap;gap:14px">
+        <img src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/enchanted_book.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/campfire.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/totem_of_undying.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/nether_star.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/golden_apple.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/elytra.png" alt="" style="width:32px"><img src="../../frontend/src/assets/icons/trident.png" alt="" style="width:32px">
+      </div>
+      <span class="note">Real 16 by 16 Minecraft textures, drawn pixelated at any size. They are instance icons, heading marks, stat icons, empty-state props and the faint canvas decoration. Item sprites only for decoration: full block faces read as missing images.</span>
+    </div>
+    <div class="panel demo-col">
+      <b>Line icons</b>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;color:var(--text)">
+        <svg data-i="box" class="ic ic-lg"></svg><svg data-i="server" class="ic ic-lg"></svg><svg data-i="shirt" class="ic ic-lg"></svg><svg data-i="package" class="ic ic-lg"></svg><svg data-i="play" class="ic ic-lg"></svg><svg data-i="plus" class="ic ic-lg"></svg><svg data-i="folder" class="ic ic-lg"></svg><svg data-i="pencil" class="ic ic-lg"></svg><svg data-i="sparkles" class="ic ic-lg"></svg><svg data-i="activity" class="ic ic-lg"></svg><svg data-i="search" class="ic ic-lg"></svg><svg data-i="copy" class="ic ic-lg"></svg>
+      </div>
+      <span class="note">2 px stroke, round caps, 16 to 20 px. Used for actions and navigation, always next to a text label.</span>
+      <b style="margin-top:6px">Logo</b>
+      <div style="display:flex;gap:12px;align-items:center"><span class="logo" style="--sz:48px"><img src="../../frontend/src/assets/icons/ender_pearl.png" alt="Udeos logo"><img src="../../frontend/src/assets/icons/mace.png" alt=""></span><span style="font:600 22px var(--display)">Udeos Launcher</span></div>
+      <span class="note">An ender pearl with a mace rotated -45 degrees, and the Pixelify wordmark.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Motion ───────────────────────── -->
+<section class="section" id="motion">
+  <h2><img src="../../frontend/src/assets/icons/firework_rocket.png" alt="">Motion</h2>
+  <div class="panel table-wrap">
+    <table class="doc">
+      <thead><tr><th>Token or animation</th><th>Value</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td>Easing</td><td><code>cubic-bezier(0.16, 1, 0.3, 1)</code></td><td>Everything: exponential ease-out, things arrive fast and settle.</td></tr>
+        <tr><td>State duration</td><td><code>160 ms</code></td><td>Hover and press colour changes.</td></tr>
+        <tr><td>block-hop</td><td>0.9 s loop</td><td>The loader block and the launch strip icon.</td></tr>
+        <tr><td>item-drop</td><td>once</td><td>An item falling into an empty list; the Create page icon.</td></tr>
+        <tr><td>live-ring</td><td>1.6 s loop</td><td>The green dot of a game or server that is on.</td></tr>
+        <tr><td>nudge</td><td>once</td><td>An error arriving, so it is noticed.</td></tr>
+        <tr><td>bar-slide, shimmer</td><td>loop</td><td>Indeterminate bars and skeletons.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:10px">No entrance fades on pages, cards, dialogs or popovers (they replayed on every navigation and WebKitGTK flashed on them). No hover transforms or <code>will-change</code>. <code>prefers-reduced-motion</code> stops hops, drops and nudges.</p>
+</section>
+
+<!-- ───────────────────────── Voice ───────────────────────── -->
+<section class="section" id="voice">
+  <h2><img src="../../frontend/src/assets/icons/goat_horn.png" alt="">Voice and copy</h2>
+  <div class="grid-2">
+    <div class="panel aside"><h3 class="h4">How it sounds</h3>Friendly, short and concrete. Written for a twelve-year-old, never talking down to a modder. Verbs on buttons (Play, Add, Start). English and Spanish, with room for Spanish to run longer.</div>
+    <div class="panel aside"><h3 class="h4">Errors</h3>A one to three word headline (Connection lost, Incompatible mod, Rate limited) and the reason underneath. The only technical detail shown is a log path, so an adult can help.</div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Do / don't ───────────────────────── -->
+<section class="section" id="rules">
+  <h2><img src="../../frontend/src/assets/icons/totem_of_undying.png" alt="">Do and don't</h2>
+  <div class="grid-2">
+    <div class="do"><h3 class="h4">Do</h3><ul>
+      <li>Keep one solid blue action per screen.</li>
+      <li>Show progress on the card or page where the work belongs.</li>
+      <li>Use pixel items for charm in moments: empty, loading, playing, done.</li>
+      <li>Let a whole card be the click target through a stretched real button.</li>
+      <li>Offer Undo for small removals; confirm only what cannot be recovered.</li>
+      <li>Put Delete at the bottom of Settings, away from Play.</li>
+    </ul></div>
+    <div class="dont"><h3 class="h4">Don't</h3><ul>
+      <li>Add gradients, glows or blur to surfaces.</li>
+      <li>Animate entrances or move cards on hover.</li>
+      <li>Put decoration behind a label or a number.</li>
+      <li>Use a modal to show launch progress.</li>
+      <li>Wrap tab bars or tags onto a second line.</li>
+      <li>Use the em dash in interface copy.</li>
+    </ul></div>
+  </div>
+</section>
+
+<footer class="footer"><span>Source of truth: <code>frontend/src/theme/tokens.css</code> and <a href="../architecture/design-system.md">design-system.md</a></span><span>Previous: <a href="mockups.html">Mockups</a> · Next: <a href="navigation-flow.html">Navigation flow</a></span></footer>
+</div>
+<script src="planning.js"></script>
+</body>
+</html>

@@ -47,7 +47,7 @@ Stop saves the world and shuts the server down. Servers always stop cleanly:
 | Backups | Make a backup of the world (even while running) and restore one. |
 | Mods | For modded servers, the same as an instance's Mods tab. |
 | Datapacks | Datapacks for the server's world. |
-| Settings | Name, game mode, difficulty, hardcore, PvP, flight, command blocks, seed, max players, view distance, port, who can join, and memory and Java. |
+| Settings | Description, game mode, difficulty, max players, PvP and memory up front. Under Advanced: who can join, port, seed, view distance, flight, hardcore, command blocks, and Java. The defaults work, so a new server only needs Start. |
 
 ## How friends join
 
@@ -77,12 +77,12 @@ In Settings, Who can join decides how players are checked:
 
 | Choice | Who gets in | Skins |
 |--------|-------------|-------|
-| Udeos players (default) | Players using Udeos Launcher | Yes |
-| Anyone | Any launcher, any name | No |
-| Microsoft accounts | Only players with a real Minecraft account (Udeos players cannot join) | Yes |
+| Any launcher (default) | Any launcher, any name, like a server made with any other launcher | No |
+| Udeos Launcher only | Players using Udeos Launcher | Yes |
+| Microsoft accounts only | Only players with a real Minecraft account (Udeos players cannot join) | Yes |
 
 Friends using another launcher see "Invalid session" on a server set to Udeos
-players. Switch to Anyone for them.
+Launcher only. Switch back to Any launcher for them.
 
 ## Sharing a modded server
 

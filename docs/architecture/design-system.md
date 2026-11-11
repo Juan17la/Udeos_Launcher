@@ -25,20 +25,38 @@ derived with contrast checked) use the same tokens with other values.
   big progress figure. Body 14px, headings tighter with a slight negative
   tracking and balanced wrapping. No eyebrow labels above headings.
 - **Radius.** 6px small, 10px controls, 16px panels, 22px large surfaces; tags are pills.
+- **Control heights.** One scale, 32/40/48: `sm`, `md` and `lg` buttons, fields
+  (40), the compact launch strip (40) and the Playing chip (40 or 48). A small
+  square button keeps a 40px hit area through its `::after`.
+- **Tags.** `tag` is 24px tall with a neutral `bg-tag-gray` fill for all
+  metadata (version, loader, category, model). The version is Geist Mono behind
+  a 16px grass block. `bg-green-soft` only for a live state (In use),
+  `bg-gold-soft` only for working or not final (beta).
+- **Selected.** The `selected` utility (accent tint plus accent hairline) marks
+  the picked item in every set: filter and topic chips, icon cells, profile and
+  modpack rows, theme cards, the worn skin, the current page. Never solid blue.
 - **Decoration.** Item sprites only (no full block textures, they read as
   missing images), pixel items beside page headings, instance stats and empty
-  states. Decoration never sits behind a label.
-- **Surfaces.** `panel-feature` (the one card to find first: the instance
-  played last; a flat `--color-feature` fill (the muted accent), its Play is the `inverse` button; also every
-  server card that is up, starting or stopping; content on it goes in `on-feature`), `panel` (card, form, side panel), `glass` (dialog, popover,
+  states. Decoration never sits behind a label. Sprites are drawn bare (no
+  tinted tile around them) at 16, 32, 48 or 64px so their pixels stay square:
+  16 in tags, stats and spinners, 32 for headings and rows, 48 for cards and
+  empty states, 64 or 96 for side panels.
+- **Surfaces.** `panel-feature` (a flat `--color-feature` fill, the muted
+  accent: every server card that is up, starting or stopping; content on it goes
+  in `on-feature`; the instance played last is instead a panel tinted 12% toward
+  the accent, with the screen's solid Play), `panel` (card, form, side panel), `glass` (dialog, popover,
   notice; an opaque raised sheet, no blur), `tag` and `skeleton` are utility
   classes. Panels inside panels use `bg-panel-2`.
 - **One primary action per view.** `primary` is the solid accent, `secondary`
-  a raised neutral (Manage, Open), `idle` a quiet fill, `ghost` a hairline
-  outline, `danger` a red tint. A disabled primary turns neutral instead of
-  fading the blue. Solid blue is for the one main action of a screen (Play
-  on the Library's first card, Create & play, Start on a server page); card actions (Play,
-  Start, Add) are quiet: neutral with a blue glyph. A card opens its page
+  a neutral with a hairline (the quiet card action), `idle` a quiet fill,
+  `ghost` a hairline outline, `danger` a red tint that deepens on hover. Filled
+  buttons are flat with a 2px darker bottom edge (`shadow-primary`,
+  `shadow-secondary`, `shadow-edge`); pressing swaps it for an inset top edge
+  (`shadow-press`). No gloss, no glow, no transform. A disabled primary turns
+  neutral instead of fading the blue. Solid blue is for the one main action of a screen (Play
+  in the Last played panel, Create & play, Start on a server page); card actions (Play,
+  Start, Add), the toolbar's Add, Copy, the sidebar's New and per-row installs
+  are quiet: `secondary` with a blue glyph. A card opens its page
   through `CardLink` (a real button stretched over it), so its own buttons
   are never nested inside a clickable element. Delete lives at the bottom of
   Settings, away from Play. Addons folds version, loader, sort and topics
@@ -68,8 +86,8 @@ Every wait shows where it happens.
   (confirmed, for a frozen game), and a "Have fun" note appears once. A server
   that is starting or stopping shows a sliding bar and one line on its card
   and side panel. There is no launch modal.
-- **Activity.** The sidebar item is always there. While work runs it shows a
-  ring, a count and a thin bar; its popover lists every job with progress and
+- **Activity.** The sidebar item is always there. While work runs it shows the
+  hopping block, a count and a thin bar; its popover lists every job with progress and
   Cancel, plus the open games (with Close game) and running servers. A
   finished or failed job also flashes a short notice beside the sidebar (a
   success clears itself, an error stays until read).
@@ -82,8 +100,15 @@ Every wait shows where it happens.
   The bar is scaled, never given a CSS transition, because it is updated every
   frame.
 - **Lists that are loading** show skeleton rows of their own shape
-  (`SkeletonRows`), buttons that work show a spinner in place of their icon,
-  and `AutoLoader` is for the few waits with no known shape.
+  (`SkeletonRows`, a flat fill that breathes, no shimmer), buttons that work
+  take `loading` (the 16px hopping block, `aria-busy`, never a plain disabled
+  look), and `AutoLoader` is for the few waits with no known shape. Every
+  loader is the hopping block; there is no spinning ring.
+- **Status dots** are the `StatusDot` atom: a square 8px pixel, green with a
+  growing ring when live, gold and breathing when working, muted when off.
+- **Shared shapes.** `row` (list rows: worlds, backups, players, versions,
+  files, conflicts), `stat` (side-panel stat tiles) and `link` (text buttons)
+  are utilities in tokens.css; screens use them instead of retyping the classes.
 
 ## Where it lives
 

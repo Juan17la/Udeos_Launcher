@@ -56,7 +56,7 @@ offered again next time.
 | Where | Shows? |
 |-------|--------|
 | Singleplayer | Yes, on every version |
-| Your own servers set to "Udeos players" | Yes, and every Udeos player there sees it |
+| Your own servers set to "Udeos Launcher only" | Yes, and every Udeos player there sees it |
 | Your own servers set to "Anyone" | No |
 | Public servers | Usually not, they use their own skin system |
 

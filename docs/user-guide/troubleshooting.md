@@ -50,7 +50,7 @@ has a button that opens the logs folder directly.
 
 | Problem | Likely cause and fix |
 |---------|---------------------|
-| Friends get "Invalid session" | They use another launcher and the server is set to Udeos players. Change Who can join to Anyone. |
+| Friends get "Invalid session" | They use another launcher and the server is set to Udeos Launcher only. Change Who can join to Any launcher. |
 | Friends on the same Wi-Fi cannot join | Your firewall blocks Java. Allow it on private networks. |
 | The named address does not work for a friend | Their network cannot resolve `nip.io`. Give them the raw address shown below it. |
 | "Internet access failed: could not reach the relay" | No internet, or the relay is down or blocked. The launcher retries every 15 seconds. |

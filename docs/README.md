@@ -7,6 +7,31 @@ installs and runs the game, and a React interface on top.
 These pages are grouped by who they are for. Players only need the user guide.
 Everything else explains how the launcher works inside.
 
+## Product
+
+What the launcher is and what it must do. Start here to understand the app.
+
+| Page | What it covers |
+|------|----------------|
+| [Product overview](product/overview.md) | What Udeos is, the problem it solves, audience, core concepts, scope and limits |
+| [Feature catalogue](product/features.md) | Every feature (F-01 to F-32), screen by screen |
+| [Functional requirements](product/functional-requirements.md) | What the system must do, numbered and prioritised (FR-01 to FR-09) |
+| [Non-functional requirements](product/non-functional-requirements.md) | Performance, reliability, security, usability, i18n, portability (NFR-01 to NFR-43) |
+| [Use cases](product/use-cases.md) | Actors, the use case diagram and sixteen use cases with their flows |
+
+## Design planning
+
+Interactive HTML pages in [`design-planning/`](design-planning/mockups.html), drawn
+with the real design tokens and textures. Open them in a browser from the
+repository so the textures load.
+
+| Page | What it covers |
+|------|----------------|
+| [Mockups](design-planning/mockups.html) | Annotated mockups of every main screen, the waiting states and the dialogs |
+| [Design system](design-planning/design-system.html) | Palette, typography, shape, spacing, buttons, controls, surfaces, loaders, icons, motion |
+| [Navigation flow](design-planning/navigation-flow.html) | Screen map, entry points, Back and history, dialogs, task journeys |
+| [Product vision](design-planning/vision.html) | Objective, audience, the style that characterises the app, principles |
+
 ## User guide
 
 For players. No technical knowledge needed.
@@ -62,8 +87,10 @@ One page per subsystem, for contributors and the curious.
 
 [System design](system-design/README.md) describes the launcher as a system:
 what contains what, a glossary of every term, the navigation map, how search
-works end to end, and the UX audit. It also holds static HTML mockups of every
-screen in [`system-design/mocks/`](system-design/mocks/index.html).
+works end to end, and the UX audit. It also holds the earlier static HTML mockups in
+[`system-design/mocks/`](system-design/mocks/index.html), drawn for the pastel
+design that came before the current one; the current screens are in
+[design planning](design-planning/mockups.html).
 
 ## Release notes
 

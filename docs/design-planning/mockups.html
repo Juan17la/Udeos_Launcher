@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Udeos Mockups</title>
+<meta name="description" content="Annotated mockups of every main screen of Udeos Launcher, rebuilt from the shipped design tokens.">
+<script>try { document.documentElement.dataset.theme = localStorage.getItem('udeos-planning-theme') || 'dark' } catch {}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..900&family=Geist+Mono:wght@400..700&family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="planning.css">
+<link rel="icon" href="../../build/appicon.png">
+</head>
+<body>
+<div class="page">
+
+<header class="hero">
+  <h1><span class="logo" style="--sz:40px"><img src="../../frontend/src/assets/icons/ender_pearl.png" alt=""><img src="../../frontend/src/assets/icons/mace.png" alt=""></span>Mockups</h1>
+  <p>Low-fidelity rebuilds of the current interface, drawn at the default window size
+  (1180 by 760 px) with the real design tokens and Minecraft textures. Each
+  numbered pin matches a note on the right that explains what the element is,
+  why it is there and how it behaves. Use the theme button at the top to see
+  every screen in light and dark.</p>
+  <div class="toc">
+    <a href="#setup">Setup</a><a href="#dashboard">Instances</a><a href="#waiting">Waiting states</a>
+    <a href="#create">New instance</a><a href="#instance">Instance page</a><a href="#addons">Addons</a>
+    <a href="#detail">Addon details</a><a href="#ai">Ask AI</a><a href="#servers">Servers</a>
+    <a href="#server">Server page</a><a href="#skins">Skins</a><a href="#editor">Skin editor</a>
+    <a href="#rail">Rail and empty state</a><a href="#dialogs">Dialogs</a>
+  </div>
+</header>
+
+<section class="section">
+  <h2><img class="px" src="../../frontend/src/assets/icons/book.png" alt="">Anatomy of every screen</h2>
+  <p class="lead">All screens except Setup share one shell. Learn it once and every
+  mock below reads the same way.</p>
+  <div class="grid-3">
+    <div class="panel aside"><h3 class="h4">Sidebar, 232 px</h3>Brand, the contextual primary button (New Instance, New Server, New skin), the four sections, then Collapse sidebar, Activity and the profile. A grass strip closes it.</div>
+    <div class="panel aside"><h3 class="h4">Back row</h3>Only on pages that have a parent. Reads "Back to" plus the name of the page you came from, and restores its tab, filters and scroll.</div>
+    <div class="panel aside"><h3 class="h4">Main area</h3>A heading with a pixel item, then the content. Lists scroll inside the area; headings, tabs and side panels stay put.</div>
+    <div class="panel aside"><h3 class="h4">Canvas</h3>Deep night blue with two soft accent glows and faint Minecraft items scattered behind the content, never behind a label.</div>
+  </div>
+</section>
+
+<!-- ───────────────────────── Setup ───────────────────────── -->
+<section class="section mock" id="setup">
+  <div class="mock-head"><h3>1. Setup (first run)</h3><span class="tag">screen: login</span><span class="muted">FR-01.1 to FR-01.4</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app bare">
+      <img class="decor" src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="left:140px;top:90px">
+      <img class="decor" src="../../frontend/src/assets/icons/diamond_sword.png" alt="" style="left:930px;top:520px;transform:rotate(20deg)">
+      <img class="decor" src="../../frontend/src/assets/icons/golden_apple.png" alt="" style="left:220px;top:560px">
+      <img class="decor" src="../../frontend/src/assets/icons/nether_star.png" alt="" style="left:960px;top:110px">
+      <main style="display:grid;place-items:center">
+        <div class="glass" style="width:440px;padding:32px;display:grid;gap:20px">
+          <div class="p" style="display:flex;align-items:center;gap:12px"><i class="pin">1</i>
+            <span class="logo" style="--sz:44px"><img src="../../frontend/src/assets/icons/ender_pearl.png" alt=""><img src="../../frontend/src/assets/icons/mace.png" alt=""></span>
+            <div><div style="font:600 22px var(--display)">Udeos Launcher</div><div class="muted" style="font-size:13px">Minecraft, your way.</div></div>
+          </div>
+          <div class="p" style="display:flex;gap:6px"><i class="pin">2</i>
+            <span style="flex:1;height:4px;border-radius:4px;background:var(--primary)"></span>
+            <span style="flex:1;height:4px;border-radius:4px;background:var(--panel-2)"></span>
+            <span style="flex:1;height:4px;border-radius:4px;background:var(--panel-2)"></span>
+          </div>
+          <div class="p"><i class="pin">3</i>
+            <label class="label">Nickname</label>
+            <div class="input focus">CraftyFox</div>
+            <div class="muted" style="font-size:12.5px;margin-top:6px">3 to 16 letters, numbers or underscores. Other players see it in game.</div>
+          </div>
+          <div class="p"><i class="pin">4</i><span class="btn primary lg block">Next</span></div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Brand block.</b> Ender pearl and mace logo with the pixel wordmark. The only screen without the sidebar.</li>
+        <li><b>Step bar.</b> Three steps: nickname, language, theme. One question at a time keeps it readable for kids.</li>
+        <li><b>Nickname field.</b> Validated live with Minecraft's own rule. A taken name shows "You already have a profile with that name."</li>
+        <li><b>Next.</b> Disabled until the nickname is valid. On the last step it reads Start Playing and the privacy agreement checkbox appears.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Dashboard ───────────────────────── -->
+<section class="section mock" id="dashboard">
+  <div class="mock-head"><h3>2. Instances (dashboard)</h3><span class="tag">screen: dashboard</span><span class="muted">FR-02.1 to FR-02.3</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="instances" data-new="New Instance"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="left:60px;top:440px">
+      <img class="decor" src="../../frontend/src/assets/icons/experience_bottle.png" alt="" style="left:690px;top:590px">
+      <img class="decor" src="../../frontend/src/assets/icons/amethyst_shard.png" alt="" style="left:1100px;top:600px">
+      <img class="decor" src="../../frontend/src/assets/icons/totem_of_undying.png" alt="" style="left:470px;top:690px">
+      <main style="display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px">
+        <div style="display:grid;align-content:start;gap:20px">
+          <div style="display:flex;align-items:center">
+            <h2 class="h1 p"><i class="pin">1</i><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="">Your Instances <small>4</small></h2>
+            <span class="seg p" style="margin-left:auto"><i class="pin">2</i><span class="on"><svg data-i="grid"></svg></span><span><svg data-i="list"></svg></span></span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <div class="panel panel-hover p" style="padding:20px;display:grid;gap:16px"><i class="pin">3</i>
+              <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img class="px" src="../../frontend/src/assets/icons/oak_planks.png" alt="" style="width:40px"></span>
+                <div style="display:grid;gap:6px"><b style="font-size:16px">New World</b><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.21.1</span><span class="tag l" style="justify-self:start">Vanilla</span></div></div>
+              <span class="muted" style="font-size:12px">Never played</span>
+              <span class="btn secondary block quiet p"><i class="pin">4</i><svg data-i="play"></svg>Play</span>
+            </div>
+            <div class="panel" style="padding:20px;display:grid;gap:16px">
+              <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img class="px" src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt="" style="width:40px"></span>
+                <div style="display:grid;gap:6px"><b style="font-size:16px">Modded Fun</b><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1</span><span class="tag l" style="justify-self:start">Forge</span></div></div>
+              <span class="muted" style="font-size:12px">12 mods · 1 world</span>
+              <span class="btn secondary block quiet"><svg data-i="play"></svg>Play</span>
+            </div>
+            <div class="panel" style="padding:20px;display:grid;gap:16px">
+              <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img class="px" src="../../frontend/src/assets/icons/diamond.png" alt="" style="width:40px"></span>
+                <div style="display:grid;gap:6px"><b style="font-size:16px">Fabric Fun</b><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1</span><span class="tag l" style="justify-self:start">Fabric</span></div></div>
+              <span class="muted" style="font-size:12px">Never played</span>
+              <span class="btn secondary block quiet"><svg data-i="play"></svg>Play</span>
+            </div>
+            <div class="p" style="border:2px dashed color-mix(in srgb,var(--primary) 45%,transparent);border-radius:var(--r-lg);height:196px;display:grid;place-items:center;align-content:center;gap:12px;color:var(--muted)"><i class="pin">5</i>
+              <span style="width:56px;height:56px;border-radius:50%;background:var(--secondary);display:grid;place-items:center;color:var(--text)"><svg data-i="plus" class="ic ic-lg"></svg></span>New Instance</div>
+          </div>
+        </div>
+        <aside class="p" style="border-radius:var(--r-lg);background:color-mix(in srgb,var(--primary) 12%,var(--panel));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 30%,transparent);padding:20px;display:flex;flex-direction:column;gap:16px"><i class="pin">6</i>
+          <div style="display:grid;justify-items:center;gap:8px;text-align:center">
+            <span style="font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase" class="muted">Last played</span>
+            <span style="padding:12px;border-radius:16px;background:color-mix(in srgb,var(--primary) 15%,transparent)"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:88px"></span>
+            <b style="font-size:24px;letter-spacing:-.02em">Skyline Adventures</b>
+            <div style="display:flex;gap:8px"><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.21.1</span><span class="tag l">Vanilla</span></div>
+          </div>
+          <div class="p" style="display:grid;gap:10px;font-size:14px"><i class="pin">7</i>
+            <div style="display:flex;gap:10px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/lantern.png" alt="" style="width:16px">Last played<b style="margin-left:auto">2 days ago</b></div>
+            <div style="display:flex;gap:10px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/campfire.png" alt="" style="width:16px">Play time<b style="margin-left:auto">17 h</b></div>
+            <div style="display:flex;gap:10px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/spyglass.png" alt="" style="width:16px">Screenshots<b style="margin-left:auto">3</b></div>
+            <div style="display:flex;gap:10px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/amethyst_shard.png" alt="" style="width:16px">Resource packs<b style="margin-left:auto">1</b></div>
+            <div style="display:flex;gap:10px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:16px">Worlds<b style="margin-left:auto">2</b></div>
+          </div>
+          <div style="margin-top:auto;display:grid;gap:8px">
+            <span class="btn primary lg block p"><i class="pin">8</i><svg data-i="play"></svg>Play</span>
+            <div style="display:flex;gap:8px"><span class="btn ghost sm" style="flex:1">Manage</span><span class="btn ghost sm" style="flex:1"><svg data-i="folder"></svg>Folder</span></div>
+          </div>
+        </aside>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Heading</b> with a pixel item and the instance count in muted weight.</li>
+        <li><b>View toggle.</b> Cards or List, remembered per computer. List mode suits modders with many instances.</li>
+        <li><b>Instance card.</b> The whole card is a click target (a real button stretched over it) that opens the instance page. Hover changes colour only, never position.</li>
+        <li><b>Quiet Play.</b> Neutral fill with a blue glyph. Solid blue is reserved for the one main action of the screen.</li>
+        <li><b>New Instance tile</b> closes the grid with a dashed outline, a second path to Create next to the sidebar button.</li>
+        <li><b>Last played panel.</b> A blue-tinted panel, as tall as the window, so the quickest path back into the game is always found first.</li>
+        <li><b>Stats</b> with pixel items as icons and tabular numbers.</li>
+        <li><b>The screen's main action:</b> a large solid Play. Manage and Folder are ghost buttons below it.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Waiting states ───────────────────────── -->
+<section class="section mock" id="waiting">
+  <div class="mock-head"><h3>3. Waiting states: launch strip, Playing and Activity</h3><span class="tag">overlay: activity</span><span class="muted">FR-03.7 to FR-03.9, FR-09.4</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="instances" data-new="New Instance" data-activity="2" data-activity-open="1"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="left:60px;top:440px">
+      <img class="decor" src="../../frontend/src/assets/icons/experience_bottle.png" alt="" style="left:690px;top:590px">
+      <main style="display:grid;align-content:start;gap:20px">
+        <h2 class="h1"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="">Your Instances <small>4</small></h2>
+        <div style="display:grid;grid-template-columns:repeat(3,280px);gap:16px">
+          <div class="panel" style="padding:20px;display:grid;gap:16px">
+            <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img class="px" src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt="" style="width:40px"></span>
+              <div style="display:grid;gap:6px"><b style="font-size:16px">Modded Fun</b><span class="tag v" style="justify-self:start"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1</span></div></div>
+            <div class="strip p"><i class="pin">1</i>
+              <div class="row"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:16px;animation:block-hop .9s var(--ease) infinite"><span>Downloading sounds and textures</span><span class="pct">64%</span></div>
+              <div class="bar"><b style="width:64%"></b></div>
+              <span class="link" style="justify-self:end;font-size:12.5px">Cancel</span>
+            </div>
+          </div>
+          <div class="panel" style="padding:20px;display:grid;gap:16px">
+            <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img class="px" src="../../frontend/src/assets/icons/diamond.png" alt="" style="width:40px"></span>
+              <div style="display:grid;gap:6px"><b style="font-size:16px">Fabric Fun</b><span class="tag v" style="justify-self:start"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1</span></div></div>
+            <div class="strip p" style="background:color-mix(in srgb,var(--gold) 10%,var(--panel-2))"><i class="pin">2</i>
+              <div class="row"><img class="px" src="../../frontend/src/assets/icons/gold_ingot.png" alt="" style="width:16px"><span>Installing the mod loader</span><span class="pct" style="color:var(--gold)">31%</span></div>
+              <div class="bar gold"><b style="width:31%"></b></div>
+              <span style="font-size:12px;color:var(--gold)">This step takes a while. First install only.</span>
+            </div>
+          </div>
+          <div class="panel" style="padding:20px;display:grid;gap:16px">
+            <div style="display:flex;gap:12px;align-items:center"><span class="panel-2" style="padding:6px"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:40px"></span>
+              <div style="display:grid;gap:6px"><b style="font-size:16px">Skyline</b><span class="tag v" style="justify-self:start"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.21.1</span></div></div>
+            <div class="p" style="display:flex;gap:8px"><i class="pin">3</i><span class="chip-playing" style="flex:1"><span class="live"></span>Playing · 12 min</span><span class="btn danger sq"><svg data-i="stop"></svg></span></div>
+          </div>
+        </div>
+        <div class="panel p" style="padding:16px;width:420px;display:flex;gap:12px;align-items:center"><i class="pin">5</i>
+          <img class="px" src="../../frontend/src/assets/icons/cake.png" alt="" style="width:28px"><div><b>Have fun, Steve!</b><div class="muted" style="font-size:13px">Skyline is open. Enjoy the game.</div></div>
+        </div>
+      </main>
+      <div class="glass p" style="position:absolute;left:244px;bottom:96px;width:360px;padding:16px;display:grid;gap:14px"><i class="pin">4</i>
+        <div style="display:flex;align-items:center"><b>Activity</b><span class="muted" style="margin-left:auto;font-size:12.5px">2 running</span></div>
+        <div style="display:grid;gap:6px"><div style="display:flex;font-size:13px"><span>Modded Fun · game files</span><span class="muted mono" style="margin-left:auto">64%</span></div><div class="bar"><b style="width:64%"></b></div></div>
+        <div style="display:grid;gap:6px"><div style="display:flex;font-size:13px"><span>Sodium → Fabric Fun</span><span class="muted mono" style="margin-left:auto">waiting</span></div><div class="bar indet"><b></b></div></div>
+        <div style="border-top:1px solid var(--line);padding-top:12px;display:flex;align-items:center;gap:10px;font-size:13px"><span class="live"></span>Skyline is open<span class="btn sm danger" style="margin-left:auto">Close game</span></div>
+      </div>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Launch strip.</b> Replaces Play in place: phase in words, one percentage in the pixel font, a measured bar and Cancel. There is no launch modal.</li>
+        <li><b>Slow on purpose.</b> First installs and loader patching turn the bar gold and say so, so a long wait never looks like a freeze.</li>
+        <li><b>Playing chip.</b> Live green dot with a ring, elapsed minutes, and Close game (confirmed) for a frozen game.</li>
+        <li><b>Activity popover.</b> Opens from the sidebar item, which shows a ring, a count and a thin bar while work runs. Lists every job with progress, open games and running servers.</li>
+        <li><b>Moment.</b> "Have fun" once when a game opens, "GG" when it closes. Decoration lives in moments like these.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Create ───────────────────────── -->
+<section class="section mock" id="create">
+  <div class="mock-head"><h3>4. New instance</h3><span class="tag">screen: create</span><span class="muted">FR-02.4 to FR-02.8</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="instances"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="left:420px;top:300px">
+      <img class="decor" src="../../frontend/src/assets/icons/potion.png" alt="" style="left:1080px;top:340px">
+      <main>
+        <div class="backrow" style="margin-left:274px"><svg data-i="back"></svg>Back to Instances</div>
+        <div style="width:700px;margin:0 auto;display:grid;gap:16px">
+          <div style="display:flex;align-items:center"><h2 class="h1">New instance</h2><span class="btn sm ghost p" style="margin-left:auto"><i class="pin">1</i><svg data-i="download"></svg>Import file</span></div>
+          <div class="panel" style="padding:28px;display:grid;gap:20px">
+            <div class="p" style="display:flex;gap:20px;align-items:center;padding-bottom:20px;border-bottom:1px solid var(--line)"><i class="pin">2</i>
+              <img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:88px;animation:item-drop .6s var(--ease)">
+              <div><b style="font-size:28px;letter-spacing:-.03em">My World</b><div class="muted" style="font-size:16px">1.21.1 · Vanilla</div></div>
+            </div>
+            <div class="p"><i class="pin">3</i><label class="label">Instance name</label>
+              <div style="display:flex;gap:10px"><span class="input" style="width:72px"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:28px"><svg data-i="chev" class="ic chev"></svg></span><span class="input focus" style="flex:1">My World</span></div></div>
+            <div class="p"><i class="pin">4</i><span class="seg wide"><span class="on">Vanilla</span><span>With mods</span><span>From a modpack</span></span>
+              <div class="muted" style="font-size:13px;margin-top:10px">The game as Mojang ships it.</div></div>
+            <div class="p"><i class="pin">5</i><div style="display:flex"><label class="label">Minecraft version</label><span class="link" style="margin-left:auto;font-size:13px">Show older versions</span></div>
+              <div class="input">1.21.1 (latest)<svg data-i="chev" class="ic chev"></svg></div></div>
+            <div style="display:flex;justify-content:flex-end;align-items:center;gap:20px" class="p"><i class="pin">6</i><span class="link">Just create it</span><span class="btn primary lg">Create &amp; play</span></div>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Import file.</b> Builds the instance from a friend's <code>.udeos</code> join file.</li>
+        <li><b>Live preview.</b> The chosen icon drops into place and the summary updates as the form changes.</li>
+        <li><b>Icon and name.</b> The icon picker offers Minecraft blocks and items.</li>
+        <li><b>Kind.</b> Vanilla, With mods (then Fabric, Quilt, Forge, NeoForge) or From a modpack, each with a one-line hint.</li>
+        <li><b>Version.</b> Newest release preselected; older versions and snapshots behind a link. With a loader, only supported versions are listed and the loader build is named.</li>
+        <li><b>Actions.</b> Create &amp; play is the main action; Just create it is a quiet link for players who want to set things up first. The sidebar hides New here, since this is where it leads.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Instance page ───────────────────────── -->
+<section class="section mock" id="instance">
+  <div class="mock-head"><h3>5. Instance page (Mods tab)</h3><span class="tag">screen: instance</span><span class="muted">FR-04.1 to FR-04.9</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="instances" data-new="New Instance"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="left:1050px;top:620px">
+      <main>
+        <div class="backrow p"><i class="pin">1</i><svg data-i="back"></svg>Back to Instances</div>
+        <div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:28px">
+          <div class="panel p" style="padding:20px;display:grid;gap:14px;align-content:start;justify-items:center;text-align:center"><i class="pin">2</i>
+            <img class="px" src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt="" style="width:72px">
+            <b style="font-size:24px">Modded Fun</b>
+            <div style="display:flex;gap:8px"><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1</span><span class="tag l">Forge</span></div>
+            <span class="muted" style="font-size:13px">Ready to play</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;text-align:left">
+              <div class="panel-2" style="padding:10px 12px"><span class="muted" style="font-size:13px">Mods</span><div style="font-size:18px;font-weight:800;display:flex;gap:6px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/diamond_pickaxe.png" alt="" style="width:14px">12</div></div>
+              <div class="panel-2" style="padding:10px 12px"><span class="muted" style="font-size:13px">Worlds</span><div style="font-size:18px;font-weight:800;display:flex;gap:6px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:14px">1</div></div>
+              <div class="panel-2" style="padding:10px 12px"><span class="muted" style="font-size:13px">Shaders</span><div style="font-size:18px;font-weight:800;display:flex;gap:6px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/glowstone.png" alt="" style="width:14px">1</div></div>
+              <div class="panel-2" style="padding:10px 12px"><span class="muted" style="font-size:13px">Play time</span><div style="font-size:18px;font-weight:800;display:flex;gap:6px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/campfire.png" alt="" style="width:14px">4 h</div></div>
+            </div>
+            <span class="btn primary lg block"><svg data-i="play"></svg>Play</span>
+            <div style="display:flex;gap:8px;width:100%"><span class="btn sm idle" style="flex:1"><svg data-i="pencil"></svg>Edit</span><span class="btn sm idle" style="flex:1"><svg data-i="folder"></svg>Folder</span></div>
+          </div>
+          <div style="display:grid;gap:16px;align-content:start">
+            <div class="tabs p" style="gap:16px;font-size:13px"><i class="pin">3</i><span class="on">Mods</span><span>Resource packs</span><span>Datapacks</span><span>Shaders</span><span>Worlds</span><span>Screenshots</span><span>Settings</span></div>
+            <div class="p" style="display:flex;gap:8px"><i class="pin">4</i><span class="btn sm primary"><svg data-i="plus"></svg>Add mods</span><span class="btn sm ghost"><svg data-i="sparkles"></svg>Ask AI</span><span class="btn sm ghost">Browse files</span>
+              <span class="seg" style="margin-left:auto;padding:3px"><span class="on" style="padding:4px 8px"><svg data-i="grid"></svg></span><span style="padding:4px 8px"><svg data-i="list"></svg></span></span></div>
+            <div class="input p" style="height:38px"><i class="pin">5</i><svg data-i="search" class="ic muted"></svg><span class="ph">Filter 12 mods</span></div>
+            <div class="panel" style="padding:4px 0">
+              <div style="display:flex;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)"><img class="px" src="../../frontend/src/assets/icons/emerald.png" alt="" style="width:28px"><b>Sodium</b><span class="muted mono" style="font-size:12px">0.5.8</span><span class="muted" style="margin-left:auto;font-size:12.5px">Modrinth</span></div>
+              <div style="display:flex;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)"><img class="px" src="../../frontend/src/assets/icons/ender_eye.png" alt="" style="width:28px"><b>Iris Shaders</b><span class="muted mono" style="font-size:12px">1.7.0</span><span class="muted" style="margin-left:auto;font-size:12.5px">Modrinth</span></div>
+              <div class="p" style="display:flex;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--panel-2)"><i class="pin">6</i><img class="px" src="../../frontend/src/assets/icons/book.png" alt="" style="width:28px"><b>JEI</b><span class="muted mono" style="font-size:12px">15.2</span><span class="btn sm danger sq" style="margin-left:auto"><svg data-i="x"></svg></span></div>
+              <div style="display:flex;gap:12px;align-items:center;padding:10px 16px"><img class="px" src="../../frontend/src/assets/icons/name_tag.png" alt="" style="width:28px"><b>mymod-1.0.jar</b><span class="muted" style="margin-left:auto;font-size:12.5px">Added by hand</span></div>
+            </div>
+            <div class="glass p" style="display:flex;align-items:center;gap:12px;padding:12px 16px;width:360px"><i class="pin">7</i><span>Removed Create</span><span class="btn sm secondary" style="margin-left:auto"><svg data-i="undo"></svg>Undo</span></div>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Back row</b> returns to the page you came from, not always Instances.</li>
+        <li><b>Side panel.</b> Fixed and as tall as the page: identity, tags, install state, stats, the one solid Play, then Edit and Folder. It never scrolls with the list.</li>
+        <li><b>Tabs.</b> Mods and Shaders only exist on modded instances. The open tab is remembered per instance.</li>
+        <li><b>Toolbar.</b> Add opens Addons locked to this instance; Ask AI knows its version and loader; Browse files or drag a file anywhere.</li>
+        <li><b>Filter.</b> Long mod lists start as compact rows with a filter box.</li>
+        <li><b>Remove</b> appears on hover or keyboard focus only, so the list stays calm.</li>
+        <li><b>Undo, not confirm.</b> Small removals hide at once with Undo for five seconds. Worlds and instances still ask first.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Addons ───────────────────────── -->
+<section class="section mock" id="addons">
+  <div class="mock-head"><h3>6. Addons</h3><span class="tag">screen: search</span><span class="muted">FR-05.1 to FR-05.9</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="addons" data-new="New Instance"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/heart_of_the_sea.png" alt="" style="left:1100px;top:120px">
+      <main style="display:grid;align-content:start;gap:18px">
+        <div style="display:flex;align-items:center"><h2 class="h1"><img class="px" src="../../frontend/src/assets/icons/enchanted_book.png" alt="">Addons</h2><span class="btn ghost p" style="margin-left:auto"><i class="pin">1</i><svg data-i="sparkles"></svg>Ask AI</span></div>
+        <span class="seg p" style="justify-self:start"><i class="pin">2</i><span class="on">Mods</span><span>Datapacks</span><span>Resource packs</span><span>Shaders</span><span>Modpacks</span></span>
+        <div style="display:flex;gap:12px" class="p"><i class="pin">3</i><div class="input" style="flex:1"><svg data-i="search" class="ic muted"></svg><span class="ph">Search…</span></div><span class="btn idle">Filters<svg data-i="chev"></svg></span></div>
+        <span class="muted" style="font-size:13px">1–24 of 31,402</span>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div class="panel p" style="padding:20px;display:grid;gap:14px"><i class="pin">4</i>
+            <div style="display:flex;gap:12px"><img class="px" src="../../frontend/src/assets/icons/emerald.png" alt="" style="width:52px"><div><b style="font-size:17px">Sodium</b><div class="muted" style="font-size:13px">CaffeineMC</div><div class="muted" style="font-size:13px">↓ 42M downloads</div></div></div>
+            <span style="font-size:13.5px">A modern rendering engine that boosts FPS.</span>
+            <div style="display:flex;gap:6px"><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1–1.21.1</span><span class="tag l">Fabric</span><span class="tag l">Quilt</span></div>
+            <span class="btn secondary block quiet p"><i class="pin">5</i><svg data-i="plus"></svg>Add</span>
+          </div>
+          <div class="panel" style="padding:20px;display:grid;gap:14px">
+            <div style="display:flex;gap:12px"><img class="px" src="../../frontend/src/assets/icons/ender_eye.png" alt="" style="width:52px"><div><b style="font-size:17px">Iris Shaders</b><div class="muted" style="font-size:13px">IrisShaders</div><div class="muted" style="font-size:13px">↓ 20M downloads</div></div></div>
+            <span style="font-size:13.5px">Shader support for Fabric; needs Sodium.</span>
+            <div style="display:flex;gap:6px"><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.20.1–1.21.1</span><span class="tag l">Fabric</span></div>
+            <span class="btn secondary block quiet"><svg data-i="plus"></svg>Add</span>
+          </div>
+          <div class="panel" style="padding:20px;display:grid;gap:14px">
+            <div style="display:flex;gap:12px"><img class="px" src="../../frontend/src/assets/icons/book.png" alt="" style="width:52px"><div><b style="font-size:17px">Just Enough Items</b><div class="muted" style="font-size:13px">mezz</div><div class="muted" style="font-size:13px">↓ 30M downloads</div></div></div>
+            <span style="font-size:13.5px">View items and recipes.</span>
+            <div style="display:flex;gap:6px"><span class="tag v"><img src="../../frontend/src/assets/icons/grass_block_side.png" alt="">1.19.2–1.20.4</span><span class="tag l">Forge</span></div>
+            <span class="btn secondary block" style="color:var(--green)"><svg data-i="check"></svg>Added</span>
+          </div>
+        </div>
+      </main>
+      <div class="glass p" style="position:absolute;left:560px;top:250px;width:340px;padding:18px;display:grid;gap:12px"><i class="pin">6</i>
+        <b>Add Sodium to…</b><span class="muted" style="font-size:13px">Only instances it runs on are listed.</span>
+        <div class="panel-2" style="display:flex;gap:10px;align-items:center;padding:10px 12px"><img class="px" src="../../frontend/src/assets/icons/diamond.png" alt="" style="width:24px"><b>Fabric Fun</b><span class="tag v" style="margin-left:auto">1.20.1</span></div>
+        <div class="panel-2" style="display:flex;gap:10px;align-items:center;padding:10px 12px"><img class="px" src="../../frontend/src/assets/icons/slime_ball.png" alt="" style="width:24px"><b>Quilt Test</b><span class="tag v" style="margin-left:auto">1.21.1</span></div>
+      </div>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Ask AI</b> sits on the page header: the way in for players who do not know what to search for.</li>
+        <li><b>Project type</b> as a segmented control. From an instance, types it cannot use are hidden.</li>
+        <li><b>Search and one Filters button</b> that folds version, loader, sort and topics, keeping the page calm.</li>
+        <li><b>Result card.</b> Icon, author, downloads, a one-line description and the supported range as tags. The card opens Details.</li>
+        <li><b>Add</b> is quiet. Installed results read Added in green when the page is locked to an instance.</li>
+        <li><b>Instance picker.</b> From the sidebar, Add asks which instance and lists only compatible ones: two clicks to install.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Detail ───────────────────────── -->
+<section class="section mock" id="detail">
+  <div class="mock-head"><h3>7. Addon details</h3><span class="tag">screen: detail</span><span class="muted">FR-05.10, FR-05.11</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="addons" data-new="New Instance"></aside>
+      <main>
+        <div class="backrow"><svg data-i="back"></svg>Back to Addons</div>
+        <div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:28px">
+          <div style="display:grid;gap:14px;align-content:start">
+            <div class="panel p" style="padding:18px;display:grid;gap:10px"><i class="pin">1</i><b>Your instances</b>
+              <div style="display:flex;align-items:center;gap:10px"><img class="px" src="../../frontend/src/assets/icons/diamond.png" alt="" style="width:22px">Fabric Fun<span class="btn sm secondary quiet" style="margin-left:auto"><svg data-i="plus"></svg>Add</span></div>
+              <div style="display:flex;align-items:center;gap:10px"><img class="px" src="../../frontend/src/assets/icons/slime_ball.png" alt="" style="width:22px">Quilt Test<span class="btn sm secondary" style="margin-left:auto;color:var(--green)"><svg data-i="check"></svg>Added</span></div>
+            </div>
+            <div class="panel p" style="padding:18px;display:grid;gap:10px"><i class="pin">2</i><b>Minecraft versions</b>
+              <div style="display:flex;flex-wrap:wrap;gap:6px"><span class="tag v">1.21.1</span><span class="tag v">1.21</span><span class="tag v">1.20.6</span><span class="tag v">1.20.4</span><span class="tag v">1.20.1</span><span class="tag">+14 more</span></div>
+              <b style="margin-top:6px">Loaders</b><div style="display:flex;gap:6px"><span class="tag l">Fabric</span><span class="tag l">Quilt</span></div>
+            </div>
+          </div>
+          <div style="display:grid;gap:16px;align-content:start">
+            <div style="display:flex;gap:16px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/emerald.png" alt="" style="width:72px"><div><h2 class="h1" style="font-size:32px">Sodium</h2><span class="muted">by CaffeineMC · ↓ 42M · LGPL-3.0</span></div></div>
+            <div class="tabs p"><i class="pin">3</i><span class="on">About</span><span>Versions</span><span>Gallery</span></div>
+            <div style="display:flex;gap:8px"><span class="tag">Optimization</span><span class="tag">Client</span><span class="link" style="font-size:13px">Source</span><span class="link" style="font-size:13px">Issues</span></div>
+            <div class="panel p" style="padding:20px;display:grid;gap:10px"><i class="pin">4</i>
+              <b style="font-size:18px">A modern rendering engine</b>
+              <div class="skeleton" style="height:12px;width:96%"></div><div class="skeleton" style="height:12px;width:88%"></div><div class="skeleton" style="height:12px;width:92%"></div>
+              <div class="panel-2" style="height:150px;display:grid;place-items:center" ><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:48px;opacity:.5"></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Your instances</b> that can take this addon, each with its own Add. The fastest path from reading to installing.</li>
+        <li><b>Compatibility</b>: every Minecraft version (first twelve, then "+N more") and loader.</li>
+        <li><b>Versions tab</b> installs a specific release; releases that clash with installed mods are listed apart.</li>
+        <li><b>Body.</b> Modrinth's page, sanitised: only whitelisted tags are rebuilt and links open in the system browser. Shown here loading with skeleton lines.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Ask AI ───────────────────────── -->
+<section class="section mock" id="ai">
+  <div class="mock-head"><h3>8. Ask AI (with an answer)</h3><span class="tag">screen: search (ai)</span><span class="muted">FR-06.1 to FR-06.9</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="addons" data-new="New Instance"></aside>
+      <main style="display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:16px">
+        <div class="backrow" style="margin-bottom:0"><svg data-i="back"></svg>Back to Modded Fun</div>
+        <div style="display:flex;align-items:center;gap:12px"><h2 class="h1"><svg data-i="sparkles" class="ic" style="width:28px;height:28px"></svg>Ask AI</h2><span class="tag p"><i class="pin">1</i>For Modded Fun · 1.20.1 Forge</span><span class="btn sm ghost p" style="margin-left:auto"><i class="pin">2</i>Groq (built-in)<svg data-i="chev"></svg></span></div>
+        <div style="display:grid;gap:14px;align-content:start;overflow:hidden">
+          <div style="justify-self:end;max-width:420px;padding:10px 14px;border-radius:var(--r-lg);background:var(--primary);color:#fff">My game lags on a weak PC</div>
+          <div class="panel p" style="padding:18px;display:grid;gap:12px"><i class="pin">3</i>
+            <span class="muted" style="font-size:13px">Understood: better frame rate on low-end hardware, Forge 1.20.1.</span>
+            <b>Renderer</b>
+            <div class="panel-2" style="display:flex;gap:12px;align-items:center;padding:10px 12px"><img class="px" src="../../frontend/src/assets/icons/emerald.png" alt="" style="width:32px"><div><b>Embeddium</b><div class="muted" style="font-size:12.5px">A Sodium port for Forge: rewrites chunk rendering, the biggest win on weak GPUs.</div></div><span class="btn sm secondary quiet" style="margin-left:auto"><svg data-i="plus"></svg>Add</span></div>
+            <b>Game logic</b>
+            <div class="panel-2" style="display:flex;gap:12px;align-items:center;padding:10px 12px"><img class="px" src="../../frontend/src/assets/icons/redstone.png" alt="" style="width:32px"><div><b>FerriteCore</b><div class="muted" style="font-size:12.5px">Cuts memory use, so the game stutters less on 4 GB machines.</div></div><span class="btn sm secondary quiet" style="margin-left:auto"><svg data-i="plus"></svg>Add</span></div>
+            <div style="display:flex;gap:8px" class="p"><i class="pin">4</i><span class="btn sm idle">Add shaders too</span><span class="btn sm idle">Make it lighter</span><span class="link" style="font-size:13px;margin-left:auto">See all in Addons</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;padding:0 60px" class="p"><i class="pin">5</i><div class="input focus" style="flex:1"><svg data-i="sparkles" class="ic muted"></svg><span class="ph">e.g. my game lags on a weak PC</span></div><span class="btn idle">Ask</span></div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Context tag.</b> Opened from an instance, the advisor respects its version and loader and skips what is installed.</li>
+        <li><b>Provider menu.</b> Built-in Groq by default; the player can paste their own key for Groq, Claude, OpenAI, Gemini or Grok.</li>
+        <li><b>Answer.</b> What it understood, then picks grouped by need, each with a reason in plain words. Every pick is a real Modrinth result.</li>
+        <li><b>Follow-ups</b> refine the answer; See all in Addons opens the full search for that group.</li>
+        <li><b>Composer</b> pinned to the bottom. The empty state offers four starter prompts.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Servers ───────────────────────── -->
+<section class="section mock" id="servers">
+  <div class="mock-head"><h3>9. Servers</h3><span class="tag">screen: servers</span><span class="muted">FR-07.1 to FR-07.3</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="servers" data-new="New Server"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/campfire.png" alt="" style="left:900px;top:560px">
+      <main style="display:grid;align-content:start;gap:20px">
+        <div><h2 class="h1"><img class="px" src="../../frontend/src/assets/icons/campfire.png" alt="">Your Servers <small>3</small></h2><p class="muted" style="margin:6px 0 0">Host a world on this computer for your friends to join.</p></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div class="feature p" style="padding:20px;display:grid;gap:14px"><i class="pin">1</i>
+            <div style="display:flex;gap:12px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:44px"><div style="display:grid;gap:6px"><b style="font-size:16px">Friends SMP</b><div style="display:flex;gap:6px"><span class="tag">1.21.1</span><span class="tag">Vanilla</span></div></div></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px"><span class="live"></span>Ready · 3/20 players</div>
+            <span class="btn sm" style="background:var(--panel);color:var(--text)"><svg data-i="stop"></svg>Stop</span>
+          </div>
+          <div class="panel p" style="padding:20px;display:grid;gap:14px"><i class="pin">2</i>
+            <div style="display:flex;gap:12px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/netherite_pickaxe.png" alt="" style="width:44px"><div style="display:grid;gap:6px"><b style="font-size:16px">Create World</b><div style="display:flex;gap:6px"><span class="tag v">1.20.1</span><span class="tag l">Forge</span></div></div></div>
+            <div style="display:grid;gap:6px;font-size:13px"><span class="muted">Starting… installing Forge</span><div class="bar indet gold"><b></b></div></div>
+            <span class="btn sm secondary" disabled>Starting…</span>
+          </div>
+          <div class="panel p" style="padding:20px;display:grid;gap:14px"><i class="pin">3</i>
+            <div style="display:flex;gap:12px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/end_stone.png" alt="" style="width:44px"><div style="display:grid;gap:6px"><b style="font-size:16px">Skyblock</b><div style="display:flex;gap:6px"><span class="tag v">1.21.1</span><span class="tag l">Fabric</span></div></div></div>
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px" class="muted"><span style="width:8px;height:8px;border-radius:50%;background:var(--muted)"></span>Stopped</div>
+            <span class="btn sm secondary quiet"><svg data-i="play"></svg>Start</span>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Running server</b> on the feature tone (flat muted accent). Status with a live dot and players online; Stop on its own surface.</li>
+        <li><b>Starting</b>: an indeterminate bar (gold, first install) and one line saying what is happening.</li>
+        <li><b>Stopped</b>: a neutral card with a quiet Start. The card opens the server page.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Server page ───────────────────────── -->
+<section class="section mock" id="server">
+  <div class="mock-head"><h3>10. Server page (Console tab)</h3><span class="tag">screen: server</span><span class="muted">FR-07.4 to FR-07.12</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="servers" data-new="New Server"></aside>
+      <main>
+        <div class="backrow"><svg data-i="back"></svg>Back to Servers</div>
+        <div style="display:grid;grid-template-columns:320px minmax(0,1fr);gap:28px">
+          <div class="feature p" style="padding:20px;display:grid;gap:14px;justify-items:center;text-align:center;align-content:start"><i class="pin">1</i>
+            <img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:72px"><b style="font-size:24px">Friends SMP</b>
+            <div style="display:flex;gap:8px"><span class="tag">1.21.1</span><span class="tag">Vanilla</span></div>
+            <span style="display:flex;align-items:center;gap:8px;font-size:13px"><span class="live"></span>Ready</span>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;text-align:left">
+              <div style="padding:10px 12px;border-radius:var(--r-md);background:color-mix(in srgb,#fff 10%,transparent)"><span style="font-size:13px;opacity:.8">Players</span><div style="font-size:18px;font-weight:800">3/20</div></div>
+              <div style="padding:10px 12px;border-radius:var(--r-md);background:color-mix(in srgb,#fff 10%,transparent)"><span style="font-size:13px;opacity:.8">Run time</span><div style="font-size:18px;font-weight:800">1 h</div></div>
+            </div>
+            <span class="btn lg block" style="background:var(--panel);color:var(--text)"><svg data-i="stop"></svg>Stop</span>
+            <div style="display:flex;gap:8px;width:100%"><span class="btn sm" style="flex:1;background:color-mix(in srgb,#fff 12%,transparent);color:#fff"><svg data-i="pencil"></svg>Edit</span><span class="btn sm" style="flex:1;background:color-mix(in srgb,#fff 12%,transparent);color:#fff"><svg data-i="folder"></svg>Folder</span></div>
+          </div>
+          <div style="display:grid;gap:16px;align-content:start">
+            <div class="panel p" style="padding:14px 18px;display:flex;align-items:center;gap:12px"><i class="pin">2</i><div style="min-width:0"><span class="muted" style="font-size:12px">Internet address</span><div class="mono" style="font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">udeoslauncher.friends-smp.159-223….nip.io:41234</div></div><span class="btn sm primary" style="margin-left:auto"><svg data-i="copy"></svg>Copy</span></div>
+            <div class="tabs p"><i class="pin">3</i><span class="on">Console</span><span>Players</span><span>Internet</span><span>Backups</span><span>Datapacks</span><span>Settings</span></div>
+            <div class="panel p" style="padding:14px 16px;height:300px;font:12.5px/1.7 var(--mono);color:color-mix(in srgb,var(--text) 80%,var(--muted))"><i class="pin">4</i>
+              [12:01:04] Starting minecraft server version 1.21.1<br>[12:01:06] Preparing level "world"<br>[12:01:09] Done (3.2s)! For help, type "help"<br>[12:03:15] Alex joined the game<br>[12:04:02] &lt;Alex&gt; hi!<br>[12:05:40] CraftyFox joined the game<br>[12:06:11] Steve joined the game
+            </div>
+            <div class="input p"><i class="pin">5</i><svg data-i="terminal" class="ic muted"></svg><span class="ph">Type a command, no / needed</span></div>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Side panel</b> takes the feature tone while the server runs; Stop is the main action. Content on the blue uses the on-feature colours.</li>
+        <li><b>Internet address</b> always on top with one-click Copy: the thing a host shares most.</li>
+        <li><b>Tabs</b>: Console, Players (online, whitelist, admins, banned), Internet (relay or router), Backups, Mods (modded only), Datapacks, Settings.</li>
+        <li><b>Console</b> streams live in the mono face.</li>
+        <li><b>Command input</b> with a hint that the slash is optional.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Skins ───────────────────────── -->
+<section class="section mock" id="skins">
+  <div class="mock-head"><h3>11. Skins</h3><span class="tag">screen: skins</span><span class="muted">FR-08.1 to FR-08.4</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="skins" data-new="New skin"></aside>
+      <main style="display:grid;align-content:start;gap:16px">
+        <div><h2 class="h1"><img class="px" src="../../frontend/src/assets/icons/diamond_chestplate.png" alt="">Skins</h2><p class="muted" style="margin:6px 0 0">Choose how you look in all your instances.</p></div>
+        <div style="display:grid;grid-template-columns:420px minmax(0,1fr);gap:28px">
+          <div class="panel p" style="padding:20px;display:grid;gap:14px"><i class="pin">1</i>
+            <div style="display:flex" class="muted"><span style="font-size:13px">Wearing</span><span style="margin-left:auto;font-size:13px">Drag to turn</span></div>
+            <div class="panel-2" style="height:380px;display:grid;place-items:center"><div class="steve" style="--s:10px"><i class="hd"></i><i class="bd"></i><i class="ar"></i><i class="al"></i><i class="lr"></i><i class="ll"></i></div></div>
+            <div style="display:flex;align-items:center;gap:8px"><b style="font-size:20px">Steve</b><span class="tag v" style="margin-left:auto">Default</span><span class="tag">Classic</span></div>
+          </div>
+          <div style="display:grid;gap:16px;align-content:start">
+            <div class="p" style="border:2px dashed color-mix(in srgb,var(--primary) 45%,transparent);border-radius:var(--r-lg);padding:18px;display:flex;align-items:center;gap:16px"><i class="pin">2</i>
+              <span class="btn primary sq"><svg data-i="download"></svg></span><div><b>Drop a skin you downloaded</b><div class="muted" style="font-size:13px">Any .png from a skin website</div></div><span class="btn primary sm" style="margin-left:auto"><svg data-i="folder"></svg>Browse files</span></div>
+            <b style="font-size:18px">Library <span class="muted" style="font-weight:500">3</span></b>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+              <div class="panel p" style="padding:12px;display:grid;gap:8px;box-shadow:0 0 0 2px var(--primary)"><i class="pin">3</i><div class="panel-2" style="height:140px;display:grid;place-items:center;position:relative"><div class="steve" style="--s:3.6px"><i class="hd"></i><i class="bd"></i><i class="ar"></i><i class="al"></i><i class="lr"></i><i class="ll"></i></div><span class="tag v" style="position:absolute;left:8px;bottom:8px"><svg data-i="check"></svg>In use</span></div><b>Steve</b><span class="muted" style="font-size:12px">Classic · Default</span></div>
+              <div class="panel" style="padding:12px;display:grid;gap:8px"><div class="panel-2" style="height:140px;display:grid;place-items:center"><div class="steve" style="--s:3.6px;filter:hue-rotate(140deg)"><i class="hd"></i><i class="bd"></i><i class="ar"></i><i class="al"></i><i class="lr"></i><i class="ll"></i></div></div><b>Explorer</b><span class="muted" style="font-size:12px">Classic</span></div>
+              <div class="panel p" style="padding:12px;display:grid;gap:8px"><i class="pin">4</i><div class="panel-2" style="height:140px;display:grid;place-items:center;position:relative"><div class="steve" style="--s:3.6px;filter:hue-rotate(260deg)"><i class="hd"></i><i class="bd"></i><i class="ar"></i><i class="al"></i><i class="lr"></i><i class="ll"></i></div><span style="position:absolute;right:8px;top:8px;display:flex;gap:4px"><span class="btn sm sq idle"><svg data-i="pencil"></svg></span><span class="btn sm sq danger"><svg data-i="trash"></svg></span></span></div><b>Aurora</b><span class="muted" style="font-size:12px">Slim</span></div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Wearing</b>: the current skin on a 3D model the player turns by dragging, with its model (Classic or Slim) as a tag.</li>
+        <li><b>Drop zone.</b> A <code>.png</code> can be dropped anywhere on the window; Browse files is the fallback.</li>
+        <li><b>Worn card</b> outlined in the accent with an In use tag. Clicking any card wears it.</li>
+        <li><b>Edit and Delete</b> appear on hover or focus. Steve cannot be deleted.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Skin editor ───────────────────────── -->
+<section class="section mock" id="editor">
+  <div class="mock-head"><h3>12. Skin editor</h3><span class="tag">screen: skinEditor</span><span class="muted">FR-08.5, FR-08.6</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app">
+      <aside data-sidebar data-active="skins" data-new="New skin"></aside>
+      <main>
+        <div class="backrow"><svg data-i="back"></svg>Back to Skins</div>
+        <div style="display:grid;grid-template-columns:70px minmax(0,1fr) 280px;gap:20px;height:620px">
+          <div class="panel p" style="padding:10px;display:grid;gap:8px;align-content:start;justify-items:center"><i class="pin">1</i>
+            <span class="btn sq primary sm"><svg data-i="brush"></svg></span><span class="btn sq idle sm">E</span><span class="btn sq idle sm">G</span><span class="btn sq idle sm">I</span>
+            <div style="height:1px;width:100%;background:var(--line)"></div><span class="btn sq idle sm"><svg data-i="undo"></svg></span>
+          </div>
+          <div class="panel-2 p" style="border-radius:var(--r-lg);display:grid;place-items:center;position:relative;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:20px 20px"><i class="pin">2</i>
+            <div class="steve" style="--s:16px"><i class="hd"></i><i class="bd"></i><i class="ar"></i><i class="al"></i><i class="lr"></i><i class="ll"></i></div>
+            <span class="muted" style="position:absolute;bottom:12px;font-size:12px">Right-drag to turn · wheel to zoom · 0 resets</span>
+          </div>
+          <div style="display:grid;gap:14px;align-content:start">
+            <div class="panel p" style="padding:16px;display:grid;gap:10px"><i class="pin">3</i><b>Colour</b>
+              <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:6px">
+                <i style="aspect-ratio:1;border-radius:4px;background:#F9FFFE"></i><i style="aspect-ratio:1;border-radius:4px;background:#F9801D"></i><i style="aspect-ratio:1;border-radius:4px;background:#C74EBD"></i><i style="aspect-ratio:1;border-radius:4px;background:#3AB3DA"></i><i style="aspect-ratio:1;border-radius:4px;background:#FED83D"></i><i style="aspect-ratio:1;border-radius:4px;background:#80C71F"></i><i style="aspect-ratio:1;border-radius:4px;background:#F38BAA"></i><i style="aspect-ratio:1;border-radius:4px;background:#474F52"></i>
+                <i style="aspect-ratio:1;border-radius:4px;background:#9D9D97"></i><i style="aspect-ratio:1;border-radius:4px;background:#169C9C"></i><i style="aspect-ratio:1;border-radius:4px;background:#8932B8"></i><i style="aspect-ratio:1;border-radius:4px;background:#3C44AA"></i><i style="aspect-ratio:1;border-radius:4px;background:#835432"></i><i style="aspect-ratio:1;border-radius:4px;background:#5E7C16"></i><i style="aspect-ratio:1;border-radius:4px;background:#B02E26"></i><i style="aspect-ratio:1;border-radius:4px;background:#1D1D21"></i>
+              </div></div>
+            <div class="panel p" style="padding:16px;display:grid;gap:12px"><i class="pin">4</i>
+              <span class="check on"><i><svg data-i="check"></svg></i>Second layer</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap"><span class="tag">Head</span><span class="tag">Body</span><span class="tag">Arms</span><span class="tag">Legs</span></div>
+              <div class="seg"><span class="on">Classic</span><span>Slim</span></div>
+            </div>
+            <span class="btn primary lg block">Save skin</span>
+          </div>
+        </div>
+      </main>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Tools</b> with single-key shortcuts: pencil B, eraser E, fill G, picker I, plus undo and redo.</li>
+        <li><b>Canvas.</b> Paint straight on the 3D model; a pixel grid appears when zoomed in.</li>
+        <li><b>Palette</b>: the sixteen Minecraft dye colours, skin tones and recent colours.</li>
+        <li><b>Layers and parts.</b> Second layer paints hat, jacket and sleeves; part toggles hide limbs to reach what is behind. Unsaved work is kept as a draft.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Rail + empty ───────────────────────── -->
+<section class="section mock" id="rail">
+  <div class="mock-head"><h3>13. Collapsed rail and empty state</h3><span class="tag">shell: rail</span><span class="muted">FR-09.2, FR-02.3</span></div>
+  <div class="mock-body">
+    <div class="frame"><div class="app rail">
+      <aside data-sidebar data-active="instances" data-new="New Instance"></aside>
+      <img class="decor" src="../../frontend/src/assets/icons/ender_pearl.png" alt="" style="left:300px;top:500px">
+      <img class="decor" src="../../frontend/src/assets/icons/cake.png" alt="" style="left:950px;top:160px">
+      <main style="display:grid;place-items:center">
+        <div class="p" style="display:grid;justify-items:center;gap:14px;text-align:center;max-width:420px"><i class="pin">2</i>
+          <img class="px" src="../../frontend/src/assets/icons/grass_block_side.png" alt="" style="width:72px;animation:item-drop .8s var(--ease)">
+          <i style="width:60px;height:8px;border-radius:50%;background:color-mix(in srgb,var(--text) 14%,transparent);margin-top:-8px"></i>
+          <b style="font-size:22px">No instances yet</b>
+          <span class="muted">An instance is one copy of the game with its own worlds and mods. Create one to start playing.</span>
+          <span class="btn primary lg"><svg data-i="plus"></svg>Create your first instance</span>
+        </div>
+      </main>
+      <span class="pin" style="left:24px;top:150px">1</span>
+    </div></div>
+    <aside class="panel aside">
+      <h3 class="h4">Notes</h3>
+      <ol class="notes">
+        <li><b>Icon rail, 68 px.</b> Below 1000 px of width, or when the player collapses it (remembered). Labels move to tooltips.</li>
+        <li><b>Empty state.</b> A pixel item drops onto its shadow, one sentence explains the concept, one primary button acts.</li>
+      </ol>
+    </aside>
+  </div>
+</section>
+
+<!-- ───────────────────────── Dialogs ───────────────────────── -->
+<section class="section" id="dialogs">
+  <h2><img class="px" src="../../frontend/src/assets/icons/name_tag.png" alt="">14. Dialogs</h2>
+  <p class="lead">Dialogs are native <code>&lt;dialog&gt;</code> elements on the glass surface: focus is trapped, Escape closes, nothing fades in. Destructive actions take the danger style and never sit where Play was.</p>
+  <div class="grid-2">
+    <div class="glass" style="padding:24px;display:grid;gap:14px">
+      <div style="display:flex;gap:12px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/lava_bucket.png" alt="" style="width:32px"><b style="font-size:18px">Delete "Modded Fun"?</b></div>
+      <span class="muted">Its worlds, mods and screenshots are removed from this computer. This cannot be undone.</span>
+      <div style="display:flex;gap:10px;justify-content:flex-end"><span class="btn ghost">Cancel</span><span class="btn danger">Delete</span></div>
+      <span class="note">Confirm delete: worlds, instances, servers, backups and skins.</span>
+    </div>
+    <div class="glass" style="padding:24px;display:grid;gap:14px">
+      <div style="display:flex;gap:12px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/firework_rocket.png" alt="" style="width:32px"><b style="font-size:18px">Udeos 3.4.0 is ready</b></div>
+      <span class="muted">A new version is out. Update now, or keep playing and update later.</span>
+      <div style="display:flex;gap:10px;justify-content:flex-end"><span class="btn ghost">Later</span><span class="btn primary">Update</span></div>
+      <span class="note">Update prompt: once per start, never blocking.</span>
+    </div>
+    <div class="glass" style="padding:24px;display:grid;gap:14px">
+      <div style="display:flex;gap:12px;align-items:center"><img class="px" src="../../frontend/src/assets/icons/campfire.png" alt="" style="width:32px"><b style="font-size:18px">Servers are still running</b></div>
+      <div class="panel-2" style="padding:10px 12px;display:flex;gap:10px;align-items:center"><span class="live"></span>Friends SMP · 3 players</div>
+      <span class="muted">They are stopped and their worlds saved before the launcher closes.</span>
+      <div style="display:flex;gap:10px;justify-content:flex-end"><span class="btn ghost">Cancel</span><span class="btn primary">Stop and close</span></div>
+      <span class="note">Safe close: FR-09.7.</span>
+    </div>
+    <div class="glass" style="padding:24px;display:grid;gap:14px">
+      <div style="display:flex;gap:12px;align-items:center"><svg data-i="alert" class="ic ic-lg" style="color:var(--error-soft)"></svg><b style="font-size:18px">Incompatible mod</b></div>
+      <span class="muted">OptiFine conflicts with Sodium, which is already in Fabric Fun. Nothing was installed.</span>
+      <div style="display:flex;gap:10px;justify-content:flex-end"><span class="btn ghost">Close</span><span class="btn secondary">See options</span></div>
+      <span class="note">Error headline of one to three words, the reason underneath.</span>
+    </div>
+  </div>
+</section>
+
+<footer class="footer"><span>Udeos Launcher design planning · mockups reflect version 3.3.0-beta</span><span>Next: <a href="design-system.html">Design system</a></span></footer>
+</div>
+<script src="planning.js"></script>
+</body>
+</html>
