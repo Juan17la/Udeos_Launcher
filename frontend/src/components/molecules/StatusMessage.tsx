@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react'
 import Button from '../atoms/Button'
 import { ProgressBar } from '../atoms/Loader'
-import { Check, X } from '../atoms/icons'
+import PixelIcon from '../atoms/PixelIcon'
+import { X } from '../atoms/icons'
+import { useApp } from '../../state'
 
-/** Feedback panel, inline or as a toast. Success: a check chip and one soft
+/** Feedback panel, inline or as a toast. Success: an emerald (on the subject's icon, or
+ *  alone) and one soft
  *  pulse of the accent. Error: a red edge and one sideways nudge as it arrives, a headline of at most three words
- *  (see utils/errors.ts) and the full reason as small detail. Neutral
+ *  (see utils/errors.ts) and the full reason as small detail; its mark is redstone. Neutral
  *  (progress): an `aside` (percentage, "Waiting…") and a `percent` bar. */
 type Props = {
   kind?: 'neutral' | 'success' | 'error'
@@ -18,14 +21,16 @@ type Props = {
   onDismiss?: () => void
   /** 'gold': a slow run that is expected (first install): gold border and bar. */
   accent?: 'gold'
-  /** Tooltip and screen-reader name of the × (default "Close"; "Cancel" on a download). */
+  /** Tooltip and screen-reader name of the × (default t.common.close; "Cancel" on a download). */
   dismissLabel?: string
   className?: string
   /** No pulse or nudge: for messages that are re-shown, not new (the Activity list on every open). */
   still?: boolean
 }
 
-export default function StatusMessage({ kind = 'neutral', headline, detail, icon, aside, percent, accent, onDismiss, dismissLabel = 'Close', className: cls, still }: Props) {
+export default function StatusMessage({ kind = 'neutral', headline, detail, icon, aside, percent, accent, onDismiss, dismissLabel, className: cls, still }: Props) {
+  const { t } = useApp()
+  const close = dismissLabel ?? t.common.close
   const className = cls ?? ''
   return (
     <div role={kind === 'error' ? 'alert' : 'status'} style={kind === 'error' && !still ? { animation: 'nudge 0.45s ease-out' } : undefined}
@@ -34,19 +39,17 @@ export default function StatusMessage({ kind = 'neutral', headline, detail, icon
         {icon && kind !== 'error' ? (
           <span className="relative flex-none flex">
             {icon}
-            {kind === 'success' && <span className="absolute -bottom-1 -right-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-on-primary ring-2 ring-panel"><Check size={9} /></span>}
+            {kind === 'success' && <PixelIcon name="emerald" size={16} className="absolute -bottom-1.5 -right-1.5" />}
           </span>
         ) : kind !== 'neutral' && (
-          <span className={`flex-none inline-flex items-center justify-center w-6 h-6 rounded-md ${kind === 'error' ? 'bg-error text-white' : 'bg-primary text-on-primary'}`}>
-            {kind === 'error' ? <X size={12} /> : <Check size={12} />}
-          </span>
+          <PixelIcon name={kind === 'error' ? 'redstone' : 'emerald'} size={16} className="mt-px" />
         )}
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <span className="text-sm font-semibold leading-[1.3]">{headline}</span>
           {detail && <span className="text-xs text-muted break-words">{detail}</span>}
         </div>
         {aside !== undefined && <span className="text-[13px] text-muted font-mono tabular-nums shrink-0">{aside}</span>}
-        {onDismiss && <Button variant="ghost" size="sm" square onClick={onDismiss} aria-label={dismissLabel} title={dismissLabel}><X size={12} /></Button>}
+        {onDismiss && <Button variant="ghost" size="sm" square onClick={onDismiss} aria-label={close} title={close}><X size={12} /></Button>}
       </div>
       {percent !== undefined && <ProgressBar value={percent} tone={accent} />}
     </div>

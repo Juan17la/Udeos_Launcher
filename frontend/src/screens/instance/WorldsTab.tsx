@@ -37,7 +37,7 @@ export default function WorldsTab({ id }: { id: string }) {
       <SkeletonRows active={items === null} />
       {items?.length === 0 && <Empty icon="grass_block_side">{t.instance.empty.worlds}</Empty>}
       {items?.map((w) => (
-        <div key={w.folder} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+        <div key={w.folder} className="row">
           <div className="flex-1 min-w-0 flex flex-col gap-1">
             <div className="text-[15px] font-bold truncate">{w.name}</div>
             <div className="text-xs text-muted">{fmt(t.instance.worldMeta, { when: ago(w.lastPlayed, language), size: bytes(w.sizeBytes) })}</div>

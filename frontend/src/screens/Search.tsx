@@ -176,7 +176,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-12">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4 flex-wrap">
-          <h2 className="m-0 flex items-center gap-3"><PixelIcon name="enchanted_book" size={26} />{t.nav.search}</h2>
+          <h2 className="m-0 flex items-center gap-3"><PixelIcon name="enchanted_book" size={32} />{t.nav.search}</h2>
           {inst && <span className="font-bold text-lg">{fmt(t.search.forInstance, { name: inst.name })}</span>}
         </div>
         <Button variant="idle" onClick={() => go({ name: 'ai', instanceId: inst?.id })}><Sparkles /> {t.ai.ask}</Button>
@@ -191,15 +191,15 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
       <div className="flex gap-3 flex-wrap items-center">
         <Input className="flex-[2_1_240px]" icon={<SearchIcon />} type="search" placeholder={t.search.searchPlaceholder} value={text} onChange={(e) => setText(e.target.value)} />
         <Button variant={filtersOpen ? 'secondary' : 'idle'} aria-expanded={filtersOpen} onClick={() => setFiltersOpen(!filtersOpen)}>
-          {t.search.filters}{activeFilters > 0 && <span className="min-w-5 h-5 px-1.5 rounded-full bg-primary text-on-primary text-xs leading-5 tabular-nums">{activeFilters}</span>}
-          <span className={`flex transition-transform duration-150 ${filtersOpen ? 'rotate-180' : ''}`}><ChevronDown size={13} /></span>
+          {t.search.filters}{activeFilters > 0 && <span className="min-w-5 h-5 px-1.5 rounded-full bg-tag-gray text-ink font-mono text-xs leading-5 tabular-nums">{activeFilters}</span>}
+          <span className={`flex transition-transform ${filtersOpen ? 'rotate-180' : ''}`}><ChevronDown size={13} /></span>
         </Button>
         {inst && (
           // With an instance in context the results are already limited to what runs on it: say so once, instead of two disabled menus.
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs text-muted">{t.search.onlyFits}</span>
             <VersionTag versions={[inst.version]} />
-            {showLoaderFilter && inst.loader !== 'Vanilla' && <span className="tag bg-gold-soft">{inst.loaderLabel}</span>}
+            {showLoaderFilter && inst.loader !== 'Vanilla' && <span className="tag bg-tag-gray">{inst.loaderLabel}</span>}
           </div>
         )}
       </div>
@@ -207,9 +207,9 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
         <div className="flex gap-2 flex-wrap items-center -mt-2">
           {active.map(([label, clear]) => (
             <button key={label} type="button" onClick={clear} title={t.search.clearFilters}
-              className="tag gap-1.5 cursor-pointer border-0 font-[inherit] bg-primary/15 text-text hover:bg-primary/25">{label}<X size={10} /></button>
+              className="tag selected h-8 px-3 gap-1.5 cursor-pointer border-0 font-[inherit]">{label}<X size={10} /></button>
           ))}
-          <button type="button" className="text-xs underline cursor-pointer bg-transparent border-0 p-0 text-muted hover:text-text font-[inherit]" onClick={clearAll}>{t.search.clearFilters}</button>
+          <button type="button" className="link text-xs text-muted hover:text-text" onClick={clearAll}>{t.search.clearFilters}</button>
         </div>
       )}
       {filtersOpen && (
@@ -238,10 +238,10 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
         <div className="flex gap-2 flex-wrap items-center" role="group" aria-label={t.search.topics}>
           {(moreTopics ? topics : topics.slice(0, TOPICS_SHOWN)).map((c) => (
             <button key={c} type="button" aria-pressed={categories.includes(c)} onClick={() => setCategories(categories.includes(c) ? categories.filter((x) => x !== c) : [...categories, c])}
-              className={`tag cursor-pointer border-0 font-[inherit] transition-colors duration-150 ${categories.includes(c) ? 'bg-primary text-on-primary' : 'bg-tag-gray hover:bg-idle-hover'}`}>{topicName(c)}</button>
+              className={`tag h-8 px-3 cursor-pointer border-0 font-[inherit] transition-colors ${categories.includes(c) ? 'selected' : 'bg-tag-gray hover:bg-idle-hover'}`}>{topicName(c)}</button>
           ))}
           {topics.length > TOPICS_SHOWN && (
-            <button type="button" className="text-xs underline cursor-pointer bg-transparent border-0 p-0 text-muted hover:text-text font-[inherit]" onClick={() => setMoreTopics(!moreTopics)}>
+            <button type="button" className="link text-xs text-muted hover:text-text" onClick={() => setMoreTopics(!moreTopics)}>
               {moreTopics ? t.search.fewerTopics : fmt(t.search.moreTopics, { n: topics.length - TOPICS_SHOWN })}
             </button>
           )}
@@ -254,7 +254,7 @@ export default function Search({ instanceId, type: initialType, prefill }: Props
       {/* First load: skeleton cards. A new search or page keeps the old grid until the answer arrives, with
           "Searching" in the count line (a loader block above the grid pushed it down and back up). The line always holds its row. */}
       <p className="m-0 h-5 flex items-center gap-2 text-[13px] text-muted" role="status" aria-live="polite">
-        {skeletons ? null : slow ? <><Spinner size={12} />{t.search.searching}</> : page && page.total > 0 && fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
+        {skeletons ? null : slow ? <><Spinner />{t.search.searching}</> : page && page.total > 0 && fmt(t.search.showing, { from: (pageIndex * PAGE_SIZE + 1).toLocaleString(), to: Math.min((pageIndex + 1) * PAGE_SIZE, page.total).toLocaleString(), total: page.total.toLocaleString() })}
       </p>
       {!skeletons && page?.results.length === 0 && <Empty icon="ender_eye">{t.search.empty}</Empty>}
 
@@ -284,7 +284,7 @@ function Pager({ index, pages, disabled, onGo }: { index: number; pages: number;
       <Button variant="idle" size="sm" disabled={disabled || index === 0} onClick={() => onGo(index - 1)}>{t.search.previous}</Button>
       {pageList(index, pages).map((i, n) => i === null
         ? <span key={`gap${n}`} className="px-1 text-muted">…</span>
-        : <Button key={i} variant={i === index ? 'primary' : 'idle'} size="sm" square disabled={disabled}
+        : <Button key={i} variant="idle" size="sm" square disabled={disabled} className={`font-mono ${i === index ? 'selected' : ''}`}
             aria-current={i === index ? 'page' : undefined} onClick={() => onGo(i)}>{i + 1}</Button>)}
       <Button variant="idle" size="sm" disabled={disabled || index + 1 >= pages} onClick={() => onGo(index + 1)}>{t.search.next}</Button>
       <Input className="w-24! ml-2" type="number" min={1} max={pages} placeholder={t.search.goTo} aria-label={t.search.goTo} disabled={disabled}
@@ -298,7 +298,7 @@ function SkeletonCard() {
   return (
     <div className="panel flex flex-col gap-4 p-5" aria-hidden>
       <div className="flex items-center gap-4">
-        <div className="skeleton w-11 h-11 shrink-0" />
+        <div className="skeleton w-12 h-12 shrink-0" />
         <div className="flex-1 flex flex-col gap-2"><div className="skeleton h-4 w-3/4" /><div className="skeleton h-3 w-1/2" /></div>
       </div>
       <div className="flex flex-col gap-2"><div className="skeleton h-3" /><div className="skeleton h-3 w-5/6" /></div>
@@ -314,7 +314,7 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
     <div className="reveal panel panel-hover relative flex flex-col gap-4 p-5">
       <CardLink label={`${result.title}, ${t.search.details}`} onClick={onDetails} />
       <div className="relative flex items-center gap-4 pointer-events-none">
-        <ProjectIcon url={result.iconUrl} size={44} />
+        <ProjectIcon url={result.iconUrl} size={48} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="font-bold text-base leading-[1.2] whitespace-nowrap overflow-hidden text-ellipsis">{result.title}</div>
           <span className="text-xs text-muted truncate">{result.author}</span>
@@ -327,8 +327,8 @@ const ResultCard = memo(function ResultCard({ result, state, onAdd, onDetails }:
         <LoaderTags loaders={result.loaders} max={2} />
       </div>
       <div className="relative flex mt-auto">
-        <Button variant={state === undefined ? 'secondary' : 'idle'} block disabled={state !== undefined} onClick={onAdd}>
-          {state === 'busy' ? <Spinner size={12} /> : state === undefined && <span className="flex text-primary-hover"><Plus size={13} /></span>}
+        <Button variant={state === undefined ? 'secondary' : 'idle'} block loading={state === 'busy'} disabled={state === 'added'} onClick={onAdd}>
+          {state === undefined && <span className="flex text-primary-hover"><Plus size={13} /></span>}
           {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
         </Button>
       </div>

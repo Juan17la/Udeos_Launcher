@@ -34,16 +34,16 @@ export default function IconPicker({ value, onChange, extra, inline }: Props) {
   return (
     <div className={inline ? 'flex flex-col items-start gap-2' : 'relative flex-none'} ref={root}>
       <button type="button" aria-expanded={open} title={t.create.changeIcon} aria-label={t.create.changeIcon} onClick={() => setOpen(!open)}
-        className="inline-flex items-center gap-1 h-10 pl-2.5 pr-2 rounded-md border-0 cursor-pointer bg-idle text-on-idle shadow-neu transition-all duration-150 ease-in-out hover:bg-idle-hover">
-        {value === 'modpack' && extra ? extra : <PixelIcon name={value} size={24} />}
-        <span className={`inline-flex transition-transform duration-150 ${open ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
+        className="inline-flex items-center gap-1 h-10 pl-2.5 pr-2 rounded-md border-0 cursor-pointer bg-idle text-on-idle shadow-neu transition-colors hover:bg-idle-hover">
+        {value === 'modpack' && extra ? extra : <PixelIcon name={value} size={32} />}
+        <span className={`inline-flex transition-transform ${open ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
       </button>
       {open && (
         <div className={`max-h-56 overflow-y-auto p-3 ${inline ? 'w-full rounded-md bg-panel-2 shadow-neu-inset' : 'glass absolute left-0 top-[calc(100%+8px)] z-30 w-[22rem] max-w-[calc(100vw-3rem)]'}`}>
           <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(44px, 1fr))' }}>
             {extra && <Cell selected={value === 'modpack'} title="Modpack" onClick={() => pick('modpack')}>{extra}</Cell>}
             {ICON_CHOICES.map((key) => (
-              <Cell key={key} selected={value === key} title={iconLabel(key)} onClick={() => pick(key)}><PixelIcon name={key} size={28} /></Cell>
+              <Cell key={key} selected={value === key} title={iconLabel(key)} onClick={() => pick(key)}><PixelIcon name={key} size={32} /></Cell>
             ))}
           </div>
         </div>
@@ -55,7 +55,7 @@ export default function IconPicker({ value, onChange, extra, inline }: Props) {
 function Cell({ selected, title, onClick, children }: { selected: boolean; title: string; onClick: () => void; children: ReactNode }) {
   return (
     <button type="button" aria-pressed={selected} title={title} onClick={onClick}
-      className={`inline-flex items-center justify-center p-2 rounded-md border-0 cursor-pointer transition-all duration-150 ease-in-out ${selected ? 'bg-primary text-on-primary' : 'bg-idle text-on-idle hover:bg-idle-hover'} shadow-neu`}>
+      className={`inline-flex items-center justify-center p-1.5 rounded-md border-0 cursor-pointer transition-colors ${selected ? 'selected' : 'bg-idle text-on-idle shadow-neu hover:bg-idle-hover'}`}>
       {children}
     </button>
   )

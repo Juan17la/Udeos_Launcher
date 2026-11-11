@@ -1,5 +1,5 @@
 // Browser-only stand-in for the Go backend (never loaded inside Wails).
-import type { AIAnswer, AIIntent, AIProvider, AIStatus, ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, Skin, SkinModel, SortBy, World } from './types'
+import type { AIAnswer, AIIntent, AIProvider, AIStatus, ContentEntry, ContentPlan, ContentPlanItem, ContentType, FileEntry, GameEvent, Instance, LaunchSettings, Loader, PlayerList, Profile, ProjectDetail, ProjectType, ProjectVersion, Progress, SearchGameVersion, SearchResult, Server, StartProgress, Skin, SkinModel, SortBy, World } from './types'
 import type { AIGroup, AITurn, Alternatives, JoinExport, JoinInfo, VersionChoice } from './types'
 import { SkinTexture, boxes, faces } from '../utils/skin'
 import { DEFAULT_SKINS } from '../assets'
@@ -28,19 +28,19 @@ export function createMock() {
   const newServer = (id: string, name: string, version: string, loader: Loader, loaderVersion: string, icon: string, port: number): Server => ({
     id, name, version, loader, loaderVersion: loaderVersion || undefined, loaderLabel: loader === 'Vanilla' ? 'Vanilla' : `${loader} ${loaderVersion.replace(`${version}-`, '')}`, icon,
     createdAt: new Date().toISOString(), playTimeSec: 0, launch: {}, counts: { mods: 0, resourcePacks: 0, worlds: 0, screenshots: 0 }, installed: true, running: false,
-    server: true, public: false, internet: {}, addressName: defaultAddressName(name), udeosLogin: true,
+    server: true, public: false, internet: {}, addressName: defaultAddressName(name), udeosLogin: false,
     state: { starting: false, running: false, ready: false, stopping: false, players: [] }, port, maxPlayers: 20, lanAddress: `192.168.1.20:${port}`,
   })
   instances.push(newServer('s1', 'Friends SMP', '1.21.1', 'Vanilla', '', 'grass_block_side', 25565), newServer('s2', 'Modded Realm', '1.20.1', 'Fabric', '0.16.9', 'diamond', 25566))
   const serverOf = (id: string) => { const s = instances.find((x) => x.id === id && x.server) as Server | undefined; if (!s) throw new Error('instance not found'); return s }
-  // s2 predates Udeos logins: it stays open to any launcher.
+  // New servers let any launcher in; s1 opted into Udeos-only logins (skins show).
   const serverProps: Record<string, Record<string, string>> = { s1: { motd: 'Friends SMP', 'server-port': '25565', 'online-mode': 'true', login: 'udeos' }, s2: { motd: 'Modded Realm', 'server-port': '25566', 'online-mode': 'false', login: 'offline' } }
-  instances[instances.length - 1].udeosLogin = false
+  instances[instances.length - 2].udeosLogin = true
   // s1 was open before: its address shows while it is stopped.
   Object.assign(instances[instances.length - 2], { public: true, internet: { relayPort: 41234, address: 'udeoslauncher.friends-smp.159-223-171-199.nip.io:41234' } })
   const serverLogs: Record<string, string[]> = {}
   const playerLists: Record<string, Record<PlayerList, string[]>> = {}
-  const listsOf = (id: string) => (playerLists[id] ??= { whitelist: ['Steve'], ops: [], banned: [] })
+  const listsOf = (id: string) => (playerLists[id] ??= { whitelist: [], ops: [], banned: [] })
   const backups: Record<string, FileEntry[]> = { s1: [{ name: 'world-2026-09-20_18-30-00.zip', sizeBytes: 48_000_000, modTime: new Date(Date.now() - 5 * 864e5).toISOString(), isDir: false }] }
   const logLine = (id: string, line: string) => { (serverLogs[id] ??= []).push(line); emit('server:log', { id, line }) }
   const stamp = () => `[${new Date().toTimeString().slice(0, 8)}] [Server thread/INFO]:`
@@ -506,11 +506,12 @@ export function createMock() {
       if (s.state.running || s.state.starting) throw new Error('this server is already running')
       s.state = { starting: true, running: false, ready: false, stopping: false, players: [] }; s.running = true; serverState(id)
       logLine(id, '[Udeos] Getting the server files and Java ready…')
-      await sleep(800)
+      for (let i = 0; i < 4; i++) { emit('server:progress', { id, percent: i * 12, etaSec: 8 - i * 2, step: i ? 'download' : 'prepare' } satisfies StartProgress); await sleep(200) }
       s.state.running = true; logLine(id, `[Udeos] Started with 2048 MB of memory on port ${s.port}.`); serverState(id)
       for (const l of ['Starting minecraft server version ' + s.version, `Starting Minecraft server on *:${s.port}`, '**** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!', 'Preparing level "world"']) { await sleep(250); logLine(id, `${stamp()} ${l}`) }
       setTimeout(() => {
         if (!s.state.running || s.state.stopping) return // cancelled while loading
+        emit('server:progress', { id, percent: 90, etaSec: 1, step: 'world' } satisfies StartProgress)
         logLine(id, `${stamp()} Done (2.104s)! For help, type "help"`); s.state.starting = false; s.state.ready = true
         if (s.public) openPublic(s)
         serverState(id)

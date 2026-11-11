@@ -6,7 +6,8 @@ import Dialog, { ConfirmDialog } from '../components/molecules/Dialog'
 import DropZone from '../components/molecules/DropZone'
 import { Checkbox, Input, Label } from '../components/atoms/Field'
 import SegmentedControl from '../components/molecules/SegmentedControl'
-import { Check, Download, Folder, Pencil, X } from '../components/atoms/icons'
+import { Folder, Pencil, X } from '../components/atoms/icons'
+import StatusDot from '../components/atoms/StatusDot'
 import { useApp } from '../state'
 import { api, onFileDrop } from '../api/bridge'
 import { fmt } from '../i18n/format'
@@ -61,14 +62,14 @@ export default function Skins() {
   return (
     <main className="h-[calc(100vh-var(--nav-h))] overflow-hidden grid grid-cols-[minmax(340px,38%)_minmax(0,1fr)] grid-rows-[auto_minmax(0,1fr)] gap-x-8 gap-y-5 pt-6 px-10 pb-8">
       {dragging && (
-        <div aria-hidden className="fixed inset-4 z-60 pointer-events-none flex flex-col items-center justify-center gap-3 rounded-md border-3 border-dashed border-primary bg-primary/15 backdrop-blur-sm">
-          <span className="grid place-items-center w-16 h-16 rounded-md bg-primary text-on-primary shadow-primary"><Download size={28} /></span>
+        <div aria-hidden className="fixed inset-4 z-60 pointer-events-none flex flex-col items-center justify-center gap-3 rounded-lg border-[1.5px] border-dashed border-primary bg-bg/90">
+          <PixelIcon name="diamond_chestplate" size={64} />
           <span className="text-lg font-bold">{s.drop}</span>
           <span className="text-xs text-muted">{s.dropHint}</span>
         </div>
       )}
       <div className="col-span-2">
-        <h2 className="mb-1 flex items-center gap-3"><PixelIcon name="diamond_chestplate" size={26} />{s.title}</h2>
+        <h2 className="mb-1 flex items-center gap-3"><PixelIcon name="diamond_chestplate" size={32} />{s.title}</h2>
         <p className="m-0 text-muted">{s.subtitle}</p>
       </div>
 
@@ -83,7 +84,7 @@ export default function Skins() {
         </div>
         <div className="flex items-center gap-3 min-w-0">
           <h3 className="m-0 flex-1 truncate" title={worn?.name}>{worn?.name ?? 'Steve'}</h3>
-          {!worn && <span className="tag bg-green-soft">{s.default}</span>}
+          {!worn && <span className="tag bg-tag-gray">{s.default}</span>}
           <span className="tag bg-tag-gray">{s.models[worn?.model ?? 'classic']}</span>
         </div>
         <p className="m-0 -mt-2 text-xs text-muted">{s.where}</p>
@@ -92,11 +93,11 @@ export default function Skins() {
 
       <section className="min-h-0 flex flex-col gap-4">
         <DropZone prominent text={s.drop} hint={s.dropHint}>
-          <Button variant="primary" onClick={() => read(api.PickSkinFile)}><Folder /> {s.browse}</Button>
+          <Button variant="secondary" onClick={() => read(api.PickSkinFile)}><Folder /> {s.browse}</Button>
         </DropZone>
         <Feedback error={error} note={null} onClearNote={() => {}} />
         <div className="flex items-center justify-between gap-4">
-          <h4 className="m-0">{s.library} <span className="text-sm text-muted">{(skins?.skins.length ?? 0) + 1}</span></h4>
+          <h4 className="m-0">{s.library} <span className="font-mono text-sm font-normal text-muted tabular-nums">{(skins?.skins.length ?? 0) + 1}</span></h4>
         </div>
         {/* Padded so the cards' shadows and the worn card's outline are not clipped by the scroll box. */}
         <div className="flex-1 min-h-0 overflow-y-auto -mx-3 px-3 py-2">
@@ -136,12 +137,12 @@ function SkinCard({ name, png, model, worn, onSelect, onEdit, onDelete }: CardPr
   return (
     <div role="button" tabIndex={0} aria-pressed={worn} title={worn ? t.skins.inUse : t.skins.use} onClick={onSelect}
       onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); onSelect() } }}
-      className={`group panel panel-hover flex flex-col gap-2 p-3 cursor-pointer ${worn ? 'outline-3 outline-primary' : ''}`}>
+      className={`group panel panel-hover flex flex-col gap-2 p-3 cursor-pointer ${worn ? 'selected' : ''}`}>
       <div className="relative h-32 rounded-md bg-panel-2 shadow-neu-inset">
         <SkinView png={png} model={model} />
-        {worn && <span className="tag bg-green-soft gap-1 absolute bottom-2 left-2"><Check size={10} /> {t.skins.inUse}</span>}
+        {worn && <span className="tag bg-green-soft absolute bottom-2 left-2"><StatusDot tone="on" /> {t.skins.inUse}</span>}
         {onEdit && onDelete && (
-          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
+          <div className="absolute top-2 right-2 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 group-has-focus-visible:opacity-100">
             <Button variant="idle" size="sm" square title={t.skins.edit} onClick={(e) => { e.stopPropagation(); onEdit() }}><Pencil size={12} /></Button>
             <Button variant="danger" size="sm" square title={t.skins.remove} onClick={(e) => { e.stopPropagation(); onDelete() }}><X size={12} /></Button>
           </div>

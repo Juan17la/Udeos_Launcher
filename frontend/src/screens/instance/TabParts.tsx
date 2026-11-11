@@ -48,7 +48,7 @@ export function Toolbar({ id, kind, onPick, modrinth, children }: { id: string; 
           <AddMenu id={id} kind={kind} onPick={onPick} modrinth={modrinth} />
           <Button variant="idle" size="sm" onClick={() => go({ name: 'ai', instanceId: id })}><Sparkles size={13} /> {t.ai.ask}</Button>
         </>
-      ) : <Button variant="primary" size="sm" onClick={onPick}><Plus size={13} /> {t.instance.add[kind]}</Button>}
+      ) : <Button variant="secondary" size="sm" onClick={onPick}><span className="flex text-primary-hover"><Plus size={13} /></span> {t.instance.add[kind]}</Button>}
       <span className="flex-1" />
       {children}
     </div>
@@ -71,8 +71,8 @@ export function AddMenu({ id, kind, onPick, modrinth }: { id: string; kind: keyo
   }, [open])
   const item = (icon: ReactNode, label: string, hint: string, run: () => void, first?: boolean) => (
     <button type="button" role="menuitem" autoFocus={first} onClick={() => { setOpen(false); run() }}
-      className="flex items-start gap-3 w-full px-3 py-2.5 rounded-md border-0 bg-transparent text-text text-left cursor-pointer transition-colors duration-150 hover:bg-idle focus-visible:bg-idle">
-      <span className="flex-none grid place-items-center w-8 h-8 rounded-md bg-idle text-primary">{icon}</span>
+      className="flex items-start gap-3 w-full px-3 py-2.5 rounded-md border-0 bg-transparent text-text text-left cursor-pointer transition-colors hover:bg-idle focus-visible:bg-idle">
+      <span className="flex-none flex mt-0.5 text-primary-hover">{icon}</span>
       <span className="flex-1 min-w-0 flex flex-col gap-0.5">
         <span className="text-sm font-semibold">{label}</span>
         <span className="text-xs text-muted">{hint}</span>
@@ -81,9 +81,9 @@ export function AddMenu({ id, kind, onPick, modrinth }: { id: string; kind: keyo
   )
   return (
     <div className="relative" ref={ref}>
-      <Button variant="primary" size="sm" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-        <Plus size={13} /> {t.instance.add[kind]}
-        <span className={`inline-flex transition-transform duration-150 ${open ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
+      <Button variant="secondary" size="sm" aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <span className="flex text-primary-hover"><Plus size={13} /></span> {t.instance.add[kind]}
+        <span className={`inline-flex transition-transform ${open ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
       </Button>
       {open && (
         <div role="menu" className="glass absolute top-[calc(100%+6px)] left-0 z-9001 w-72 max-w-[calc(100vw-32px)] flex flex-col gap-1 p-1.5">

@@ -26,8 +26,8 @@ export default function ThemePicker({ theme, colors, onTheme, onColors }: { them
       <div role="radiogroup" aria-label={s.title} className="grid grid-cols-3 gap-2">
         {order.map((v) => (
           <button key={v} type="button" role="radio" aria-checked={theme === v} title={s.hints[v]} onClick={() => onTheme(v)}
-            className={`flex flex-col gap-2 p-2 rounded-lg border-0 bg-panel-2 text-left cursor-pointer text-text transition-shadow duration-150 ${theme === v ? 'shadow-focus' : 'shadow-neu hover:bg-idle'}`}>
-            <span aria-hidden className="flex gap-1.5 h-14 p-1.5 rounded-md" style={{ background: swatch[v].bg, boxShadow: 'inset 0 0 0 1px rgba(128,128,128,0.25)' }}>
+            className={`flex flex-col gap-2 p-2 rounded-lg border-0 bg-panel-2 text-left cursor-pointer text-text transition-colors ${theme === v ? 'selected' : 'shadow-neu hover:bg-idle'}`}>
+            <span aria-hidden className="flex gap-1.5 h-14 p-1.5 rounded-md" style={{ background: swatch[v].bg, boxShadow: 'inset 0 0 0 1px var(--color-line)' }}>
               <span className="w-1/3 rounded-sm" style={{ background: swatch[v].panel }} />
               <span className="flex-1 flex flex-col gap-1 justify-center">
                 <span className="h-1.5 w-3/4 rounded-sm" style={{ background: swatch[v].panel }} />

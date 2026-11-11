@@ -148,7 +148,7 @@ export default function CreateInstance({ server = false, modpack }: { server?: b
         {/* What is being made, live: the icon drops in again whenever it changes, the name follows the field. */}
         <div aria-hidden className="flex items-center gap-5 pb-5 shadow-[inset_0_-1px_0_var(--color-line)]">
           <span className="relative flex flex-col items-center">
-            {kind === 'modpack' && pack ? <ProjectIcon url={pack.iconUrl} size={72} /> : <PixelIcon key={icon} name={icon} size={72} className="motion-safe:animate-[item-drop_0.6s_var(--ease-out)_both]" />}
+            {kind === 'modpack' && pack ? <ProjectIcon url={pack.iconUrl} size={64} /> : <PixelIcon key={icon} name={icon} size={64} className="motion-safe:animate-[item-drop_0.6s_var(--ease-out)_both]" />}
             <span className="mt-1.5 h-2 w-12 rounded-full bg-text/15" />
           </span>
           <div className="min-w-0 flex flex-col gap-1">
@@ -260,11 +260,11 @@ function PackPicker({ value, onPick }: { value: SearchResult | null; onPick: (r:
       <div className="flex flex-col gap-2 max-h-64 overflow-y-auto">
         {results?.map((r) => (
           <button key={r.id} type="button" onClick={() => onPick(r)} aria-pressed={value?.id === r.id}
-            className={`flex items-center gap-3 px-3 py-2 text-left rounded-md border-0 cursor-pointer transition-colors ${value?.id === r.id ? 'bg-primary text-on-primary' : 'bg-panel-2 text-text hover:bg-idle'}`}>
+            className={`flex items-center gap-3 px-3 py-2 text-left rounded-md border-0 cursor-pointer transition-colors ${value?.id === r.id ? 'selected' : 'bg-panel-2 text-text hover:bg-idle'}`}>
             <ProjectIcon url={r.iconUrl} size={32} />
             <span className="flex-1 min-w-0 flex flex-col">
               <span className="text-sm font-bold truncate">{r.title}</span>
-              <span className="text-xs opacity-75 truncate">{r.description}</span>
+              <span className="text-xs text-muted truncate">{r.description}</span>
             </span>
           </button>
         ))}

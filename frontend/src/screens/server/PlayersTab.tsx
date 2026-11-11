@@ -60,7 +60,7 @@ export default function PlayersTab({ server }: { server: Server }) {
       )}
       <div className="flex flex-col gap-3">
         {names.map((n) => (
-          <div key={n} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+          <div key={n} className="row">
             <span className="text-muted"><User /></span>
             <span className="flex-1 min-w-0 truncate text-[15px] font-bold">{n}</span>
             {view === 'online' ? (

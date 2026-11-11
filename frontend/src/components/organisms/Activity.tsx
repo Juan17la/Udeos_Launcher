@@ -93,9 +93,9 @@ export default function Activity() {
   return (
     <div className="relative" ref={root}>
       <button type="button" aria-expanded={open} title={t.activity.title} onClick={() => { setOpen((v) => !v); setStrip(null) }}
-        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-medium text-left transition-colors duration-150 rail:justify-center rail:px-0 ${open ? 'bg-idle text-text' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
-        <span className={`relative flex ${busy ? 'text-primary motion-safe:animate-[live-pulse_1.4s_ease-in-out_infinite]' : failed.length ? 'text-error-soft' : ''}`}>
-          {busy ? <Spinner size={18} /> : failed.length ? <X size={16} /> : <Pulse />}
+        className={`flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-medium text-left transition-colors rail:justify-center rail:px-0 ${open ? 'bg-idle text-text' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
+        <span className={`relative flex ${failed.length && !busy ? 'text-error-soft' : ''}`}>
+          {busy ? <Spinner /> : failed.length ? <X size={16} /> : <Pulse />}
         </span>
         <span className="flex-1 min-w-0 truncate rail:hidden">{t.activity.title}</span>
         <span className={`font-mono text-xs tabular-nums rail:hidden ${busy ? 'text-primary-hover' : ''}`}>{busy ? (ring > 0 ? `${ring}%` : count) : items > 0 ? (failed.length || '') : ''}</span>
@@ -109,9 +109,12 @@ export default function Activity() {
             <Button variant="ghost" size="sm" square aria-label={t.activity.hide} title={t.activity.hide} onClick={() => setOpen(false)}><X size={12} /></Button>
           </div>
           {items === 0 && (
-            <div className="flex flex-col items-center gap-1 py-6 text-center">
-              <span className="text-muted"><Pulse size={22} /></span>
-              <span className="text-sm font-medium">{t.activity.empty}</span>
+            <div className="flex flex-col items-center gap-1 py-5 text-center">
+              <span aria-hidden className="flex flex-col items-center mb-2">
+                <PixelIcon name="lantern" size={32} />
+                <span className="mt-1 h-1 w-7 rounded-full bg-text/15" />
+              </span>
+              <span className="text-sm font-semibold">{t.activity.empty}</span>
               <span className="text-xs text-muted">{t.activity.emptyHint}</span>
             </div>
           )}
@@ -149,7 +152,7 @@ function JobRow({ job, onDismiss, onCancel, onOptions, compact }: { job: Content
     // A mod that clashes with an installed one: offer the way out, not just the refusal.
     const clash = /incompatible/i.test(job.message) && !job.create && job.instanceId !== ''
     return <ErrorMessage message={job.message} compact={compact} still={!compact} onDismiss={onDismiss}
-      action={clash && <Button variant="primary" size="sm" onClick={onOptions}>{t.conflict.see}</Button>} />
+      action={clash && <Button variant="secondary" size="sm" onClick={onOptions}>{t.conflict.see}</Button>} />
   }
   if (job.status === 'done') {
     const text = job.create ? fmt(job.create.server ? t.content.createdServer : t.content.created, { name }) : job.count === 0 ? fmt(t.content.alreadyInstalled, { title, name }) : job.count === 1 ? fmt(t.content.doneOne, { title, name }) : fmt(t.content.done, { n: job.count, name })

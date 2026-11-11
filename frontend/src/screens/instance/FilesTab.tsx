@@ -84,7 +84,7 @@ export default function FilesTab({ id, kind, world = '' }: { id: string; kind: F
 }
 
 /** Remove shows on hover or keyboard focus, so a long list is not a column of red (undo backs up a slip). */
-const REVEAL = 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity duration-150'
+const REVEAL = 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity'
 
 type ItemProps = { file: FileEntry; entry?: ContentEntry; onRemove: () => void; onOpen?: () => void }
 
@@ -92,8 +92,8 @@ type ItemProps = { file: FileEntry; entry?: ContentEntry; onRemove: () => void; 
 function FileRow({ file, entry, onRemove }: ItemProps) {
   const { t } = useApp()
   return (
-    <div className="group flex items-center gap-4 px-4 py-2.5 rounded-md bg-panel-2 shadow-neu">
-      <ProjectIcon url={entry?.iconUrl} size={28} />
+    <div className="group row py-2.5">
+      <ProjectIcon url={entry?.iconUrl} size={32} />
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="text-[15px] font-bold truncate">{entry?.title ?? file.name}</div>
         <div className="text-xs text-muted truncate">{entry ? `${entry.versionNumber} · ${file.name}` : bytes(file.sizeBytes)}</div>
@@ -111,7 +111,7 @@ function FileCard({ file, entry, onRemove, onOpen }: ItemProps) {
     <div className={`group panel relative flex flex-col gap-4 p-5 ${onOpen ? 'panel-hover' : ''}`}>
       {onOpen && <CardLink label={`${entry?.title ?? file.name}, ${t.search.details}`} onClick={onOpen} />}
       <div className="relative flex items-center gap-4 pointer-events-none">
-        <ProjectIcon url={entry?.iconUrl} size={44} />
+        <ProjectIcon url={entry?.iconUrl} size={48} />
         <div className="flex-1 min-w-0 flex flex-col gap-1">
           <div className="font-bold text-base leading-[1.2] truncate" title={file.name}>{entry?.title ?? file.name}</div>
           <div className="text-xs text-muted truncate">{entry ? entry.versionNumber : t.instance.addedByHand}</div>

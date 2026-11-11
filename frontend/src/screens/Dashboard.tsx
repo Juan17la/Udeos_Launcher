@@ -7,7 +7,7 @@ import PixelIcon from '../components/atoms/PixelIcon'
 import CardLink from '../components/atoms/CardLink'
 import { InstanceTags } from '../components/molecules/Tags'
 import Button from '../components/atoms/Button'
-import { Folder, List, Plus, Tiles } from '../components/atoms/icons'
+import { Folder, List, Tiles } from '../components/atoms/icons'
 import { useApp, useContent } from '../state'
 import type { ContentJob } from '../state'
 import ProjectIcon from '../components/atoms/ProjectIcon'
@@ -33,7 +33,7 @@ export default function Dashboard() {
     <main className={`px-6 pt-6 pb-6 grid items-start gap-x-5 ${last ? 'grid-cols-[minmax(0,1fr)_clamp(240px,24vw,320px)]' : 'grid-cols-1'}`}>
       <section className="@container min-w-0 flex flex-col gap-4" aria-label={t.dashboard.title}>
         <div className="flex items-center justify-between gap-4">
-          <h2 className="m-0 flex items-center gap-3"><PixelIcon name="grass_block_side" size={26} />{t.dashboard.title} <span className="font-mono text-base font-normal text-muted tabular-nums">{instances.length}</span></h2>
+          <h2 className="m-0 flex items-center gap-3"><PixelIcon name="grass_block_side" size={32} />{t.dashboard.title} <span className="font-mono text-base font-normal text-muted tabular-nums">{instances.length}</span></h2>
           <SegmentedControl aria-label={t.dashboard.title} value={view} onChange={setView}
             options={[{ value: 'cards', label: <Tiles size={15} />, title: t.dashboard.grid }, { value: 'list', label: <List size={15} />, title: t.dashboard.list }]} />
         </div>
@@ -42,13 +42,13 @@ export default function Dashboard() {
           <div className="grid gap-4 grid-cols-1 @min-[360px]:grid-cols-2 @min-[640px]:grid-cols-3">
             {pending.map((j) => <PendingCard key={j.id} job={j} />)}
             {rest.map((inst) => <InstanceCard key={inst.id} inst={inst} />)}
-            <NewTile label={t.nav.newInstance} onClick={() => go({ name: 'create' })} />
+            <NewTile label={t.nav.newInstance} icon="grass_block_side" onClick={() => go({ name: 'create' })} />
           </div>
         ) : (
           <div className="flex flex-col gap-2">
             <button type="button" onClick={() => go({ name: 'create' })}
-              className="flex items-center gap-3 h-14 px-4 rounded-lg cursor-pointer border border-dashed border-text/20 bg-transparent text-muted font-[inherit] text-sm font-medium transition-colors duration-150 hover:border-primary hover:text-text">
-              <Plus size={15} /> {t.nav.newInstance}
+              className="flex items-center gap-3 h-14 px-4 rounded-lg cursor-pointer border-[1.5px] border-dashed border-text/20 bg-transparent text-muted font-[inherit] text-sm font-semibold transition-colors hover:border-primary hover:text-text">
+              <PixelIcon name="grass_block_side" size={32} /> {t.nav.newInstance}
             </button>
             {pending.map((j) => <PendingCard key={j.id} job={j} row />)}
             {rest.map((inst) => <InstanceRow key={inst.id} inst={inst} />)}
@@ -84,8 +84,8 @@ function LastPlayed({ inst }: { inst: Instance }) {
     <aside className="reveal rounded-lg bg-[color-mix(in_srgb,color-mix(in_srgb,var(--color-primary)_12%,var(--color-panel))_90%,transparent)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_30%,transparent)] sticky top-0 h-[calc(100vh-3rem)] min-h-0 flex flex-col gap-4 p-5" aria-label={t.dashboard.lastPlayed}>
       <div className="min-h-0 overflow-y-auto flex flex-col gap-4 -m-2 p-2">
         <div className="flex flex-col items-center gap-2 text-center text-text">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted">{t.dashboard.lastPlayed}</span>
-          <span className="rounded-2xl p-3 bg-primary/15"><InstanceIcon inst={inst} size={88} /></span>
+          <span className="text-[13px] text-muted">{t.dashboard.lastPlayed}</span>
+          <InstanceIcon inst={inst} size={96} />
           <div className="w-full text-2xl font-extrabold leading-[1.15] tracking-tight line-clamp-2 break-words" title={inst.name}>{inst.name}</div>
           <InstanceTags inst={inst} className="flex-wrap justify-center" />
         </div>
@@ -94,7 +94,7 @@ function LastPlayed({ inst }: { inst: Instance }) {
             <div key={label} className="flex items-center gap-2.5 text-sm">
               <PixelIcon name={icon} size={16} />
               <dt className="flex-1 min-w-0 truncate">{label}</dt>
-              <dd className="m-0 font-bold tabular-nums">{value}</dd>
+              <dd className="m-0 font-mono font-semibold tabular-nums">{value}</dd>
             </div>
           ))}
         </dl>
@@ -121,7 +121,7 @@ function InstanceCard({ inst }: { inst: Instance }) {
     <div className="reveal panel panel-hover relative flex flex-col gap-4 p-5">
       <CardLink label={`${inst.name}, ${inst.version} ${inst.loaderLabel}`} title={t.dashboard.openInstance} onClick={open} />
       <div className="relative flex items-center gap-3.5 pointer-events-none">
-        <span className="flex-none rounded-lg p-1.5 bg-panel-2"><InstanceIcon inst={inst} size={40} /></span>
+        <InstanceIcon inst={inst} size={48} />
         <div className="flex-1 min-w-0 flex flex-col gap-1.5">
           <div className="font-bold text-base leading-[1.2] truncate" title={inst.name}>{inst.name}</div>
           {/* Wraps under the name when the card is narrow, instead of cutting the loader off. */}
@@ -145,7 +145,7 @@ function InstanceRow({ inst }: { inst: Instance }) {
   return (
     <div className="reveal panel panel-hover relative flex items-center gap-4 px-4 py-2.5 min-h-16">
       <CardLink label={`${inst.name}, ${inst.version} ${inst.loaderLabel}`} title={t.dashboard.openInstance} onClick={open} />
-      <span className="relative flex pointer-events-none"><InstanceIcon inst={inst} size={36} /></span>
+      <span className="relative flex pointer-events-none"><InstanceIcon inst={inst} size={32} /></span>
       <div className="relative flex-1 min-w-0 font-bold text-base truncate pointer-events-none">{inst.name}</div>
       <div className="relative hidden min-[1100px]:block flex-none pointer-events-none"><InstanceTags inst={inst} short /></div>
       <div className="relative hidden min-[1280px]:block flex-none w-44 truncate text-xs text-muted pointer-events-none">{inst.lastPlayed ? meta.join(' · ') || ago(inst.lastPlayed, language) : t.dashboard.neverPlayed}</div>
@@ -163,19 +163,19 @@ function PendingCard({ job, row }: { job: ContentJob; row?: boolean }) {
   const name = job.create!.name || job.result.title
   const p = job.progress
   const pct = job.status === 'installing' && p && p.total > 0 ? Math.round((p.done / p.total) * 100) : undefined
-  const icon = job.create!.file ? <PixelIcon name={job.create!.icon} size={row ? 36 : 40} /> : <ProjectIcon url={job.result.iconUrl} size={row ? 36 : 40} />
+  const icon = job.create!.file ? <PixelIcon name={job.create!.icon} size={row ? 32 : 48} /> : <ProjectIcon url={job.result.iconUrl} size={row ? 32 : 48} />
   const status = job.status === 'installing' ? `${t.content.installing}${pct !== undefined ? ` ${pct}%` : ''}` : t.content.queued
   if (row) return (
-    <div aria-busy="true" aria-label={`${name}, ${status}`} className="panel relative flex items-center gap-4 px-4 py-2.5 min-h-16 grayscale opacity-60 cursor-progress">
+    <div aria-busy="true" aria-label={`${name}, ${status}`} className="panel relative flex items-center gap-4 px-4 py-2.5 min-h-16 grayscale cursor-progress [&_img]:opacity-60">
       <span className="flex">{icon}</span>
       <div className="flex-1 min-w-0 font-bold text-base truncate">{name}</div>
       <div className="flex-none w-52 flex flex-col gap-1.5 text-xs text-muted"><span className="tabular-nums">{status}</span><ProgressBar value={pct} /></div>
     </div>
   )
   return (
-    <div aria-busy="true" aria-label={`${name}, ${status}`} className="panel relative flex flex-col gap-4 p-5 grayscale opacity-60 cursor-progress">
+    <div aria-busy="true" aria-label={`${name}, ${status}`} className="panel relative flex flex-col gap-4 p-5 grayscale cursor-progress [&_img]:opacity-60">
       <div className="flex items-center gap-3.5">
-        <span className="flex-none rounded-lg p-1.5 bg-panel-2">{icon}</span>
+        <span className="flex-none flex">{icon}</span>
         <div className="flex-1 min-w-0 font-bold text-base leading-[1.2] truncate" title={name}>{name}</div>
       </div>
       <div className="h-4 truncate text-xs text-muted tabular-nums">{status}</div>

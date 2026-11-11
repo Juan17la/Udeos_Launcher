@@ -19,10 +19,12 @@ const DEFAULTS: Record<string, string> = {
 }
 const MODES = ['survival', 'creative', 'adventure', 'spectator'] as const
 const DIFFICULTIES = ['peaceful', 'easy', 'normal', 'hard'] as const
-const TOGGLES = [['pvp', 'pvp'], ['allow-flight', 'flight'], ['hardcore', 'hardcore'], ['enable-command-block', 'commandBlocks']] as const
-const LOGINS: ServerLogin[] = ['udeos', 'offline', 'microsoft']
+const TOGGLES = [['allow-flight', 'flight'], ['hardcore', 'hardcore'], ['enable-command-block', 'commandBlocks']] as const
+const LOGINS: ServerLogin[] = ['offline', 'udeos', 'microsoft'] // the default (any launcher, like every other launcher's servers) first
 
-/** The server.properties a player usually cares about, in plain words. */
+/** The server.properties a player usually cares about, in plain words: the few a casual host
+ *  changes first, the rest (who can join, port, memory, …) under a closed Advanced, so the
+ *  defaults just work and experienced hosts still find everything. */
 export default function ServerSettingsTab({ server, onDelete }: { server: Server; onDelete: () => void }) {
   const { t, refreshInstances } = useApp()
   const launch = useLaunchForm(server) // memory and Java live on this page too, under the same Save
@@ -77,32 +79,43 @@ export default function ServerSettingsTab({ server, onDelete }: { server: Server
             <Label htmlFor="srv-max">{s.maxPlayers}</Label>
             <Input id="srv-max" type="number" min={1} max={500} value={props['max-players']} onChange={(e) => set('max-players', e.target.value)} />
           </div>
-          <div>
-            <Label htmlFor="srv-port">{s.port}</Label>
-            <Input id="srv-port" type="number" min={1024} max={65535} value={props['server-port']} onChange={(e) => set('server-port', e.target.value)} />
+          <div className="flex items-end pb-2">
+            <Checkbox checked={props.pvp === 'true'} onChange={(e) => set('pvp', String(e.target.checked))} label={s.pvp} />
           </div>
         </div>
-        <div>
-          <Label htmlFor="srv-view">{fmt(s.viewDistance, { n: props['view-distance'] })}</Label>
-          <input id="srv-view" type="range" min={2} max={32} value={props['view-distance']} onChange={(e) => set('view-distance', e.target.value)} className="w-full h-2 cursor-pointer accent-primary" />
-          <p className="m-0 mt-2 text-sm text-muted">{s.viewHint}</p>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {TOGGLES.map(([key, label]) => (
-            <Checkbox key={key} checked={props[key] === 'true'} onChange={(e) => set(key, String(e.target.checked))} label={s[label]} />
-          ))}
-        </div>
-        <div>
-          <Label>{s.login}</Label>
-          <SegmentedControl options={LOGINS.map((l) => ({ value: l, label: s.logins[l] }))} value={props.login as ServerLogin} onChange={(l) => set('login', l)} />
-          <p className="m-0 mt-2 text-sm text-muted">{s.loginHints[props.login as ServerLogin]}</p>
-        </div>
-        <div>
-          <Label htmlFor="srv-seed">{s.seed}</Label>
-          <Input id="srv-seed" type="text" value={props['level-seed']} spellCheck={false} onChange={(e) => set('level-seed', e.target.value)} />
-          <p className="m-0 mt-2 text-sm text-muted">{s.seedHint}</p>
-        </div>
         <LaunchFields form={launch} />
+        <details className="group flex flex-col">
+          <summary className="cursor-pointer text-sm font-bold select-none">{s.advanced}</summary>
+          <p className="m-0 mt-2 text-sm text-muted">{s.advancedHint}</p>
+          <div className="flex flex-col gap-6 mt-5">
+            <div>
+              <Label>{s.login}</Label>
+              <SegmentedControl options={LOGINS.map((l) => ({ value: l, label: s.logins[l] }))} value={props.login as ServerLogin} onChange={(l) => set('login', l)} />
+              <p className="m-0 mt-2 text-sm text-muted">{s.loginHints[props.login as ServerLogin]}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="srv-port">{s.port}</Label>
+                <Input id="srv-port" type="number" min={1024} max={65535} value={props['server-port']} onChange={(e) => set('server-port', e.target.value)} />
+              </div>
+              <div>
+                <Label htmlFor="srv-seed">{s.seed}</Label>
+                <Input id="srv-seed" type="text" value={props['level-seed']} spellCheck={false} onChange={(e) => set('level-seed', e.target.value)} />
+              </div>
+            </div>
+            <p className="m-0 -mt-4 text-sm text-muted">{s.seedHint}</p>
+            <div>
+              <Label htmlFor="srv-view">{fmt(s.viewDistance, { n: props['view-distance'] })}</Label>
+              <input id="srv-view" type="range" min={2} max={32} value={props['view-distance']} onChange={(e) => set('view-distance', e.target.value)} className="w-full h-2 cursor-pointer accent-primary" />
+              <p className="m-0 mt-2 text-sm text-muted">{s.viewHint}</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              {TOGGLES.map(([key, label]) => (
+                <Checkbox key={key} checked={props[key] === 'true'} onChange={(e) => set(key, String(e.target.checked))} label={s[label]} />
+              ))}
+            </div>
+          </div>
+        </details>
         <div className="flex justify-end">
           <SaveSettingsButton inst={server} dirty={dirty} busy={busy} label={s.save} onSave={save} />
         </div>

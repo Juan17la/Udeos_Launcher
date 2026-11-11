@@ -1,12 +1,17 @@
-import { Plus } from '../atoms/icons'
+import PixelIcon from '../atoms/PixelIcon'
 
 /** The first tile of the instance and server grids: always there, so creating
- *  is one click from where the player already looks. */
-export default function NewTile({ label, onClick }: { label: string; onClick: () => void }) {
+ *  is one click from where the player already looks. It shows the page's own item
+ *  on the empty state's ground shadow (an instance is a grass block, a server an end
+ *  crystal) inside a neutral dashed edge, which turns blue on hover. */
+export default function NewTile({ label, icon, onClick }: { label: string; icon: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick}
-      className="group flex flex-col items-center justify-center gap-3 min-h-40 p-5 rounded-lg cursor-pointer border-2 border-dashed border-primary/30 bg-primary/5 text-muted font-[inherit] text-sm font-medium transition-colors duration-150 hover:border-primary hover:bg-primary/10 hover:text-text focus-visible:outline-2 focus-visible:outline-primary">
-      <span aria-hidden className="grid place-items-center w-12 h-12 rounded-xl bg-primary/15 text-primary text-text transition-colors duration-150 group-hover:bg-primary group-hover:text-on-primary"><Plus size={18} /></span>
+      className="flex flex-col items-center justify-center gap-3 min-h-40 p-5 rounded-lg cursor-pointer border-[1.5px] border-dashed border-text/20 bg-transparent text-muted font-[inherit] text-sm font-semibold transition-colors hover:border-primary hover:text-text">
+      <span aria-hidden className="flex flex-col items-center">
+        <PixelIcon name={icon} size={32} />
+        <span className="mt-1 h-1 w-7 rounded-full bg-text/15" />
+      </span>
       {label}
     </button>
   )

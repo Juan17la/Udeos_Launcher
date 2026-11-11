@@ -1,14 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Play, Stop } from '../atoms/icons'
 import Button from '../atoms/Button'
+import StatusDot from '../atoms/StatusDot'
 import { ProgressBar } from '../atoms/Loader'
 import Dialog, { ConfirmDialog } from '../molecules/Dialog'
 import ErrorMessage from '../molecules/ErrorMessage'
 import { useApp } from '../../state'
-import { api } from '../../api/bridge'
+import { api, on } from '../../api/bridge'
 import { isCanceled, messageOf } from '../../utils/errors'
 import { fmt } from '../../i18n/format'
-import type { Server } from '../../api/types'
+import type { Server, StartProgress } from '../../api/types'
 
 /** The address to share: the internet one for a public server (live, or
  *  saved from the last time it was open, so it shows while stopped), else
@@ -68,25 +69,40 @@ export default function ServerButton({ server, size = 'md', className = '', quie
 export function ServerStatus({ server, className = '' }: { server: Server; className?: string }) {
   const { t } = useApp()
   const s = server.state
-  const [dot, label] = s.stopping ? ['bg-gold animate-pulse', t.servers.stopping]
-    : s.ready ? ['bg-green', `${t.servers.status.online} · ${fmt(t.servers.playersOf, { n: s.players.length, max: server.maxPlayers })}`]
-    : server.running ? ['bg-gold animate-pulse', t.servers.status.starting] : ['bg-muted', t.servers.status.stopped]
-  return <span className={`flex items-center gap-2 min-w-0 text-xs ${className}`}><span className={`flex-none w-2 h-2 rounded-sm ${dot}`} /><span className="truncate" title={label}>{label}</span></span>
+  const [tone, label] = s.stopping ? ['working' as const, t.servers.stopping]
+    : s.ready ? ['on' as const, `${t.servers.status.online} · ${fmt(t.servers.playersOf, { n: s.players.length, max: server.maxPlayers })}`]
+    : server.running ? ['working' as const, t.servers.status.starting] : ['off' as const, t.servers.status.stopped]
+  return <span className={`flex items-center gap-2 min-w-0 text-xs ${className}`}><StatusDot tone={tone} /><span className="truncate" title={label}>{label}</span></span>
 }
 
-/** In place, while the server comes up or shuts down: a sliding bar and one line
- *  on what is happening (the first start also downloads the server and builds
- *  the world, which the line says). Nothing when the server is stopped or online. */
+/** In place, while the server comes up or shuts down. Starting: a measured bar
+ *  (the backend's 'server:progress': real download bytes, then the time this
+ *  server took to load last time) with what is happening and about how long is
+ *  left. Stopping takes seconds and is not measured: a sliding bar. Nothing
+ *  when the server is stopped or online. */
 export function ServerProgress({ server, className = '' }: { server: Server; className?: string }) {
   const { t } = useApp()
   const s = server.state
   const starting = server.running && !s.ready && !s.stopping
+  const [p, setP] = useState<StartProgress | null>(null)
+  useEffect(() => on('server:progress', (e) => { if (e.id === server.id) setP(e) }), [server.id])
+  useEffect(() => { if (!starting) setP(null) }, [starting])
   if (!starting && !s.stopping) return null
-  const label = s.stopping ? t.servers.stopping : !server.lastPlayed ? t.servers.firstStartShort : t.servers.status.starting
+  const tp = t.servers.progress
+  const first = !server.lastPlayed
+  const step = !p ? (first ? t.servers.firstStartShort : t.servers.status.starting)
+    : p.step === 'install' ? fmt(tp.install, { loader: server.loader })
+    : p.step === 'world' ? (first ? tp.newWorld : tp.world)
+    : tp[p.step]
+  const eta = p && (p.etaSec <= 5 ? tp.soon : p.etaSec < 60 ? fmt(tp.sec, { n: p.etaSec }) : fmt(tp.min, { n: Math.round(p.etaSec / 60) }))
+  const label = s.stopping ? t.servers.stopping : step
   return (
     <div className={`flex flex-col gap-2 ${className}`} role="status" aria-live="polite">
-      <ProgressBar tone={starting && !server.lastPlayed ? 'gold' : undefined} label={label} />
-      <span className="text-xs text-muted">{label}</span>
+      <ProgressBar value={starting && p ? p.percent : undefined} tone={starting && first ? 'gold' : undefined} label={label} />
+      <span className="flex justify-between gap-3 text-xs text-muted">
+        <span className="truncate">{label}</span>
+        {starting && p && <span aria-hidden className="shrink-0 tabular-nums">{p.percent}% · {eta}</span>}
+      </span>
     </div>
   )
 }

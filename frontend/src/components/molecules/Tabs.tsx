@@ -13,7 +13,7 @@ export default function Tabs<V extends string>({ options, value, onChange, class
           <span key={o.value} className="flex items-center">
           {o.group && <span aria-hidden className="w-5 shrink-0" />}
           <button type="button" role="tab" aria-selected={on} onClick={() => onChange(o.value)}
-            className={`relative h-10 px-2.5 border-0 bg-transparent cursor-pointer whitespace-nowrap text-[13px] font-bold transition-colors duration-150 after:absolute after:inset-x-2.5 after:bottom-0 after:h-0.5 after:transition-colors after:duration-150 ${on ? 'text-text after:bg-primary' : 'text-muted hover:text-text after:bg-transparent'}`}>
+            className={`relative h-10 px-2.5 border-0 bg-transparent cursor-pointer whitespace-nowrap text-[13px] font-bold transition-colors after:absolute after:inset-x-2.5 after:bottom-0 after:h-0.5 after:transition-colors ${on ? 'text-text after:bg-primary' : 'text-muted hover:text-text after:bg-transparent'}`}>
             {o.label}
           </button>
           </span>

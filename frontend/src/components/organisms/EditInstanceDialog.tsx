@@ -45,7 +45,7 @@ export default function EditInstanceDialog({ inst, onClose }: { inst: Instance; 
         </div>
         <div>
           <Label>{t.create.icon}</Label>
-          <IconPicker inline value={icon} onChange={setIcon} extra={inst.icon === 'modpack' ? <InstanceIcon inst={inst} size={24} /> : undefined} />
+          <IconPicker inline value={icon} onChange={setIcon} extra={inst.icon === 'modpack' ? <InstanceIcon inst={inst} size={32} /> : undefined} />
         </div>
         {error && <ErrorMessage message={error} />}
       </div>

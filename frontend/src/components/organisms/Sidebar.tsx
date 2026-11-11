@@ -45,8 +45,8 @@ export default function Sidebar() {
       </div>
 
       {/* On a create page the button would only point at the page you are on: it steps aside (keeping its room, so nothing jumps). */}
-      <Button variant="primary" block disabled={creating} aria-hidden={creating} tabIndex={creating ? -1 : undefined} onClick={make.go} title={make.label} className={`rail:px-0 ${creating ? 'invisible' : ''}`}>
-        <Plus size={15} /><span className="rail:hidden">{make.label}</span>
+      <Button variant="secondary" block disabled={creating} aria-hidden={creating} tabIndex={creating ? -1 : undefined} onClick={make.go} title={make.label} className={`rail:px-0 ${creating ? 'invisible' : ''}`}>
+        <span className="flex text-primary-hover"><Plus size={15} /></span><span className="rail:hidden">{make.label}</span>
       </Button>
 
       <nav aria-label={t.app.name} className="flex flex-col gap-1">
@@ -54,8 +54,8 @@ export default function Sidebar() {
           const on = current === it.page
           return (
             <button key={it.page} type="button" aria-current={on ? 'page' : undefined} title={it.label} onClick={() => go({ name: it.page })}
-              className={`flex items-center gap-3 h-10 px-3 rounded-lg border-0 cursor-pointer text-sm font-semibold text-left transition-colors duration-150 rail:justify-center rail:px-0 ${on ? 'bg-primary/15 text-text shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_35%,transparent)]' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
-              <span className={`flex ${on ? 'text-primary' : ''}`}>{it.icon}</span>
+              className={`flex items-center gap-3 h-10 px-3 rounded-md border-0 cursor-pointer text-sm font-semibold text-left transition-colors rail:justify-center rail:px-0 ${on ? 'bg-primary/15 text-text shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_55%,transparent)]' : 'bg-transparent text-muted hover:bg-panel-2 hover:text-text'}`}>
+              <span className={`flex ${on ? 'text-primary-hover' : ''}`}>{it.icon}</span>
               <span className="truncate rail:hidden">{it.label}</span>
             </button>
           )
@@ -65,7 +65,7 @@ export default function Sidebar() {
       <div className="mt-auto flex flex-col gap-1">
         {/* Below 1000px the rail is forced, so the toggle would do nothing: it hides. */}
         <button type="button" onClick={() => setRail(!rail)} aria-expanded={!rail} title={rail ? t.nav.expand : t.nav.collapse}
-          className="flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 bg-transparent text-muted cursor-pointer text-sm font-medium text-left transition-colors duration-150 hover:bg-panel-2 hover:text-text rail:justify-center rail:px-0 max-[1000px]:hidden">
+          className="flex items-center gap-3 w-full h-10 px-3 rounded-md border-0 bg-transparent text-muted cursor-pointer text-sm font-medium text-left transition-colors hover:bg-panel-2 hover:text-text rail:justify-center rail:px-0 max-[1000px]:hidden">
           <SidebarIcon size={18} /><span className="truncate rail:hidden">{rail ? t.nav.expand : t.nav.collapse}</span>
         </button>
         <Activity />

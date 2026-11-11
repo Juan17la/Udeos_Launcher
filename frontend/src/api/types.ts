@@ -65,6 +65,9 @@ export type InternetSettings = { mode?: 'relay' | 'router'; name?: string; relay
 export type ServerState = { starting: boolean; running: boolean; ready: boolean; stopping: boolean; players: string[]; publicAddress?: string; publicRaw?: string; publicError?: string }
 /** A server instance; `running` is true from Start (files being prepared) until it stops.
  *  addressName starts its internet address (the saved name or the default). */
+/** A starting server, once a second ('server:progress'): percent 0-99 and about how many seconds are left.
+ *  step: prepare → download (measured) | install (Forge/NeoForge installer) → world (Java loading). */
+export type StartProgress = { id: string; percent: number; etaSec: number; step: 'prepare' | 'download' | 'install' | 'world' }
 export type Server = Instance & { state: ServerState; port: number; maxPlayers: number; lanAddress: string; addressName: string }
 export type PlayerList = 'whitelist' | 'ops' | 'banned'
 export type ServerPlayers = { online: string[] } & Record<PlayerList, string[]>

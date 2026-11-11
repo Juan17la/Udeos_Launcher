@@ -15,8 +15,8 @@ export default function Empty({ icon, children, action }: { icon: string; childr
   return (
     <div className="flex flex-col items-center gap-3 px-5 py-10 text-center">
       <span aria-hidden className="relative flex flex-col items-center">
-        <PixelIcon name={icon} size={40} className={drop ? 'motion-safe:animate-[item-drop_0.6s_var(--ease-out)_both]' : ''} />
-        <span className={`mt-1.5 h-1.5 w-8 rounded-full bg-text/15 ${drop ? 'motion-safe:animate-[shadow-drop_0.6s_var(--ease-out)_both]' : ''}`} />
+        <PixelIcon name={icon} size={48} className={drop ? 'motion-safe:animate-[item-drop_0.6s_var(--ease-out)_both]' : ''} />
+        <span className={`mt-1.5 h-1.5 w-10 rounded-full bg-text/15 ${drop ? 'motion-safe:animate-[shadow-drop_0.6s_var(--ease-out)_both]' : ''}`} />
       </span>
       <p className="m-0 max-w-[46ch] text-sm text-muted">{children}</p>
       {action && <div className="mt-1">{action}</div>}

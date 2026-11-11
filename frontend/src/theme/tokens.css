@@ -58,9 +58,11 @@
   --color-glass: var(--color-glass);
   --color-glass-border: var(--color-glass-border);
 
-  /* Badges and status accents. `ink` is the text on the three tag fills. gold is
-     "working" (the loading ring, a slow expected run); green-soft marks a version,
-     green is "live": a game being played, a server that is on. */
+  /* Status accents, spent only on state. gold is "working" (a slow expected run,
+     a server coming up, a beta build); green is "live": a game being played, a
+     server that is on, the skin being worn. Metadata tags (versions, loaders,
+     categories) stay neutral on tag-gray, so a green or gold chip always means
+     something is happening. `ink` is the text on the tag fills. */
   --color-green-soft: var(--color-green-soft);
   --color-green: var(--color-green);
   --color-gold-soft: var(--color-gold-soft);
@@ -71,14 +73,17 @@
   --color-error: var(--color-error);
   --color-error-soft: var(--color-error-soft);
 
-  /* Elevation: a hairline plus a short, soft drop. No glow. */
+  /* Elevation: a hairline plus a short, soft drop. No glow. Filled buttons carry
+     a darker bottom edge instead (shadow-primary / shadow-secondary / shadow-edge),
+     like a block's lower face; pressing swaps it for an inset top edge. */
   --shadow-neu: var(--shadow-neu);
   --shadow-neu-inset: var(--shadow-neu-inset);
   --shadow-primary: var(--shadow-primary);
   --shadow-secondary: var(--shadow-secondary);
+  --shadow-edge: var(--shadow-edge);
+  --shadow-press: inset 0 2px 0 rgba(0, 0, 0, 0.22);
   --shadow-glass: var(--shadow-pop);
   --shadow-error-glow: 0 0 0 1px var(--color-error);
-  --shadow-focus: 0 0 0 1px var(--color-primary), 0 0 0 4px color-mix(in srgb, var(--color-primary) 28%, transparent);
 }
 
 /* ── Dark: the reference theme ───────────────────────────────────────────── */
@@ -114,8 +119,9 @@
   --color-glass-border: rgba(150, 180, 255, 0.15);
   --shadow-neu: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 8px 20px -14px rgba(0, 0, 0, 0.6);
   --shadow-neu-inset: inset 0 0 0 1px rgba(150, 180, 255, 0.12);
-  --shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.3) inset, 0 6px 16px -8px rgba(51, 108, 235, 0.5);
-  --shadow-secondary: 0 0 0 1px rgba(150, 180, 255, 0.14);
+  --shadow-primary: inset 0 -2px 0 rgba(0, 0, 0, 0.28);
+  --shadow-secondary: inset 0 0 0 1px rgba(150, 180, 255, 0.14), inset 0 -2px 0 rgba(0, 0, 0, 0.28);
+  --shadow-edge: inset 0 -2px 0 rgba(0, 0, 0, 0.24);
   --shadow-pop: 0 0 0 1px rgba(150, 180, 255, 0.12), 0 18px 40px -12px rgba(0, 0, 0, 0.75);
   --decor-glow: none;
   --decor-opacity: 0.26;
@@ -144,18 +150,19 @@
   --color-green: #15803D;
   --color-gold-soft: #F8E7BE;
   --color-gold: #D9930F;
-  --color-gold-deep: #B87A08;
+  --color-gold-deep: #9A6400;        /* gold as text and bar fill: 4.2:1 on panel-2 */
   --color-ink: #18202F;
   --color-text: #121A2B;
   --color-muted: #586379;
   --color-error: #C4344A;
-  --color-error-soft: #D9485E;
+  --color-error-soft: #B42A40;       /* error text on its tinted fill: AA */
   --color-glass: #FFFFFF;
   --color-glass-border: rgba(30, 55, 110, 0.12);
   --shadow-neu: 0 0 0 1px rgba(30, 55, 110, 0.14), 0 6px 16px -12px rgba(30, 55, 110, 0.3);
   --shadow-neu-inset: inset 0 0 0 1px rgba(30, 55, 110, 0.1);
-  --shadow-primary: 0 1px 0 rgba(255, 255, 255, 0.25) inset, 0 6px 14px -8px rgba(37, 99, 235, 0.42);
-  --shadow-secondary: 0 0 0 1px rgba(30, 55, 110, 0.14);
+  --shadow-primary: inset 0 -2px 0 rgba(15, 35, 90, 0.32);
+  --shadow-secondary: inset 0 0 0 1px rgba(30, 55, 110, 0.14), inset 0 -2px 0 rgba(30, 55, 110, 0.16);
+  --shadow-edge: inset 0 -2px 0 rgba(30, 55, 110, 0.14);
   --shadow-pop: 0 0 0 1px rgba(30, 55, 110, 0.12), 0 18px 40px -12px rgba(30, 55, 110, 0.3);
   --decor-glow: none;
   --decor-opacity: 0.22;
@@ -182,8 +189,7 @@ html, body, #root { height: 100vh; overflow: hidden; }
 body {
   background-image:
     radial-gradient(ellipse 60% 50% at 95% -10%, color-mix(in srgb, var(--color-primary) 28%, transparent), transparent 70%),
-    radial-gradient(ellipse 50% 45% at 0% 110%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 70%),
-    radial-gradient(ellipse 35% 35% at 60% 120%, color-mix(in srgb, #9B5CFF 12%, transparent), transparent 70%);
+    radial-gradient(ellipse 50% 45% at 0% 110%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 70%);
 }
 .backdrop { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .backdrop img {
@@ -244,6 +250,8 @@ input, textarea { caret-color: var(--color-primary); }
 @keyframes bar-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
 /* The launch cube and the pixel hop in the in-card progress. */
 @keyframes block-hop { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-8px) rotate(-6deg); } }
+/* The same hop at button size (Spinner): small enough to stay inside a 32px button. */
+@keyframes block-hop-sm { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-8deg); } }
 /* A running instance breathes. */
 @keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
 @keyframes hourglass { 0%, 70% { transform: rotate(0); } 85%, 100% { transform: rotate(180deg); } }
@@ -261,8 +269,8 @@ input, textarea { caret-color: var(--color-primary); }
 @keyframes hop-shadow { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.6); opacity: 0.5; } }
 /* An error arrives with one short sideways nudge, so it is noticed. */
 @keyframes nudge { 0%, 100% { transform: none; } 20% { transform: translateX(-5px); } 40% { transform: translateX(4px); } 60% { transform: translateX(-2px); } 80% { transform: translateX(1px); } }
-/* A skeleton's light sweeps across. */
-@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+/* A skeleton breathes in place: a flat fill, no light sweeping over it. */
+@keyframes skeleton-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 
 /* Cards: hover changes colour only. No entrance animation (it replayed on every page
    visit, see above), no will-change and no hover transform: WebKitGTK scrolls a page
@@ -276,7 +284,7 @@ input, textarea { caret-color: var(--color-primary); }
 /* Panel: a step lighter than the canvas with a hairline. Cards, forms, side panels.
    `panel-hover` brightens a clickable card's fill and edge; it never moves it. */
 @utility panel { @apply rounded-lg bg-panel shadow-neu transition-[background-color,box-shadow]; }
-@utility panel-hover { @apply hover:bg-panel-2 hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-primary)_55%,transparent),0_10px_24px_-14px_color-mix(in_srgb,var(--color-primary)_40%,transparent)]; }
+@utility panel-hover { @apply hover:bg-panel-2 hover:shadow-[0_0_0_1px_color-mix(in_srgb,var(--color-primary)_55%,transparent)]; }
 /* Feature: the one card that should be found first (the instance played last). A flat
    fill of the muted accent (--color-feature), no wash and no glow: a different tone, not a
    brighter panel. Text on it is on-feature (set by the caller on its content, so loaders and
@@ -285,6 +293,8 @@ input, textarea { caret-color: var(--color-primary); }
   @apply rounded-lg bg-feature shadow-neu transition-[background-color];
   &:hover { background-color: color-mix(in srgb, var(--color-feature) 88%, #000); }
   & .tag { background-color: color-mix(in srgb, var(--color-on-feature) 18%, transparent); color: var(--color-on-feature); }
+  /* The accent outline would vanish on the accent tone. */
+  &:focus-visible, & :focus-visible { outline-color: var(--color-on-feature); }
 }
 /* Content standing on panel-feature: text, muted text and hairlines re-pointed at
    on-feature, the live green at its bright value (light theme's deep green sinks into the
@@ -301,13 +311,28 @@ input, textarea { caret-color: var(--color-primary); }
 }
 /* Glass keeps its name for dialogs, popovers and notices; it is an opaque raised sheet. */
 @utility glass { @apply rounded-xl bg-glass shadow-glass; }
-/* Tag: add the fill: bg-tag-gray (neutral metadata), bg-green-soft (version),
-   bg-gold-soft (loader). */
-@utility tag { @apply inline-flex items-center gap-1.5 px-3 py-0.5 text-[11.5px] font-semibold leading-[1.5] text-ink rounded-full whitespace-nowrap; }
-/* Skeleton: a placeholder block with a shimmer (loading cards and rows). */
+/* Tag: add the fill. bg-tag-gray for every piece of metadata (version, loader,
+   category, model); bg-green-soft only for a live state (In use), bg-gold-soft only
+   for working or not-final (beta). 24px tall so a 16px sprite sits in it at 1:1. */
+@utility tag { @apply inline-flex items-center gap-1.5 h-6 px-2.5 text-xs font-semibold leading-none text-ink rounded-full whitespace-nowrap; }
+/* Selected, everywhere a choice is picked from a set (chips, icon cells, list rows,
+   theme cards, the current page): the accent as a tint and a hairline, never a solid
+   blue fill. Solid blue stays for the one main action of a screen. It is a state laid
+   over whatever the element is (a panel, an idle button), so it wins over their fill. */
+@utility selected {
+  background-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-panel-2)) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 60%, transparent) !important;
+  color: var(--color-text) !important;
+}
+/* A text button (Clear filters, Show details, more topics): underlined, with a taller
+   hit area than its line. The caller sets its colour and size. */
+@utility link { @apply py-1 -my-1 cursor-pointer bg-transparent border-0 px-0 font-[inherit] underline decoration-1 underline-offset-3 transition-colors; }
+/* A list row (worlds, backups, players, versions, files): one shape for all of them. */
+@utility row { @apply flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu; }
+/* A stat tile in a side panel: the label over a number with its item. */
+@utility stat { @apply flex flex-col min-w-0 px-2.5 py-1.5 rounded-md bg-panel-2; }
+/* Skeleton: a flat placeholder in the result's shape that breathes (cards and rows). */
 @utility skeleton {
-  @apply rounded-md;
-  background: linear-gradient(90deg, var(--color-panel-2) 25%, color-mix(in srgb, var(--color-panel-2) 60%, var(--color-text) 8%) 50%, var(--color-panel-2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s linear infinite;
+  @apply rounded-md bg-panel-2;
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
 }

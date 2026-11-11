@@ -33,11 +33,11 @@ export default function AccountMenu() {
   return (
     <div className="relative flex-none" ref={ref}>
       <button type="button" title={nickname} aria-expanded={open} onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-3 w-full h-12 px-2 rounded-md border-0 bg-transparent text-text cursor-pointer text-left transition-colors duration-150 hover:bg-panel-2 rail:justify-center">
-        <span className="flex-none grid place-items-center w-8 h-8 rounded-md bg-idle"><SkinFace png={face} size={22} /></span>
+        className="flex items-center gap-3 w-full h-12 px-2 rounded-md border-0 bg-transparent text-text cursor-pointer text-left transition-colors hover:bg-panel-2 rail:justify-center">
+        <span className="flex-none flex w-8 justify-center"><SkinFace png={face} size={24} /></span>
         <span className="flex-1 min-w-0 flex flex-col leading-tight rail:hidden">
           <span className="truncate text-sm font-semibold">{nickname || '?'}</span>
-          <span className="text-[11px] text-muted">{t.profiles.switch}</span>
+          <span className="text-xs text-muted">{t.profiles.switch}</span>
         </span>
         <span className="text-muted rail:hidden"><ChevronDown size={14} /></span>
       </button>
@@ -55,7 +55,7 @@ export default function AccountMenu() {
           <Button variant="idle" block className="justify-start bg-transparent" onClick={() => setLangOpen((v) => !v)}>
             <Globe size={16} />
             {currentLanguage?.name ?? language}
-            <span className={`ml-auto inline-flex transition-transform duration-150 ease-in-out ${langOpen ? 'rotate-180' : ''}`}><ChevronDown size={14} /></span>
+            <span className={`ml-auto inline-flex transition-transform ${langOpen ? 'rotate-180' : ''}`}><ChevronDown size={14} /></span>
           </Button>
           {langOpen && (
             <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pl-4">

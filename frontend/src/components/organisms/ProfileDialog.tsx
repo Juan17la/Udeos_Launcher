@@ -37,14 +37,14 @@ export default function ProfileDialog({ onClose }: { onClose: () => void }) {
           {nicknames.map((n) => {
             const active = n === nickname
             return (
-              <div key={n} className={`flex items-center gap-2 rounded-md transition-colors ${active ? 'bg-primary text-on-primary has-[>button:first-child:focus-visible]:outline-on-primary' : 'bg-idle hover:bg-idle-hover has-[>button:first-child:focus-visible]:outline-primary'} has-[>button:first-child:focus-visible]:outline-2 has-[>button:first-child:focus-visible]:-outline-offset-2`}>
+              <div key={n} className={`flex items-center gap-2 rounded-md transition-colors ${active ? 'selected has-[>button:first-child:focus-visible]:outline-primary' : 'bg-idle hover:bg-idle-hover has-[>button:first-child:focus-visible]:outline-primary'} has-[>button:first-child:focus-visible]:outline-2 has-[>button:first-child:focus-visible]:-outline-offset-2`}>
                 <button type="button" onClick={() => switchTo(n)} aria-current={active || undefined}
                   className="flex-1 min-w-0 flex items-center gap-4 px-4 py-3 text-left bg-transparent border-0 text-inherit cursor-pointer rounded-md focus-visible:outline-none!">
                   {/* The focus ring is drawn on the whole row (see its has-[…] classes), not on this half of it. */}
                   <SkinFace png={faceOf(n)} size={24} />
                   <span className="flex-1 min-w-0 flex flex-col">
                     <span className="font-bold truncate">{n}</span>
-                    <span className={`text-xs ${active ? 'text-on-primary/80' : 'text-muted'}`}>{n in counts ? fmt(t.profiles.instances, { n: counts[n] }) : '\u00a0'}</span>
+                    <span className="text-xs text-muted">{n in counts ? fmt(t.profiles.instances, { n: counts[n] }) : '\u00a0'}</span>
                   </span>
                   {active && <span className="text-xs font-bold">{t.profiles.active}</span>}
                 </button>

@@ -65,7 +65,7 @@ export default function InstancePage({ id }: { id: string }) {
       </>}>
         <div className="flex flex-col items-center gap-2 text-center w-full min-w-0">
           {/* Decorative: the first thing to give way when the window is very short, so the panel never needs a scrollbar. */}
-          <div className="[@media(max-height:570px)]:hidden"><InstanceIcon inst={inst} size={56} /></div>
+          <div className="[@media(max-height:570px)]:hidden"><InstanceIcon inst={inst} size={64} /></div>
           {/* w-full: a shrink-to-fit column has no width for the name's truncation to resolve against. */}
           <h3 className="m-0 w-full truncate text-[22px]" title={inst.name}>{inst.name}</h3>
           <InstanceTags inst={inst} className="justify-center" />
@@ -74,9 +74,9 @@ export default function InstancePage({ id }: { id: string }) {
 
         <dl className="m-0 grid grid-cols-2 gap-2">
           {stats.map(([label, value, icon]) => (
-            <div key={label} className="flex flex-col px-2.5 py-1.5 rounded-md bg-panel-2 min-w-0">
+            <div key={label} className="stat">
               <dt className="text-xs text-muted truncate">{label}</dt>
-              <dd className="m-0 flex items-center gap-1.5 text-base font-bold tabular-nums"><PixelIcon name={icon} size={14} />{value}</dd>
+              <dd className="m-0 flex items-center gap-1.5 font-mono text-base font-semibold tabular-nums"><PixelIcon name={icon} size={16} />{value}</dd>
             </div>
           ))}
         </dl>

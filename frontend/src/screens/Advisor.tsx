@@ -6,7 +6,8 @@ import { fmt } from '../i18n/format'
 import Button from '../components/atoms/Button'
 import { Input } from '../components/atoms/Field'
 import AutoLoader, { Spinner } from '../components/atoms/Loader'
-import { ChevronDown, Sparkles } from '../components/atoms/icons'
+import { ChevronDown, Plus, Sparkles } from '../components/atoms/icons'
+import PixelIcon from '../components/atoms/PixelIcon'
 import ErrorMessage from '../components/molecules/ErrorMessage'
 import ProjectIcon from '../components/atoms/ProjectIcon'
 import AISettings, { usable } from '../components/organisms/AISettings'
@@ -113,13 +114,13 @@ export default function Advisor({ instanceId }: { instanceId?: string }) {
     <main className="flex-1 flex flex-col gap-6 pt-8 px-10 pb-0">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4 flex-wrap">
-          <h2 className="m-0 inline-flex items-center gap-3"><Sparkles size={24} /> {t.ai.ask}</h2>
+          <h2 className="m-0 inline-flex items-center gap-3"><PixelIcon name="enchanted_book" size={32} />{t.ai.ask}</h2>
           <span className="tag bg-tag-gray">{inst ? fmt(a.adding, { name: inst.name }) : a.noInstance}</span>
         </div>
         {status && (
           <Button size="sm" variant={settingsOpen ? 'primary' : 'idle'} aria-expanded={settingsOpen} onClick={() => setSettingsOpen(!settingsOpen)}>
             {fmt(status.hasKey ? t.ai.ownKey : t.ai.builtIn, { provider })}
-            <span className={`inline-flex transition-transform duration-150 ${settingsOpen ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
+            <span className={`inline-flex transition-transform ${settingsOpen ? 'rotate-180' : ''}`}><ChevronDown size={12} /></span>
           </Button>
         )}
       </div>
@@ -134,7 +135,10 @@ export default function Advisor({ instanceId }: { instanceId?: string }) {
       <div className="flex-1 flex flex-col gap-8 w-full max-w-3xl mx-auto">
         {log.length === 0 && (
           <div className="flex flex-col items-center gap-5 text-center pt-10">
-            <span aria-hidden className="grid place-items-center w-16 h-16 rounded-md bg-primary text-on-primary shadow-primary"><Sparkles size={30} /></span>
+            <span aria-hidden className="flex flex-col items-center">
+              <PixelIcon name="enchanted_book" size={64} />
+              <span className="mt-1.5 h-1.5 w-12 rounded-full bg-text/15" />
+            </span>
             <h3 className="m-0">{a.heading}</h3>
             <p className="m-0 text-muted max-w-xl">{a.sub}</p>
             <div className="flex gap-3 flex-wrap justify-center">
@@ -145,7 +149,7 @@ export default function Advisor({ instanceId }: { instanceId?: string }) {
 
         {log.map((m, n) => {
           const isLast = n === log.length - 1
-          if (m.from === 'me') return <div key={n} className="self-end max-w-[85%] px-4 py-3 rounded-md bg-primary text-on-primary text-sm">{m.text}</div>
+          if (m.from === 'me') return <div key={n} className="self-end max-w-[85%] px-4 py-3 rounded-md bg-panel-2 shadow-neu text-sm">{m.text}</div>
           return (
             <div key={n} ref={isLast ? last : undefined} className="flex flex-col gap-4 scroll-mt-4">
               {m.error && <ErrorMessage message={m.error} action={m.retry && <Button size="sm" variant="primary" disabled={busy} onClick={() => send(m.retry!)}>{a.retry}</Button>} />}
@@ -159,7 +163,7 @@ export default function Advisor({ instanceId }: { instanceId?: string }) {
 
         {busy && (
           <div className="flex items-center gap-3 text-sm text-muted" role="status" aria-live="polite">
-            <Spinner size={16} /> {a.thinking[step]}
+            <Spinner icon="enchanted_book" /> {a.thinking[step]}
           </div>
         )}
         <AutoLoader subtle active={!status} label={t.common.loading} />
@@ -238,13 +242,13 @@ function PickCard({ result, reason, state, where, onAdd, onDetails }: { result: 
       </div>
       <div className="flex flex-col items-end gap-2 self-center">
         <div className="flex gap-2">
-          <Button size="sm" variant={state === undefined ? 'primary' : 'idle'} disabled={state !== undefined} onClick={onAdd}>
-            {state === 'busy' && <Spinner size={12} />}
+          <Button size="sm" variant={state === undefined ? 'secondary' : 'idle'} loading={state === 'busy'} disabled={state === 'added'} onClick={onAdd}>
+            {state === undefined && <span className="flex text-primary-hover"><Plus size={12} /></span>}
             {state === 'added' ? t.search.added : state === 'busy' ? t.search.adding : t.search.add}
           </Button>
           <Button size="sm" variant="idle" onClick={onDetails}>{t.search.details}</Button>
         </div>
-        {state === 'added' && where && <span className="text-[11px] text-muted">{fmt(t.ai.page.addedTo, { name: where })}</span>}
+        {state === 'added' && where && <span className="text-xs text-muted">{fmt(t.ai.page.addedTo, { name: where })}</span>}
       </div>
     </div>
   )

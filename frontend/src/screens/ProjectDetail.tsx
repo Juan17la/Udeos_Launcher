@@ -5,7 +5,7 @@ import { fmt } from '../i18n/format'
 import Button from '../components/atoms/Button'
 import Dialog from '../components/molecules/Dialog'
 import { Select } from '../components/atoms/Field'
-import AutoLoader, { SkeletonRows, Spinner } from '../components/atoms/Loader'
+import AutoLoader, { SkeletonRows } from '../components/atoms/Loader'
 import SegmentedControl from '../components/molecules/SegmentedControl'
 import ErrorMessage from '../components/molecules/ErrorMessage'
 import ProjectIcon from '../components/atoms/ProjectIcon'
@@ -90,11 +90,11 @@ export default function ProjectDetail({ result, instanceId }: Props) {
       {detail && !waiting && (
         <>
           <header className="flex gap-6 items-start flex-wrap">
-            <ProjectIcon url={detail.iconUrl} size={72} />
+            <ProjectIcon url={detail.iconUrl} size={64} />
             <div className="flex-[1_1_320px] min-w-0 flex flex-col gap-2">
               <div className="flex gap-2 flex-wrap">
                 <span className="tag bg-tag-gray">{t.search.types[result.projectType]}</span>
-                {detail.categories.slice(0, 4).map((c) => <span key={c} className="tag bg-green-soft">{t.search.topicNames[c] ?? c.replace(/-/g, ' ')}</span>)}
+                {detail.categories.slice(0, 4).map((c) => <span key={c} className="tag bg-tag-gray">{t.search.topicNames[c] ?? c.replace(/-/g, ' ')}</span>)}
               </div>
               <h1 className="m-0">{detail.title}</h1>
               <p className="m-0 text-muted">{detail.description}</p>
@@ -121,8 +121,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                     </Select>
                   )}
                   {/* Quiet until the plan says whether it is already in: never a blue Install that turns into Installed. */}
-                  <Button variant={preview?.status === 'ready' && !installed ? 'primary' : 'idle'} disabled={preview?.status !== 'ready' || installed || busy} onClick={() => enqueue(inst.id, result)}>
-                    {busy && <Spinner size={12} />}
+                  <Button variant={preview?.status === 'ready' && !installed ? 'primary' : 'idle'} loading={busy} disabled={preview?.status !== 'ready' || installed} onClick={() => enqueue(inst.id, result)}>
                     {installed ? t.detail.installed : busy ? t.search.adding : candidates.length > 1 ? t.detail.install : fmt(t.detail.installTo, { name: inst.name })}
                   </Button>
                   {preview?.status === 'loading' && <AutoLoader subtle active label={t.content.planning} />}
@@ -157,7 +156,7 @@ export default function ProjectDetail({ result, instanceId }: Props) {
                     {detail.gallery.map((g) => (
                       <figure key={g.url} className="m-0 flex flex-col gap-2">
                         <button type="button" onClick={() => setZoom(g)} aria-label={g.title || t.detail.gallery} className="p-0 border-0 bg-transparent cursor-zoom-in rounded-md">
-                          <img src={g.url} alt={g.title} loading="lazy" decoding="async" className="block w-full aspect-video object-cover rounded-md bg-panel transition-[filter] duration-150 hover:brightness-110" />
+                          <img src={g.url} alt={g.title} loading="lazy" decoding="async" className="block w-full aspect-video object-cover rounded-md bg-panel transition-[filter] hover:brightness-110" />
                         </button>
                         {(g.title || g.description) && <figcaption className="text-xs text-muted"><b>{g.title}</b>{g.title && g.description ? ': ' : ''}{g.description}</figcaption>}
                       </figure>
@@ -224,14 +223,14 @@ function Versions({ inst, result, reload, busy, onInstall }: { inst: Instance; r
   const current = list.some((v) => v.installed)
 
   const row = (v: VersionChoice) => (
-    <div key={v.id} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu flex-wrap">
+    <div key={v.id} className="row flex-wrap">
       <div className="flex-[1_1_200px] min-w-0 flex flex-col gap-1">
         <div className="text-sm font-bold truncate">{v.number}</div>
         <div className="text-xs text-muted truncate">{v.conflictWith ? fmt(t.detail.conflictWith, { name: v.conflictWith }) : v.name}</div>
       </div>
-      <span className={`tag ${v.type === 'release' ? 'bg-green-soft' : 'bg-gold-soft'}`}>{t.detail.releaseTypes[v.type]}</span>
+      <span className={`tag ${v.type === 'release' ? 'bg-tag-gray' : 'bg-gold-soft'}`}>{t.detail.releaseTypes[v.type]}</span>
       <span className="text-xs text-muted">{ago(v.datePublished, language)}</span>
-      <Button variant={v.installed ? 'idle' : 'primary'} size="sm" disabled={v.installed || busy || !!v.conflictWith} onClick={() => onInstall(v.id)}>
+      <Button variant={v.installed ? 'idle' : 'secondary'} size="sm" disabled={v.installed || busy || !!v.conflictWith} onClick={() => onInstall(v.id)}>
         {v.installed ? t.detail.installed : current ? t.detail.switchTo : t.detail.installThis}
       </Button>
     </div>

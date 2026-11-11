@@ -1,10 +1,13 @@
 import PixelIcon from './PixelIcon'
 import { useDelayed } from '../../hooks/useDelayed'
+import { useApp } from '../../state'
 
-/** The spinning ring every loader uses: a thin accent arc on a faint track.
- *  Small enough to sit inside a button or a notification. */
-export function Spinner({ size = 14 }: { size?: number }) {
-  return <span aria-hidden className="inline-block shrink-0 rounded-full border-[1.5px] border-current/25 border-t-current motion-safe:animate-spin" style={{ width: size, height: size }} />
+/** The small "working" mark: a 16px grass block doing a short hop, the same moment as
+ *  BlockHop at button size. Sits inside a button, a chip, a notice or a status line.
+ *  Always drawn at 16px (1:1 with the texture, so its pixels stay square); with reduced
+ *  motion it is a still block next to its label. */
+export function Spinner({ icon = 'grass_block_side' }: { icon?: string }) {
+  return <PixelIcon name={icon} size={16} className="motion-safe:animate-[block-hop-sm_0.9s_var(--ease-out)_infinite]" />
 }
 
 /** Progress bar. `value` 0-100 is measured work (game files, downloads); omit it
@@ -14,7 +17,7 @@ export function Spinner({ size = 14 }: { size?: number }) {
  *  bar lag behind the number next to it. `tone="gold"` is the slow expected run
  *  (first install, loader patching): it reads as "normal, wait", not stuck. */
 export function ProgressBar({ value, tone, className = '', label }: { value?: number; tone?: 'gold'; className?: string; label?: string }) {
-  const fill = tone === 'gold' ? 'bg-gold' : 'bg-primary'
+  const fill = tone === 'gold' ? 'bg-gold-deep' : 'bg-primary'
   const known = value !== undefined
   return (
     <div role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={known ? Math.round(value) : undefined}
@@ -27,7 +30,8 @@ export function ProgressBar({ value, tone, className = '', label }: { value?: nu
 }
 
 /** A grass block hopping over its shadow: the launcher's own "loading", for waits that
- *  fill a region (a listing, the app boot). Buttons and notices keep the small Spinner. */
+ *  fill a region (a listing, the app boot). Buttons and notices use Spinner, the same hop
+ *  at 16px. Sizes stay multiples of 16 so the texture's pixels stay square. */
 export function BlockHop({ size = 24, icon = 'grass_block_side' }: { size?: number; icon?: string }) {
   return (
     <span aria-hidden className="inline-flex flex-col items-center shrink-0" style={{ width: size }}>
@@ -42,7 +46,7 @@ export function BlockHop({ size = 24, icon = 'grass_block_side' }: { size?: numb
  *  (useDelayed: a fast load shows nothing, so nothing blinks) and leaves the moment it is false. `overlay` centres it over the whole window
  *  (app boot); otherwise it is an inline block. `subtle` is the quiet form for
  *  a check the player waits on inside something else (Add's compatibility
- *  check): a small ring and muted text. Where the shape of the result is known
+ *  check): the small hopping block and muted text. Where the shape of the result is known
  *  (cards, rows) prefer a skeleton of that shape over this. */
 export default function AutoLoader({ active: wanted, label, overlay, subtle }: { active: boolean; label?: string; overlay?: boolean; subtle?: boolean }) {
   const active = useDelayed(wanted, subtle ? 400 : 250) // a quick check (subtle) is not worth a blink at all
@@ -50,7 +54,7 @@ export default function AutoLoader({ active: wanted, label, overlay, subtle }: {
   if (subtle) {
     return (
       <div className="flex items-center gap-2 text-[13px] text-muted" role="status" aria-live="polite" aria-busy="true">
-        <Spinner size={14} />
+        <Spinner />
         {label && <span>{label}</span>}
       </div>
     )
@@ -68,7 +72,7 @@ export default function AutoLoader({ active: wanted, label, overlay, subtle }: {
   }
   const pill = (
     <div className="glass inline-flex items-center gap-3 px-5 py-3" role="status" aria-live="polite" aria-busy="true">
-      <BlockHop size={22} />
+      <BlockHop size={32} />
       {label && <span className="text-sm font-medium text-text whitespace-nowrap">{label}</span>}
     </div>
   )
@@ -79,10 +83,11 @@ export default function AutoLoader({ active: wanted, label, overlay, subtle }: {
  *  backups): the shape of the result, so the page does not jump when it lands.
  *  `grid` is the tile form (screenshots). Announced once as busy. */
 export function SkeletonRows({ active: wanted, n = 4, grid }: { active: boolean; n?: number; grid?: boolean }) {
+  const { t } = useApp()
   const active = useDelayed(wanted)
   if (!active) return null
   return (
-    <div className={` ${grid ? 'grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'flex flex-col gap-2'}`} role="status" aria-busy="true" aria-label="Loading">
+    <div className={` ${grid ? 'grid gap-4 grid-cols-[repeat(auto-fill,minmax(200px,1fr))]' : 'flex flex-col gap-2'}`} role="status" aria-busy="true" aria-label={t.common.loading}>
       {Array.from({ length: n }, (_, i) => <div key={i} className={`skeleton ${grid ? 'aspect-16/10' : 'h-14'}`} style={{ animationDelay: `${i * 90}ms` }} />)}
     </div>
   )

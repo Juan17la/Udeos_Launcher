@@ -7,6 +7,6 @@ import PixelIcon from './PixelIcon'
 export default function ProjectIcon({ url, size }: { url?: string; size: number }) {
   const [failed, setFailed] = useState(false)
   const [loaded, setLoaded] = useState(false)
-  if (!url || failed) return <PixelIcon name="stone" size={size} className="rounded-md" />
+  if (!url || failed) return <PixelIcon name="stone" size={size} />
   return <img src={url} alt="" loading="lazy" decoding="async" width={size} height={size} className={`rounded-md object-cover shrink-0 ${loaded ? '' : 'bg-panel-2'}`} onLoad={() => setLoaded(true)} onError={() => setFailed(true)} />
 }

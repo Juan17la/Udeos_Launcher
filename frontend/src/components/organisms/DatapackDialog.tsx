@@ -8,7 +8,7 @@ import { api } from '../../api/bridge'
 import { fmt } from '../../i18n/format'
 import type { Instance, SearchResult, World } from '../../api/types'
 
-const ROW = 'flex items-center gap-4 w-full text-left cursor-pointer rounded-md border-0 px-4 py-3 bg-idle text-on-idle shadow-neu hover:bg-primary hover:text-on-primary transition-all duration-150 ease-in-out focus-visible:outline-2 focus-visible:outline-primary'
+const ROW = 'flex items-center gap-4 w-full text-left cursor-pointer rounded-md border-0 px-4 py-3 bg-idle text-on-idle shadow-neu hover:bg-idle-hover transition-colors'
 
 /** A datapack goes into a world: pick the instance (unless the page already
  *  is one), then the world. A server has a single world, so choosing one

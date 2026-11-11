@@ -1,4 +1,4 @@
-// Lucide-style stroked icons used across the launcher (stroke 2.75 per the design system).
+// Lucide-style stroked icons used across the launcher: stroke 2 on most, a touch heavier (2.25 to 2.5) on the smallest glyphs so they hold at 9 to 13px.
 type P = { size?: number }
 const base = (size: number, sw: number) => ({
   width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor',

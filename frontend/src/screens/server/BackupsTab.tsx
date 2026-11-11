@@ -49,7 +49,7 @@ export default function BackupsTab({ server }: { server: Server }) {
       {items?.length === 0 && <Empty icon="experience_bottle">{t.servers.backups.empty}</Empty>}
       <div className="flex flex-col gap-3">
         {items?.map((f) => (
-          <div key={f.name} className="flex items-center gap-4 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+          <div key={f.name} className="row">
             <div className="flex-1 min-w-0 flex flex-col gap-1">
               <div className="text-[15px] font-bold truncate">{date(f)}</div>
               <div className="text-xs text-muted truncate">{bytes(f.sizeBytes)} · {f.name}</div>

@@ -1,24 +1,24 @@
 import { ReactNode, useState } from 'react'
-import { Download } from '../atoms/icons'
+import PixelIcon from '../atoms/PixelIcon'
 
 /** Drag-and-drop target. Native file drops on it arrive with real paths
  *  (see onFileDrop); the browser drop only ends the hover state. `--wails-drop-target` marks the element for Wails. `prominent`
- *  makes it the page's main action: tinted, with an icon, a bold `text`
- *  and a `hint` under it. */
+ *  makes it the page's main way in: larger, with an item, a bold `text` and a `hint`
+ *  under it. It stays neutral until a file hovers it; then the edge turns blue. */
 export default function DropZone({ text, hint, children, className = '', prominent }: { text: string; hint?: string; children?: ReactNode; className?: string; prominent?: boolean }) {
   const [over, setOver] = useState(false)
   const look = prominent
-    ? `flex-wrap gap-5 px-6 py-5 border-[1.5px] ${over ? 'border-primary bg-primary/25' : 'border-primary/50 bg-primary/8'}`
-    : `flex-wrap gap-4 p-4 border-[1.5px] text-sm text-muted ${over ? 'border-primary bg-primary/10' : 'border-idle'}`
+    ? `flex-wrap gap-5 px-6 py-5 border-[1.5px] ${over ? 'border-primary bg-primary/10' : 'border-text/20'}`
+    : `flex-wrap gap-4 p-4 border-[1.5px] text-sm text-muted ${over ? 'border-primary bg-primary/10' : 'border-text/20'}`
   return (
     <div
-      className={`flex items-center justify-center rounded-md border-dashed transition-colors duration-150 ${look} ${className}`}
+      className={`flex items-center justify-center rounded-md border-dashed transition-colors ${look} ${className}`}
       style={{ ['--wails-drop-target' as string]: 'drop' }}
       onDragOver={(e) => { e.preventDefault(); setOver(true) }} onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOver(false) }} onDrop={(e) => { e.preventDefault(); setOver(false) }}
     >
       {prominent ? (
         <>
-          <span aria-hidden className="flex-none grid place-items-center w-12 h-12 rounded-md bg-primary text-on-primary shadow-primary"><Download size={22} /></span>
+          <PixelIcon name="diamond_chestplate" size={48} />
           <span className="flex-1 min-w-40 flex flex-col gap-1">
             <span className="text-base font-bold">{text}</span>
             {hint && <span className="text-xs text-muted">{hint}</span>}

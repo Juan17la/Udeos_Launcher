@@ -195,7 +195,7 @@ export default function SkinEditor({ id }: { id?: string }) {
             <div className="grid grid-cols-[repeat(4,12px)] grid-rows-[24px_36px_36px] gap-0.5" role="group" aria-label={e.showParts}>
               {DOLL.map(([part, area]) => (
                 <button key={part} type="button" style={{ gridArea: area }} title={e.parts[part]} aria-label={e.parts[part]} aria-pressed={!hidden.has(part)} onClick={() => togglePart(part)}
-                  className={`rounded-[3px] border-0 cursor-pointer transition-colors duration-150 ${hidden.has(part) ? 'bg-transparent outline-1 outline-dashed outline-muted -outline-offset-1' : 'bg-primary hover:bg-primary-hover'}`} />
+                  className={`rounded-[3px] border-0 cursor-pointer transition-colors ${hidden.has(part) ? 'bg-transparent outline-1 outline-dashed outline-muted -outline-offset-1' : 'bg-primary hover:bg-primary-hover'}`} />
               ))}
             </div>
           </div>
@@ -310,7 +310,7 @@ function Swatches({ colors, color, onPick, label }: { colors: string[]; color: s
     <div className="grid grid-cols-[repeat(auto-fill,minmax(22px,1fr))] gap-1.5 w-full" role="group" aria-label={label}>
       {colors.map((c) => (
         <button key={c} type="button" title={c} aria-label={c} aria-pressed={c.toLowerCase() === color.toLowerCase()} onClick={() => onPick(c.toLowerCase())}
-          className={`aspect-square rounded-sm border-0 shadow-neu cursor-pointer transition-transform duration-150 hover:-translate-y-px ${c.toLowerCase() === color.toLowerCase() ? 'outline-2 outline-text outline-offset-1' : ''}`} style={{ background: c }} />
+          className={`aspect-square rounded-sm border-0 shadow-neu cursor-pointer transition-[outline-color] hover:outline-1 hover:outline-text/40 ${c.toLowerCase() === color.toLowerCase() ? 'outline-2 outline-text outline-offset-1' : ''}`} style={{ background: c }} />
       ))}
     </div>
   )

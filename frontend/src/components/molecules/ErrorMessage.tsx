@@ -18,7 +18,7 @@ export default function ErrorMessage({ message, onDismiss, compact, className, a
       {action && <span className="block mt-2">{action}</span>}
       {hasRaw && (
         <>
-          {' '}<button type="button" className="underline cursor-pointer bg-transparent border-0 p-0 text-inherit font-[inherit]" aria-expanded={open} onClick={() => setOpen(!open)}>
+          {' '}<button type="button" className="link text-inherit" aria-expanded={open} onClick={() => setOpen(!open)}>
             {open ? t.errors.hideDetails : t.errors.showDetails}
           </button>
           {open && <span className="block mt-2 break-all select-text">{f.raw}</span>}

@@ -1,11 +1,12 @@
 import type { InputHTMLAttributes, LabelHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
 import { Check, ChevronDown } from './icons'
 
-/** Form controls: a flat well with a hairline, the accent ring on focus.
+/** Form controls: a flat well with a hairline; focus is the same 2px accent outline
+ *  as every other control (tokens.css :focus-visible), not a glow ring.
  *  Disabled keeps the same size and still shows its value; that is how a
- *  locked filter (Search with an instance in context) reads. Same height as a
- *  md Button so a field and its button align. */
-const control = 'w-full h-10 px-3.5 text-sm text-text bg-panel-2 rounded-md border-0 shadow-neu caret-primary transition-[box-shadow,background-color] duration-150 hover:bg-idle focus:bg-panel-2 focus:shadow-focus focus:outline-none disabled:bg-idle disabled:text-text disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none placeholder:text-muted'
+ *  locked filter (Search with an instance in context) reads. 40px, the height of
+ *  a md Button, so a field and its button align. */
+const control = 'w-full h-10 px-3.5 text-sm text-text bg-panel-2 rounded-md border-0 shadow-neu caret-primary transition-[box-shadow,background-color] hover:bg-idle focus:bg-panel-2 disabled:bg-idle disabled:text-text disabled:opacity-70 disabled:cursor-not-allowed disabled:shadow-none placeholder:text-muted'
 
 export function Label({ className = '', ...rest }: LabelHTMLAttributes<HTMLLabelElement>) {
   return <label className={`block text-xs font-medium mb-1.5 text-muted ${className}`} {...rest} />
@@ -42,7 +43,7 @@ export function Checkbox({ label, className = '', ...rest }: CheckboxProps) {
   return (
     <label className={`inline-flex items-center gap-3 cursor-pointer text-sm select-none ${className}`}>
       <input type="checkbox" className="peer absolute w-0 h-0 opacity-0 pointer-events-none appearance-none rounded-md" {...rest} />
-      <span className="w-5.5 h-5.5 flex-none inline-flex items-center justify-center rounded-sm bg-panel-2 text-on-idle shadow-neu transition-[background-color,box-shadow] duration-150 peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary peer-focus-visible:outline-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
+      <span className="w-5.5 h-5.5 flex-none inline-flex items-center justify-center rounded-sm bg-panel-2 text-on-idle shadow-neu transition-[background-color,box-shadow] peer-checked:bg-primary peer-checked:text-on-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary peer-focus-visible:outline-offset-2 [&>svg]:opacity-0 peer-checked:[&>svg]:opacity-100">
         <Check size={13} />
       </span>
       {label !== undefined && <span>{label}</span>}

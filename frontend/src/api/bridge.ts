@@ -3,7 +3,7 @@
 // `window.runtime` (events, dialogs). When the page runs outside Wails
 // (`vite dev` in a browser), an in-memory mock stands in so the UI can be
 // worked on without building the desktop app.
-import type { JoinExport, JoinInfo, AIAnswer, AITurn, AIProvider, AIStatus, Alternatives, AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionChoice, VersionList, World } from './types'
+import type { JoinExport, JoinInfo, AIAnswer, AITurn, AIProvider, AIStatus, Alternatives, AppInfo, Update, ContentEntry, ContentPlan, FileEntry, GameEvent, Instance, LaunchSettings, Loader, LoaderOption, PlayerList, ProfileState, Profile, ProjectDetail, ProjectType, Progress, SearchGameVersion, SearchPage, Server, ServerPlayers, StartProgress, Skin, SkinFile, SkinLibrary, SkinModel, SortBy, VersionChoice, VersionList, World } from './types'
 
 type Backend = {
   GetAppInfo(): Promise<AppInfo>
@@ -153,6 +153,7 @@ type Events = {
   'game:state': GameEvent
   'server:log': { id: string; line: string }
   'server:state': { id: string }
+  'server:progress': StartProgress
   /** The window was closed while servers run: confirm, then QuitLauncher. */
   'app:close': { running: number }
 }

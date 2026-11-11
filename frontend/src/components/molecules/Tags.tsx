@@ -4,13 +4,14 @@ import { useApp } from '../../state'
 import { compact, loaderName, versionRange } from '../../utils/format'
 import type { Instance } from '../../api/types'
 
-/** The tags every card uses, formatted one way: the Minecraft version(s) in
- *  green behind a grass block, loaders in gold. */
+/** The tags every card uses, formatted one way: neutral metadata, the Minecraft
+ *  version(s) in Geist Mono behind a grass block, the loader beside it. No status
+ *  colour here: green and gold are kept for things that are happening. */
 
 export function VersionTag({ versions }: { versions: string[] }) {
   const label = versionRange(versions)
   if (!label) return null
-  return <span className="tag bg-green-soft gap-1.5" title={versions.length > 1 ? versions.join(', ') : undefined}><PixelIcon name="grass_block_side" size={11} />{label}</span>
+  return <span className="tag bg-tag-gray pl-1 font-mono font-medium" title={versions.length > 1 ? versions.join(', ') : undefined}><PixelIcon name="grass_block_side" size={16} />{label}</span>
 }
 
 /** Loader tags, at most `max` then "+N" (the rest in the title). */
@@ -18,8 +19,8 @@ export function LoaderTags({ loaders, max = 3 }: { loaders: string[]; max?: numb
   const names = [...new Set(loaders.map(loaderName))]
   return (
     <>
-      {names.slice(0, max).map((l) => <span key={l} className="tag bg-gold-soft">{l}</span>)}
-      {names.length > max && <span className="tag bg-gold-soft" title={names.slice(max).join(', ')}>+{names.length - max}</span>}
+      {names.slice(0, max).map((l) => <span key={l} className="tag bg-tag-gray">{l}</span>)}
+      {names.length > max && <span className="tag bg-tag-gray" title={names.slice(max).join(', ')}>+{names.length - max}</span>}
     </>
   )
 }
@@ -40,7 +41,7 @@ export function InstanceTags({ inst, className = '', short }: { inst: Instance; 
   return (
     <div className={`flex gap-2 min-w-0 ${className}`}>
       <VersionTag versions={[inst.version]} />
-      <span className="tag bg-gold-soft min-w-0" title={inst.loaderLabel}><span className="truncate">{short ? inst.loader : inst.loaderLabel}</span></span>
+      <span className="tag bg-tag-gray min-w-0" title={inst.loaderLabel}><span className="truncate">{short ? inst.loader : inst.loaderLabel}</span></span>
     </div>
   )
 }

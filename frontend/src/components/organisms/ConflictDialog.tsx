@@ -43,7 +43,7 @@ export default function ConflictDialog({ instanceId, result, onClose }: { instan
           <div className="flex flex-col gap-2">
             <h6 className="m-0">{t.conflict.otherVersions}</h6>
             {alt.versions.map((v) => (
-              <div key={v.id} className="flex items-center gap-3 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
+              <div key={v.id} className="row gap-3">
                 <div className="flex-1 min-w-0 flex flex-col">
                   <span className="text-sm font-bold truncate">{v.number}</span>
                   <span className="text-xs text-muted">{t.detail.releaseTypes[v.type]} · {ago(v.datePublished, language)}</span>
@@ -57,8 +57,8 @@ export default function ConflictDialog({ instanceId, result, onClose }: { instan
           <div className="flex flex-col gap-2">
             <h6 className="m-0">{t.conflict.similar}</h6>
             {alt.similar.map((r) => (
-              <div key={r.id} className="flex items-center gap-3 px-4 py-3 rounded-md bg-panel-2 shadow-neu">
-                <ProjectIcon url={r.iconUrl} size={36} />
+              <div key={r.id} className="row gap-3">
+                <ProjectIcon url={r.iconUrl} size={32} />
                 <div className="flex-1 min-w-0 flex flex-col">
                   <span className="text-sm font-bold truncate">{r.title}</span>
                   <span className="text-xs text-muted line-clamp-1">{r.description}</span>

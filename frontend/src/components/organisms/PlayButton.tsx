@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Play, Stop } from '../atoms/icons'
 import { Spinner } from '../atoms/Loader'
+import StatusDot from '../atoms/StatusDot'
 import Button from '../atoms/Button'
 import { ConfirmDialog } from '../molecules/Dialog'
 import LaunchStrip from '../molecules/LaunchStrip'
@@ -23,7 +24,7 @@ export default function PlayButton({ inst, size = 'md', className = '', compact,
   if (inst.running) return <Playing inst={inst} size={size} className={className} />
   return (
     <Button variant={quiet ? 'secondary' : inverse ? 'inverse' : 'primary'} size={size} block className={className} disabled={busy} onClick={() => play(inst.id)}>
-      <span className={`flex ${quiet ? 'text-primary' : ''}`}><Play size={size === 'lg' ? 15 : 12} /></span>{t.common.play}
+      <span className={`flex ${quiet ? 'text-primary-hover' : ''}`}><Play size={size === 'lg' ? 15 : 12} /></span>{t.common.play}
     </Button>
   )
 }
@@ -36,12 +37,9 @@ function Playing({ inst, size, className }: { inst: Instance; size: 'md' | 'lg';
   const [ask, setAsk] = useState(false)
   const [closing, setClosing] = useState(false)
   return (
-    <div role="status" className={`flex items-center gap-2.5 w-full min-w-0 ${size === 'lg' ? 'h-13 pl-4' : 'h-11 pl-3.5'} pr-1.5 rounded-lg bg-green-soft shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-green)_55%,transparent)] ${className}`}>
-      <span aria-hidden className="relative flex-none flex w-2.5 h-2.5">
-        <span className="absolute inset-0 rounded-full bg-green opacity-60 motion-safe:animate-[live-ring_1.6s_ease-out_infinite]" />
-        <span className="relative w-2.5 h-2.5 rounded-full bg-green" />
-      </span>
-      <span className="flex-1 min-w-0 truncate text-sm font-extrabold text-text">{mins < 1 ? t.game.justStarted : fmt(t.game.playingFor, { n: mins })}</span>
+    <div role="status" className={`flex items-center gap-2.5 w-full min-w-0 ${size === 'lg' ? 'h-12 pl-4' : 'h-10 pl-3.5'} pr-1 rounded-md bg-green-soft shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-green)_55%,transparent)] ${className}`}>
+      <StatusDot tone="on" />
+      <span className="flex-1 min-w-0 truncate text-sm font-bold text-text">{mins < 1 ? t.game.justStarted : fmt(t.game.playingFor, { n: mins })}</span>
       {/* Big chips (hero, instance page) spell it out: a frozen game is a panic moment. */}
       {size === 'lg'
         ? <Button variant="ghost" size="sm" onClick={() => setAsk(true)}><Stop size={11} />{t.game.stop}</Button>
@@ -60,8 +58,8 @@ function Opening({ inst, size, className }: { inst: Instance; size: 'md' | 'lg';
   const { t } = useApp()
   const { stop } = useLaunch()
   return (
-    <div role="status" aria-busy="true" className={`flex items-center gap-2.5 w-full min-w-0 ${size === 'lg' ? 'h-13 pl-4' : 'h-11 pl-3.5'} pr-1.5 rounded-lg bg-panel-2 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_40%,transparent)] ${className}`}>
-      <span className="flex-none flex text-primary"><Spinner size={size === 'lg' ? 16 : 14} /></span>
+    <div role="status" aria-busy="true" className={`flex items-center gap-2.5 w-full min-w-0 ${size === 'lg' ? 'h-12 pl-4' : 'h-10 pl-3.5'} pr-1 rounded-md bg-panel-2 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-primary)_55%,transparent)] ${className}`}>
+      <Spinner />
       <span className="flex-1 min-w-0 truncate text-sm font-bold text-text" title={t.game.opening}>{size === 'lg' ? t.game.opening : t.game.openingShort}</span>
       <Button variant="ghost" size="sm" square title={t.game.stop} aria-label={t.game.stop} onClick={() => stop(inst.id)}><Stop size={11} /></Button>
     </div>
