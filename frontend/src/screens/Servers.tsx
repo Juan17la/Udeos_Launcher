@@ -54,7 +54,7 @@ function ServerCard({ server }: { server: Server }) {
       </div>
       <ServerProgress server={server} className={`relative pointer-events-none ${on}`} />
       <div className="relative flex mt-auto">
-        <ServerButton server={server} quiet />
+        <ServerButton server={server} />
       </div>
     </div>
   )
