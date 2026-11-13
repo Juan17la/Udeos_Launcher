@@ -5,6 +5,14 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+## [3.4.1-beta] - 2026-11-13
+
+### Changed
+
+- Play on every instance card, Start on every server card and New instance
+  in the sidebar are solid blue again, so they no longer look disabled.
+- The Delete area at the bottom of instance Settings has a light red tint.
+
 ## [3.4.0-beta] - 2026-11-11
 
 ### Changed
