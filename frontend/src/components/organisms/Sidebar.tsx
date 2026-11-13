@@ -45,8 +45,8 @@ export default function Sidebar() {
       </div>
 
       {/* On a create page the button would only point at the page you are on: it steps aside (keeping its room, so nothing jumps). */}
-      <Button variant="secondary" block disabled={creating} aria-hidden={creating} tabIndex={creating ? -1 : undefined} onClick={make.go} title={make.label} className={`rail:px-0 ${creating ? 'invisible' : ''}`}>
-        <span className="flex text-primary-hover"><Plus size={15} /></span><span className="rail:hidden">{make.label}</span>
+      <Button variant="primary" block disabled={creating} aria-hidden={creating} tabIndex={creating ? -1 : undefined} onClick={make.go} title={make.label} className={`rail:px-0 ${creating ? 'invisible' : ''}`}>
+        <span className="flex"><Plus size={15} /></span><span className="rail:hidden">{make.label}</span>
       </Button>
 
       <nav aria-label={t.app.name} className="flex flex-col gap-1">

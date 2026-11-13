@@ -131,7 +131,7 @@ function InstanceCard({ inst }: { inst: Instance }) {
       {/* One line of the same height, so cards with and without counts match. */}
       <div className="relative h-4 truncate text-xs text-muted pointer-events-none">{inst.lastPlayed ? meta.join(' · ') : t.dashboard.neverPlayed}</div>
       <div className="relative flex mt-auto">
-        <PlayButton inst={inst} compact quiet />
+        <PlayButton inst={inst} compact />
       </div>
     </div>
   )
@@ -150,7 +150,7 @@ function InstanceRow({ inst }: { inst: Instance }) {
       <div className="relative hidden min-[1100px]:block flex-none pointer-events-none"><InstanceTags inst={inst} short /></div>
       <div className="relative hidden min-[1280px]:block flex-none w-44 truncate text-xs text-muted pointer-events-none">{inst.lastPlayed ? meta.join(' · ') || ago(inst.lastPlayed, language) : t.dashboard.neverPlayed}</div>
       <div className="relative flex-none flex w-52">
-        <PlayButton inst={inst} compact quiet />
+        <PlayButton inst={inst} compact />
       </div>
     </div>
   )

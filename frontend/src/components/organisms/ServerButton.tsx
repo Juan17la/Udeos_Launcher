@@ -24,9 +24,8 @@ export const shareAddress = (s: Server): { kind: 'internet' | 'lan'; address: st
  *  world the button reads Cancel (Stop works at any point); while it saves
  *  and stops it is a loading ring. Starting a third server at once asks
  *  first. A failed start opens a dialog (the console keeps the full story);
- *  a cancelled one does not. `quiet`: a neutral Start with a blue triangle, for cards
- *  (the solid blue stays for the one main action of a page, like PlayButton). */
-export default function ServerButton({ server, size = 'md', className = '', quiet }: { server: Server; size?: 'md' | 'lg'; className?: string; quiet?: boolean }) {
+ *  a cancelled one does not. */
+export default function ServerButton({ server, size = 'md', className = '' }: { server: Server; size?: 'md' | 'lg'; className?: string }) {
   const { t, servers, refreshInstances } = useApp()
   const [error, setError] = useState<string | null>(null)
   const [others, setOthers] = useState(0)
@@ -49,8 +48,8 @@ export default function ServerButton({ server, size = 'md', className = '', quie
     <>
       {server.running && !stopping
         ? <Button variant="idle" size={size} block className={className} onClick={stop}><Stop size={x} /> {ready ? t.servers.stop : t.servers.cancelStart}</Button>
-        : <Button variant={quiet ? 'secondary' : 'primary'} size={size} block className={className} loading={stopping} onClick={askStart}>
-            {!stopping && <span className={`flex ${quiet ? 'text-primary-hover' : ''}`}><Play size={size === 'lg' ? 16 : 13} /></span>} {stopping ? t.servers.stopping : t.servers.start}
+        : <Button variant="primary" size={size} block className={className} loading={stopping} onClick={askStart}>
+            {!stopping && <span className="flex"><Play size={size === 'lg' ? 16 : 13} /></span>} {stopping ? t.servers.stopping : t.servers.start}
           </Button>}
       {others > 0 && (
         <ConfirmDialog title={t.servers.manyTitle} body={fmt(t.servers.many, { n: others })} confirmLabel={t.servers.startAnyway}

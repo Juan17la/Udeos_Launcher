@@ -13,7 +13,7 @@ import type { ProjectType } from '../../api/types'
 /** The bottom of a Settings tab: the one destructive action, kept away from Play. */
 export function DangerZone({ title, body, onDelete, disabled }: { title: string; body: string; onDelete: () => void; disabled?: boolean }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 px-5 py-4 rounded-lg shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-error)_35%,transparent)]">
+    <div className="flex flex-wrap items-center gap-4 px-5 py-4 rounded-lg bg-error/10 backdrop-blur-md shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-error)_35%,transparent)]">
       <div className="flex-1 min-w-60">
         <div className="font-bold text-sm">{title}</div>
         <p className="m-0 mt-1 text-[13px] text-muted">{body}</p>
