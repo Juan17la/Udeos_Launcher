@@ -14,7 +14,7 @@ helper are all built in.
 [![Platforms](https://img.shields.io/badge/Windows%20%7C%20Linux%20%7C%20macOS-555?label=runs%20on)](#download)
 [![License](https://img.shields.io/badge/license-MIT-FFAA00)](LICENSE)
 
-[Download](#download) · [Features](#what-you-can-do) · [User guide](docs/user-guide/getting-started.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md)
+[Website](https://udeouslauncherwebsite.pages.dev/) · [Download](#download) · [Features](#what-you-can-do) · [User guide](docs/user-guide/getting-started.md) · [Documentation](docs/README.md) · [Changelog](CHANGELOG.md)
 
 <br />
 
